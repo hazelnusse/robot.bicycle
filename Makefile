@@ -55,7 +55,7 @@ endif
 #
 
 # Define project name here
-PROJECT = ch
+PROJECT = robot.bike
 PROJECTDIR = .
 
 # Imported source files and paths
