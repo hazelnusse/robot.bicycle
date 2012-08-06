@@ -145,7 +145,9 @@ bool SampleAndControl::isEnabled() const
 void SampleAndControl::Disable()
 {
   chThdTerminate(Control_tp_);
+  chThdWait(Control_tp_);
   chThdTerminate(Write_tp_);
+  chThdWait(Write_tp_);
   Enabled_ = false;
 }
 
