@@ -3,6 +3,7 @@
 
 #include "ch.h"
 #include "chprintf.h"
+#include "hal.h"
 
 #include "Sample.h"
 #include "SpeedController.h"
@@ -128,13 +129,13 @@ void SpeedController<T>::Update(const Sample & s)
 template <class T>
 inline void SpeedController<T>::EnableHubMotor()
 {
-
+  palClearPad(GPIOC, 11);
 }
 
 template <class T>
 inline void SpeedController<T>::DisableHubMotor()
 {
-
+  palSetPad(GPIOC, 11);
 }
 
 template class SpeedController<int32_t>;
