@@ -1,3 +1,5 @@
 dataprocessing-build
 build
 .dep
+.*.cpp.sw?
+.*.h.sw?
