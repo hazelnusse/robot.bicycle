@@ -22,7 +22,7 @@ msg_t SampleAndControlBlinkThread(void * arg)
   chRegSetThreadName("sc_blink");
   while (1) {
     palTogglePad(IOPORT3, GPIOC_LED_STATUS2);
-    chThdSleepMilliseconds(sc.isEnabled() ? 125 : 1000);
+    chThdSleepMilliseconds(sc.Enabled() ? 125 : 1000);
   }
   return 0;
 }

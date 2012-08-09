@@ -11,9 +11,9 @@ class SpeedController {
   static SpeedController & Instance();
   static void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
   void Enable();
-  bool isEnabled() const;
+  bool Enabled() const;
   void Disable();
-  bool isDisabled() const;
+  bool Disabled() const;
   void SetPoint(const T speed);
   T SetPoint() const;
   T MinSetPoint() const;

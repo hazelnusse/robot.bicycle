@@ -4,6 +4,7 @@
 #include <cstddef>
 
 #include "ch.h"
+#include "ff.h"
 
 class SampleAndControl {
  public:
@@ -11,24 +12,25 @@ class SampleAndControl {
   static void chshellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
   static msg_t Control(void * arg);
   void Enable();
-  bool isEnabled() const;
+  bool Enabled() const { return Enabled_; }
   void Disable();
-  bool isDisabled() const;
+  bool Disabled() const { return !Enabled_; }
   void SetFilename(const char * name);
   char * Filename() const;
 
  private:
-  void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
-  static msg_t WriteThread(void * arg);
   SampleAndControl();
   ~SampleAndControl();
-  static void *operator new(std::size_t, void * location);
-  static SampleAndControl * instance_;
-  Thread * Control_tp_, * Write_tp_;
-  bool Enabled_;
-  char Filename_[24];
   SampleAndControl & operator=(const SampleAndControl &) = delete;
   SampleAndControl(const SampleAndControl &) = delete;
-};
+  void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
+  static void *operator new(std::size_t, void * location);
+  static SampleAndControl * instance_;
 
+  Thread * Control_tp_;
+  bool Enabled_;
+  char Filename_[24];
+  static FIL f_;
+  static WORKING_AREA(waControlThread, 1024);
+};
 #endif // SAMPLEANDCONTROL_H

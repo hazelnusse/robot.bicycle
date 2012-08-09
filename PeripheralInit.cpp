@@ -13,14 +13,14 @@
 // Private functions
 static void configureRCC();
 static void configureEncoderTimers(void);
-static void configureMotorTimers();
+static void configureMotorPWM();
 
-// This function is called early on in main() 
+// This function is called in boardInit(), which is called during halInit()
 void PeripheralInit()
 {
   configureRCC();           // Enable peripheral clocks
   configureEncoderTimers(); // Configure TIM3,TIM4
-  configureMotorTimers();   // Configure TIM1 PWM
+  configureMotorPWM();   // Configure TIM1 PWM
 }
 
 static void configureRCC()
@@ -81,7 +81,7 @@ void configureEncoderTimers(void)
   TIM3->CR1 = TIM4->CR1 = static_cast<uint16_t>(0x0001);
 } // configureEncoderTimers()
 
-static void configureMotorTimers()
+static void configureMotorPWM()
 {
   // Order of operations in TIMEBASE_INIT:
   // CR1
@@ -131,4 +131,4 @@ static void configureMotorTimers()
 
   // TIM1 Main Output Enable
   STM32_TIM1->BDTR = (1 << 15);
-} // configureMotorTimers()
+} // configureMotorPWM()

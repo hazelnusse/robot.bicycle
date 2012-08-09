@@ -13,9 +13,9 @@ SpeedController<T> * SpeedController<T>::instance_ = 0;
 
 template <class T>
 SpeedController<T>::SpeedController()
-  : Enabled_(true), SetPoint_(3.0), MinSetPoint_(3.0)
+  : Enabled_(false), SetPoint_(3.0), MinSetPoint_(3.0)
 {
-
+  DisableHubMotor();
 }
 
 template <class T>
@@ -26,7 +26,7 @@ inline void SpeedController<T>::Enable()
 }
 
 template <class T>
-inline bool SpeedController<T>::isEnabled() const
+inline bool SpeedController<T>::Enabled() const
 {
   return Enabled_;
 }
@@ -39,7 +39,7 @@ inline void SpeedController<T>::Disable()
 }
 
 template <class T>
-inline bool SpeedController<T>::isDisabled() const
+inline bool SpeedController<T>::Disabled() const
 {
   return !Enabled_;
 }
@@ -71,7 +71,7 @@ template <class T>
 void SpeedController<T>::cmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
   if (argc == 0) { // toggle enabled/disabled
-    if (isEnabled()) {
+    if (Enabled()) {
       Disable();
       chprintf(chp, "Speed control disabled.\r\n");
     } else {
@@ -129,13 +129,15 @@ void SpeedController<T>::Update(const Sample & s)
 template <class T>
 inline void SpeedController<T>::EnableHubMotor()
 {
-  palClearPad(GPIOC, 11);
+  STM32_TIM1->CCR[0] = 0; // 0% duty cycle
+  palClearPad(GPIOC, 11); // enable
 }
 
 template <class T>
 inline void SpeedController<T>::DisableHubMotor()
 {
-  palSetPad(GPIOC, 11);
+  STM32_TIM1->CCR[0] = 0; // 0% duty cycle
+  palSetPad(GPIOC, 11);   // disable
 }
 
 template class SpeedController<int32_t>;

@@ -3,11 +3,18 @@
 
 SampleBuffer * SampleBuffer::instance_ = 0;
 
+Sample SampleBuffer::buffer[NUMBER_OF_SAMPLES];
+WORKING_AREA(SampleBuffer::waWriteThread, 1024);
+
 SampleBuffer::SampleBuffer()
-  : buffer0(reinterpret_cast<uint8_t *>(&(buffer[0]))),
-    buffer1(reinterpret_cast<uint8_t *>(&(buffer[NUMBER_OF_SAMPLES/2]))),
-    i_(0), tp_(NULL), LogData(true)
+  : buffer0(reinterpret_cast<uint8_t *>(buffer)),
+    buffer1(reinterpret_cast<uint8_t *>(buffer + NUMBER_OF_SAMPLES/2)),
+    i_(0), tp_(NULL), f_(NULL)
 {
+  tp_ = chThdCreateStatic(waWriteThread,
+                          sizeof(waWriteThread),
+                          NORMALPRIO, WriteThread, NULL);
+
 
 }
 
@@ -29,17 +36,19 @@ void SampleBuffer::HoldMagnetometer()
 
 SampleBuffer & SampleBuffer::operator++()
 {
-  ++i_;
-  if (i_ == NUMBER_OF_SAMPLES) {
+  if (++i_ == NUMBER_OF_SAMPLES) {
     i_ = 0;
-    if (LogData)
-      chMsgSend(tp_, 0);
+    chMsgSend(tp_, 0);  // triggers a call to f_write() on back buffer
   } else if (i_ == NUMBER_OF_SAMPLES / 2) {
-    if (LogData)
-      chMsgSend(tp_, 0);
+    chMsgSend(tp_, 0);  // triggers a call to f_write() on back buffer
   }
 
   return *this;
+}
+
+void SampleBuffer::Flush()
+{
+  chMsgSend(tp_, 1);  // triggers a call to f_write on front buffer
 }
 
 void * SampleBuffer::operator new(std::size_t, void * location)
@@ -62,17 +71,38 @@ uint8_t * SampleBuffer::BackBuffer()
   return (i_ < (NUMBER_OF_SAMPLES/2)) ? buffer1 : buffer0;
 }
 
-void SampleBuffer::EnableLogging()
+uint8_t * SampleBuffer::FrontBuffer()
 {
-  LogData = true;
-}
-
-void SampleBuffer::DisableLogging()
-{
-  LogData = false;
+  return (i_ < (NUMBER_OF_SAMPLES/2)) ? buffer0 : buffer0;
 }
 
 void SampleBuffer::setWriteThread(Thread * tp)
 {
   tp_ = tp;
+}
+
+msg_t SampleBuffer::WriteThread(void * arg)
+{
+  UINT bytes;
+  chRegSetThreadName("WriteThread");
+  SampleBuffer & sb = SampleBuffer::Instance();
+
+  while (!sb.File())
+    chThdYield();
+
+  while (true) {
+    Thread * messaging_tp = chMsgWait();
+    msg_t message = chMsgGet(messaging_tp);
+    chMsgRelease(messaging_tp, 0);
+    if (message == 0) { // write the back buffer
+      f_write(sb.File(), sb.BackBuffer(),
+              sizeof(Sample)*NUMBER_OF_SAMPLES/2, &bytes);
+      f_sync(sb.File());
+    } else if (message == 1) { // flush the front buffer
+      f_write(sb.File(), sb.FrontBuffer(),
+              sizeof(Sample)*sb.Count(), &bytes);
+    }
+  }
+
+  return 0;
 }

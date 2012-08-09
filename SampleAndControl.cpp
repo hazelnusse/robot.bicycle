@@ -14,9 +14,11 @@
 #include "SpeedController.h"
 
 SampleAndControl * SampleAndControl::instance_ = 0;
+WORKING_AREA(SampleAndControl::waControlThread, 1024);
+FIL SampleAndControl::f_;
 
 SampleAndControl::SampleAndControl()
-  : Control_tp_(0), Write_tp_(0), Enabled_(false)
+  : Control_tp_(NULL), Enabled_(false)
 {
   SetFilename("samples.dat");
 }
@@ -45,6 +47,7 @@ msg_t SampleAndControl::Control(void * arg)
     s.systemTime = chTimeNow();            // Store ChibioOS/RT clock
     ITG3200Acquire(s);
     ADXL345Acquire(s);
+    // copy magnetometer signal to the current sample
     (i++ % 4 == 0) ? HMC5843Acquire(s) : sb.HoldMagnetometer();
     s.steerAngle = STM32_TIM3->CNT; // Capture encoder angle
     s.steerRate = 0;                // need to setup place to store values of CCR1
@@ -52,7 +55,7 @@ msg_t SampleAndControl::Control(void * arg)
     s.frontWheelRate = 0;           // need to setup place to store values of CCR1
 
     // Compute new speed control action if controller is enabled.
-    if (speedControl.isEnabled() && (i % 20 == 0))
+    if (speedControl.Enabled() && (i % 20 == 0))
       speedControl.Update(s);
 
     ++sb;                   // Increment to the next sample
@@ -60,30 +63,9 @@ msg_t SampleAndControl::Control(void * arg)
     // Otherwise go to sleep until next 5ms interval
     chThdSleepUntil(time);
   }
+  sb.Flush();
+  chThdExit(0);
   return 0;
-}
-
-/*
- * SD Card writing thread, awoken from SampleBuffer increment operation
- */
-msg_t SampleAndControl::WriteThread(void * arg)
-{
-  UINT bytes;
-  static FIL f;
-  SampleBuffer & sampleBuff = SampleBuffer::Instance();
-  chRegSetThreadName("WriteThread");
-
-  msg_t res = f_open(&f, static_cast<char *>(arg), FA_CREATE_ALWAYS | FA_WRITE);
-  if (res != FR_OK)
-    return res;
-
-  while (!chThdShouldTerminate()) {
-    
-    chMsgRelease(chMsgWait(), 0); // wait until there is data to write
-    f_write(&f, sampleBuff.BackBuffer(), sizeof(Sample)*NUMBER_OF_SAMPLES/2, &bytes);
-    f_sync(&f);
-  }
-  return f_close(&f);
 }
 
 void SampleAndControl::chshellcmd(BaseSequentialStream *chp, int argc, char *argv[])
@@ -94,16 +76,28 @@ void SampleAndControl::chshellcmd(BaseSequentialStream *chp, int argc, char *arg
 void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
   if (argc == 0) { // toggle enabled/disabled
-    if (isEnabled()) {
+    if (Enabled()) {
       Disable();
-      chprintf(chp, "Sample & Control thread disabled.\r\n");
+      if (Disabled()) {
+        chprintf(chp, "Sample & Control thread disabled.\r\n");
+      } else {
+        chprintf(chp, "Unable to disable Sample & Control thread.\r\n");
+      }
     } else {
       Enable();
-      chprintf(chp, "Sample & Control thread enabled.\r\n");
+      if (Enabled()) {
+        chprintf(chp, "Sample & Control thread enabled.\r\n");
+      } else {
+        chprintf(chp, "Unable to enable Sample & Control thread.\r\n");
+      }
     }
   } else if (argc == 1) { // change filename
-    SetFilename(argv[0]);
-    chprintf(chp, "Filename changed to %s.\r\n", Filename_);
+    if (Enabled()) {
+      chprintf(chp, "Disable control thread before changing files.\r\n");
+    } else {
+      SetFilename(argv[0]);
+      chprintf(chp, "Filename changed to %s.\r\n", Filename_);
+    }
   }
   return;
 }
@@ -124,36 +118,35 @@ void * SampleAndControl::operator new(std::size_t, void * location)
   return location;
 }
 
+/*
+ * This function should:
+ * 1) Open a FIL object in write mode with filename Filename_
+ *   a) if unable, return without Enabling
+ * 2) Get a reference to SampleBuffer call connectToFile(&f);
+ *   a) file must be Open and Writable for this to work.  It is up to client of
+ *      SampleBuffer to ensure this is the case, no error checking is
+ *      performed.
+ * 3) Start the control thread.
+ */
 void SampleAndControl::Enable()
 {
-  static WORKING_AREA(waWriteThread, 256);
-  Write_tp_ = chThdCreateStatic(waWriteThread,
-                                sizeof(waWriteThread),
-                                NORMALPRIO, WriteThread, Filename_);
-  SampleBuffer::Instance().setWriteThread(Write_tp_);
-  static WORKING_AREA(waControlThread, 256);
-  Control_tp_ = chThdCreateStatic(waControlThread, sizeof(waControlThread),
-                                  NORMALPRIO, Control, this);
-  Enabled_ = true;
-}
+  if (f_open(&SampleAndControl::f_, Filename_, FA_CREATE_ALWAYS | FA_WRITE))
+    return;
 
-bool SampleAndControl::isEnabled() const
-{
-  return Enabled_;
+  SampleBuffer::Instance().File(&SampleAndControl::f_);
+
+  Control_tp_ = chThdCreateStatic(SampleAndControl::waControlThread,
+                                  sizeof(waControlThread),
+                                  NORMALPRIO, Control, NULL);
+  Enabled_ = true;
 }
 
 void SampleAndControl::Disable()
 {
   chThdTerminate(Control_tp_);
   chThdWait(Control_tp_);
-  chThdTerminate(Write_tp_);
-  chThdWait(Write_tp_);
+  Control_tp_ = NULL;
   Enabled_ = false;
-}
-
-bool SampleAndControl::isDisabled() const
-{
-  return !Enabled_;
 }
 
 void SampleAndControl::SetFilename(const char * name)
