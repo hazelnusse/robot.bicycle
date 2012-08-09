@@ -28,8 +28,8 @@
 /*
  * Board identifier.
  */
-#define BOARD_OLIMEX_STM32_P107
-#define BOARD_NAME              "Olimex STM32-P107"
+#define BOARD_OLIMEX_STM32_H107
+#define BOARD_NAME              "Olimex STM32-H107"
 
 /*
  * Board frequencies.
@@ -127,7 +127,7 @@
  */
 #define VAL_GPIOCCRL            0x22882882      /*  PC7...PC0 */
 #define VAL_GPIOCCRH            0x44822822      /* PC15...PC8 */
-#define VAL_GPIOCODR            0xFFFFF53F
+#define VAL_GPIOCODR            0xFFFFFA3F
 
 /*
  * Port D setup:
@@ -147,12 +147,12 @@
 
 /*
  * Port E setup.
- * Everything input with pull-up except:
- * PE9  - Alternate PP      (TIM1_CH1, remapped, steer duty).
- * PE11 - Normal input      (TIM1_CH2, remapped, rear wheel duty).
+ * Everything input pull-up
+ *
+ * PE9 and PE11 get changed to AF Push Pull in boardInit()
  */
 #define VAL_GPIOECRL            0x88888888      /*  PE7...PE0 */
-#define VAL_GPIOECRH            0x8888A8A8      /* PE15...PE8 */
+#define VAL_GPIOECRH            0x88888888      /* PE15...PE8 */
 #define VAL_GPIOEODR            0xFFFFFFFF
 
 #if !defined(_FROM_ASM_)

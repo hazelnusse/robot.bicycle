@@ -20,6 +20,7 @@
 
 #include "ch.h"
 #include "hal.h"
+#include "PeripheralInit.h"
 
 /**
  * @brief   PAL setup.
@@ -42,8 +43,8 @@ const PALConfig pal_default_config =
  * This initialization must be performed just after stack setup and before
  * any other initialization.
  */
-void __early_init(void) {
-
+void __early_init(void)
+{
   stm32_clock_init();
 }
 
@@ -65,8 +66,10 @@ bool_t mmc_lld_is_write_protected(MMCDriver *mmcp) {
 /*
  * Board-specific initialization code.
  */
-void boardInit(void) {
-
+void boardInit(void)
+{
+  // Configure peripherals
+  PeripheralInit();
   /*
    * Several I/O pins are re-mapped:
    *   TIM1 to PE7-P15 pins, full remap
@@ -76,4 +79,8 @@ void boardInit(void) {
   AFIO->MAPR |= AFIO_MAPR_TIM1_REMAP_FULLREMAP |
                 AFIO_MAPR_TIM4_REMAP |
                 AFIO_MAPR_USART2_REMAP;
+
+  // Switch PE11 and PE9 to Alternate function output
+  GPIOE->CRH = 0x8888A8A8;
+
 }
