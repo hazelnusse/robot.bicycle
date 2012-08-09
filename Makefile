@@ -15,7 +15,7 @@ endif
 
 # C++ specific options here (added to USE_OPT).
 ifeq ($(USE_CPPOPT),)
-  USE_CPPOPT = -fno-rtti -fno-exceptions -std=c++11
+  USE_CPPOPT = -fno-rtti -fno-exceptions -std=c++0x
 endif
 
 # Enable this if you want the linker to remove unused code and data
@@ -85,7 +85,7 @@ CSRC = $(PORTSRC) \
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CPPSRC = BlinkThread.cpp \
+CPPSRC = BlinkThreads.cpp \
 				 PeripheralInit.cpp \
 				 main.cpp \
 				 ITG3200.cpp \
@@ -133,8 +133,8 @@ INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
 #
 
 MCU  = cortex-m3
-
-TRGT = arm-none-eabi-
+TOOLCHAINDIR = /home/luke/Eclipse-ARM/gcc-arm-none-eabi-4_6-2012q2/bin/
+TRGT = $(TOOLCHAINDIR)/arm-none-eabi-
 CC   = $(TRGT)gcc
 CPPC = $(TRGT)g++
 # Enable loading with g++ only if you need C++ runtime support.
