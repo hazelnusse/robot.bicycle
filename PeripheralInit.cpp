@@ -83,58 +83,52 @@ void configureEncoderTimers(void)
 
 static void configureMotorTimers()
 {
-  // TIM3 Frequency = TIM3 counter clock / (ARR + 1)
+  // Order of operations in TIMEBASE_INIT:
+  // CR1
+  // ARR
+  // PSC
+  // RCR
+  // EGR
+  
+  // Disable the timer
+  // STM32_TIM1->CR1 = 0; // reset state
+
+  // TIM1 Frequency = TIM1 counter clock / (ARR + 1)
   //                = 18 MHz / 2^14
   //                = 1098.63 Hz
-  STM32_TIM1->ARR = (uint16_t) 0x3FFF; // 2^14 - 1
-  STM32_TIM1->PSC = (uint16_t) 0x0003; // Results in 18MHz TIM3 Counter clock
+  STM32_TIM1->ARR = 0x3FFF; // 2^14 - 1
+
+  // TIM1 counter clock = 72.0 MHz / (PSC + 1)
+  STM32_TIM1->PSC = 3; // Results in 18MHz TIM3 Counter clock
   // STM32_TIM1->RCR = 0; // reset state is fine
-  STM32_TIM1->EGR = (uint16_t) 0x0001;  // immediately update
+  STM32_TIM1->EGR = 1; // immediately update
 
-  // CR2 settings
-  // Reset state is fine.
-  // STM32_TIM1->CR2 = 0x0000;
-
-  // CCMR1
-  // OC2CE -- 0b0   -- OC2Ref not affected by ETRF Input
-  // OC2M  -- 0b110 -- PWM Mode 1
-  // OC2PE -- 0b1   -- CH2 preload enable
-  // OC2FE -- 0b0   -- CH2 fast enable
-  // CC2S  -- 0b00  -- CH2 is output
-  // OC1CE -- 0b1   -- OC2Ref not affected by ETRF Input
-  // OC1M  -- 0b110 -- PWM Mode 1
-  // OC1PE -- 0b1  --  CH1 preload enable
-  // OC1FE -- 0b0  --  CH1 fast enable
-  // CC1S  -- 0b00  -- CH1 is output
-  // NOT SURE ABOUT OC1CE, OC2CE, OC1FE, OC2FE.  Reset state is 0 for these
-  // bits and my test PWM code didn't modify them, and the PWM looked fine, so
-  // I will assume this is correct.
-  STM32_TIM1->CCMR1 = 0x6868;
-
-  // CCMR2
-  // Reset state is fine.
-  // STM32_TIM1->CCMR2 = 0x0000; // This is for CH3 and CH4, aren't used
+  // Order of operation in OCXInit:
+  // Disable CCxE CCER
+  // Write to TIM1 CR2 (set/clear OIS1/OIS1N/OIS2/OIS2N)
+  // Write to TIM1 CCMR1 (set/clear OC1M/OC2M, clear CC1S/CC2S)
+  // Write to CCRx 
+  // Write to CCER
   
-  // CCR1 and CCR2 
-  // reset state is fine -- 0% duty cycle
-  // STM32_TIM1->CCR1 = STM32_TIM1->CCR2 = 0x0000;
+  // Disable all outputs
+  // STM32_TIM1->CCER = 0; // reset state
+  // Set OIS1 & OIS2 so that in idle state, OC1 & OC2 are set (0% duty cycle)
+  STM32_TIM1->CR2 = (1 << 8) | (1 << 10);
 
-  // CCER
-  // CC2P -- 0b1 -- Active Low
-  // CC2E -- 0b1 -- Enable CC2
-  // CC1P -- 0b1 -- Active Low
-  // CC1E -- 0b1 -- Enable CC1
-  STM32_TIM1->CCER = (uint16_t) 0x0033;
+  // Select PWM2 mode for OC1 and OC2 (OC inactive when CNT<CCR1)
+  STM32_TIM1->CCMR1 = 0x7070;
 
-  // CR1
-  // CKD -- clock division -- 0
-  // ARPE -- ARR buffering -- 1
-  // DIR -- count up -- 0
-  // CMS -- edge-aligned mode -- 0
-  // CEN -- enable -- 1
-  STM32_TIM1->CR1 = (uint16_t) 0x0081;
+  // Select 0% duty cycle
+  // STM32_TIM1->CCR[0] = STM32_TIM1->CCR[1] = 0; // reset state
 
-  // BDTR
-  // MOE -- 0b1 -- Main output enable
-  STM32_TIM1->BDTR = (uint16_t) 0x8000;
+  // Select OC1 and OC2 polarity to active high and enable them.
+  // This means that while CNT  < CCRX, OCX is inactive and hence high.
+  //                 while CNT >= CCRX, OCX is   acitve and hence low.
+  STM32_TIM1->CCER = 0x0011;
+
+  // TIM1 counter enable
+  STM32_TIM1->CR1 = 1;
+
+  // TIM1 Main Output Enable
+  STM32_TIM1->BDTR = (1 << 15);
 } // configureMotorTimers()
