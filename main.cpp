@@ -6,8 +6,7 @@
 
 #include "ff.h"
 
-#include "BlinkThread.h"
-#include "PeripheralInit.h"
+#include "BlinkThreads.h"
 #include "SampleAndControl.h"
 #include "SpeedController.h"
 
@@ -70,8 +69,8 @@ static void tmrfunc(void *p) {
  *
  * @notapi
  */
-static void tmr_init(void *p) {
-
+static void tmr_init(void *p)
+{
   chEvtInit(&inserted_event);
   chEvtInit(&removed_event);
   chSysLock();
@@ -186,7 +185,7 @@ int main()
 {
   static const evhandler_t evhndl[] = { InsertHandler, RemoveHandler };
   Thread *shelltp = NULL;
-  struct EventListener el0, el1;
+  static struct EventListener el0, el1;
 
   /*
    * System initializations.
@@ -195,48 +194,30 @@ int main()
    * - Kernel initialization, the main() function becomes a thread and the
    *   RTOS is active.
    */
-  PeripheralInit(); // My initialization code
   halInit();
   chSysInit();
   chRegSetThreadName("main");
 
-  /*
-   * Activates the serial driver 2 using the driver default configuration.
-   */
-  sdStart(&SD2, NULL);
+  sdStart(&SD2, NULL); // Activate serial driver 2 using default configuration
+  shellInit();         // Shell manager initialization
 
-  /*
-   * Shell manager initialization.
-   */
-  shellInit();
+  // SD card configuration
+  mmcObjectInit(&MMCD1);     // Initialize MMCD1
+  mmcStart(&MMCD1, &mmccfg); // Configure and activate MMCD1 for SPI2
+  tmr_init(&MMCD1);          // Activates the card insertion monitor.
 
-  /*
-   * Initializes the MMC driver to work with SPI2.
-   */
-  mmcObjectInit(&MMCD1);
-  mmcStart(&MMCD1, &mmccfg);
-
-  /*
-   * Activates the card insertion monitor.
-   */
-  tmr_init(&MMCD1);
-
-  /*
-   * I2C driver instance.
-   */
+  // I2C onfiguration
   static const I2CConfig i2cfg = { OPMODE_I2C, 400000, FAST_DUTY_CYCLE_2 };
-  /*
-   * Initialize and start the I2C driver
-   */
-  i2cObjectInit(&I2CD1);
-  i2cStart(&I2CD1, &i2cfg);
+  i2cObjectInit(&I2CD1);    // Initialize I2CD1
+  i2cStart(&I2CD1, &i2cfg); // Configure and activate I2CD1 
 
-  /*
-   * Creates the blinker thread.
-   */
-  static WORKING_AREA(waBlinkThread, 128);
-  chThdCreateStatic(waBlinkThread, sizeof(waBlinkThread),
-                    NORMALPRIO, BlinkThread, &fs_ready);
+  // Blink threads
+  static WORKING_AREA(waFileSystemBlinkThread, 128);
+  chThdCreateStatic(waFileSystemBlinkThread, sizeof(waFileSystemBlinkThread),
+                    NORMALPRIO, FileSystemBlinkThread, &fs_ready);
+  static WORKING_AREA(waSampleAndControlBlinkThread, 128);
+  chThdCreateStatic(waSampleAndControlBlinkThread, sizeof(waSampleAndControlBlinkThread),
+                    NORMALPRIO, SampleAndControlBlinkThread, NULL);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except
