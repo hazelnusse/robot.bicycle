@@ -8,7 +8,7 @@
 #include "SampleAndControl.h"
 
 // There are 4 ways this interrupt gets called.
-// 1) Rising edge on UE   (Timer overflow)
+// 1) Timer overflow
 // 2) Rising edge on IC1  ( Rear wheel encoder A)
 // 3) Rising edge on IC2  (Front wheel encoder A)
 // 4) Risign edge on IC3  (      Steer encoder A)
