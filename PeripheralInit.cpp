@@ -70,15 +70,13 @@ void configureEncoderTimers(void)
   STM32_TIM4->CCER = static_cast<uint16_t>(0x0111);
 
   // Enable interrupts on UE, IC1, IC2, IC3
-  // STM32_TIM4->DIER = static_cast<uint16_t>(0x000F);
+  STM32_TIM4->DIER = static_cast<uint16_t>(0x000F);
 
-  // Clear the counters
-  STM32_TIM3->CNT = static_cast<uint16_t>(0x0000);
+  // Clear the steer counter
+  STM32_TIM3->CNT = 0;
 
-  // Enable all three counters
-  // Do this instead when the singleton classes for rear wheel, front wheel,
-  // and steer are created
-  TIM3->CR1 = TIM4->CR1 = static_cast<uint16_t>(0x0001);
+  // Enable both counters
+  STM32_TIM3->CR1 = STM32_TIM4->CR1 = static_cast<uint16_t>(0x0001);
 } // configureEncoderTimers()
 
 static void configureMotorPWM()

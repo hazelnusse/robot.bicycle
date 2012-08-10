@@ -13,9 +13,11 @@
 #include "SampleBuffer.h"
 #include "SpeedController.h"
 
+// Class static data
 SampleAndControl * SampleAndControl::instance_ = 0;
 WORKING_AREA(SampleAndControl::waControlThread, 1024);
 FIL SampleAndControl::f_;
+EncoderTimers SampleAndControl::timers;
 
 SampleAndControl::SampleAndControl()
   : Control_tp_(NULL), Enabled_(false)
@@ -135,9 +137,12 @@ void SampleAndControl::Enable()
 
   SampleBuffer::Instance().File(&SampleAndControl::f_);
 
+  nvicEnableVector(TIM4_IRQn, CORTEX_PRIORITY_MASK(7));
+
   Control_tp_ = chThdCreateStatic(SampleAndControl::waControlThread,
                                   sizeof(waControlThread),
                                   NORMALPRIO, Control, NULL);
+
   Enabled_ = true;
 }
 
@@ -146,6 +151,7 @@ void SampleAndControl::Disable()
   chThdTerminate(Control_tp_);
   chThdWait(Control_tp_);
   Control_tp_ = NULL;
+  nvicDisableVector(TIM4_IRQn);
   Enabled_ = false;
 }
 

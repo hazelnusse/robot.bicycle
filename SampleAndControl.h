@@ -6,6 +6,8 @@
 #include "ch.h"
 #include "ff.h"
 
+#include "EncoderTimers.h"
+
 class SampleAndControl {
  public:
   static SampleAndControl & Instance();
@@ -17,6 +19,7 @@ class SampleAndControl {
   bool Disabled() const { return !Enabled_; }
   void SetFilename(const char * name);
   char * Filename() const;
+  static EncoderTimers timers;
 
  private:
   SampleAndControl();
