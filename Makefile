@@ -93,7 +93,8 @@ CPPSRC = BlinkThreads.cpp \
 				 HMC5843.cpp \
 				 SampleBuffer.cpp \
 				 SpeedController.cpp \
-				 SampleAndControl.cpp
+				 SampleAndControl.cpp \
+				 Interrupts.cpp
 				 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
