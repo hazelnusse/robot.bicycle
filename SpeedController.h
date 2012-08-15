@@ -18,7 +18,7 @@ class SpeedController {
   T SetPoint() const;
   T MinSetPoint() const;
   void MinSetPoint(T min);
-  void Update(const Sample & s);
+  void Update(uint32_t PeriodCounts);
 
  private:
   SpeedController();
@@ -32,6 +32,7 @@ class SpeedController {
   T SetPoint_;
   T MinSetPoint_;
   static SpeedController * instance_;
+
 };
 
 typedef SpeedController<int32_t> IntSpeedController;

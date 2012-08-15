@@ -23,7 +23,7 @@ CH_IRQ_HANDLER(VectorB8)
                                               // events
   static uint32_t pre_overflow_cnt[3] = {0, 0, 0};  // used to store the count
 
-  uint16_t sr = STM32_TIM4->SR;   // Save TIM4 status register
+  uint32_t sr = STM32_TIM4->SR;   // Save TIM4 status register
   uint32_t dir = GPIOA->IDR;      // Save GPIOA; encoders B channel state
   STM32_TIM4->SR = ~sr;           // Write zero to bits high at time of SR read
                                   // note that writing '1' has no effect on SR
@@ -78,9 +78,9 @@ CH_IRQ_HANDLER(VectorB8)
 
       // Direction, input is on GPIOA, pins 0, 1, 2
       if (dir & (1 << i))     // Encoder B line is high
-        SampleAndControl::timers.Direction[i] = EncoderTimers::cw;
+        SampleAndControl::timers.Clockticks[i] |= (1 << 31);  // set high bit
       else                    // Encoder B line is low
-        SampleAndControl::timers.Direction[i] = EncoderTimers::ccw;
+        SampleAndControl::timers.Clockticks[i] &= ~(1 << 31); // clear high bit
     }
   }
 

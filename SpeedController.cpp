@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <cstdint>
+#include <cmath>
 
 #include "ch.h"
 #include "chprintf.h"
@@ -118,12 +119,36 @@ void SpeedController<T>::MinSetPoint(T min)
 }
 
 template <class T>
-void SpeedController<T>::Update(const Sample & s)
+void SpeedController<T>::Update(uint32_t PeriodCounts)
 {
-  int16_t a = s.acc[0];
-  a*=2;
-  // Need to implement logic which takes latest speed measurement and computes
-  // the appropriate PWM CCR register value
+  (void) PeriodCounts;
+  // PeriodCounts has units of TIM4 clock ticks per cycle of rear wheel
+  // encoder.  TIM4 clock is at 36MHz, one cycle of rear wheel is 2.0*M_PI/200
+  // rad.
+  static const float sf = 2.0 * 3.14 * 36e6 / 200.0;
+  static const float current_max = 6.0;
+  float current = 3.0*(SetPoint() - sf / PeriodCounts);
+  
+  // Set direction
+  if (current > 0.0) {
+    palSetPad(GPIOC, 12);    // set to forward direction
+  } else {
+    palClearPad(GPIOC, 12);  // set to reverse direction
+  }
+
+  // Make current positive
+  current = std::fabs(current);
+
+  // Saturate current at max continuous current of Copley drive
+  if (current > current_max)
+    current = current_max;
+
+  // Convert from current to PWM duty cycle;
+  float duty = current / current_max;   // float in range of [0.0, 1.0]
+
+  // Convert duty cycle to an uint32_t in range of [0, TIM4->ARR + 1] and set
+  // it in TIM1
+  STM32_TIM1->CCR[0] = static_cast<uint32_t>((STM32_TIM1->ARR + 1) * duty);
 }
 
 template <class T>

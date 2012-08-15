@@ -52,13 +52,13 @@ msg_t SampleAndControl::Control(void * arg)
     // copy magnetometer signal to the current sample
     (i++ % 4 == 0) ? HMC5843Acquire(s) : sb.HoldMagnetometer();
     s.steerAngle = STM32_TIM3->CNT; // Capture encoder angle
-    s.steerRate = 0;                // need to setup place to store values of CCR1
-    s.rearWheelRate = 0;            // need to setup place to store values of CCR2
-    s.frontWheelRate = 0;           // need to setup place to store values of CCR1
+    s.rearWheelRate = SampleAndControl::timers.Clockticks[0];
+    s.frontWheelRate = SampleAndControl::timers.Clockticks[1];
+    s.steerRate = SampleAndControl::timers.Clockticks[2];
 
     // Compute new speed control action if controller is enabled.
     if (speedControl.Enabled() && (i % 20 == 0))
-      speedControl.Update(s);
+      speedControl.Update(s.rearWheelRate);
 
     ++sb;                   // Increment to the next sample
 
