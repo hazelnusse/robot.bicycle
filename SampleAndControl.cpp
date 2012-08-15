@@ -57,7 +57,7 @@ msg_t SampleAndControl::Control(void * arg)
     s.steerRate = SampleAndControl::timers.Clockticks[2];
 
     // Compute new speed control action if controller is enabled.
-    if (speedControl.Enabled() && (i % 20 == 0))
+    if (speedControl.Enabled() && ((i % 20) == 0))
       speedControl.Update(s.rearWheelRate);
 
     ++sb;                   // Increment to the next sample

@@ -14,7 +14,7 @@ SpeedController<T> * SpeedController<T>::instance_ = 0;
 
 template <class T>
 SpeedController<T>::SpeedController()
-  : Enabled_(false), SetPoint_(3.0), MinSetPoint_(3.0)
+  : Enabled_(false), SetPoint_(3.0f), MinSetPoint_(3.0f)
 {
   DisableHubMotor();
 }
@@ -127,6 +127,11 @@ void SpeedController<T>::Update(uint32_t PeriodCounts)
   // rad.
   static const float sf = 2.0 * 3.14 * 36e6 / 200.0;
   static const float current_max = 6.0;
+  bool dir_bit = PeriodCounts & ~(1 << 31);
+  PeriodCounts &= ~(1 << 31);   // clear the high bit which indicates direction
+  float vel = static_cast<float>(PeriodCounts);
+  if (!dir_bit)
+    vel *= -1.0;
   float current = 3.0*(SetPoint() - sf / PeriodCounts);
   
   // Set direction
