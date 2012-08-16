@@ -8,6 +8,7 @@
 
 #include "Sample.h"
 #include "SpeedController.h"
+#include "Constants.h"
 
 template <class T>
 SpeedController<T> * SpeedController<T>::instance_ = 0;
@@ -119,15 +120,15 @@ void SpeedController<T>::MinSetPoint(T min)
 }
 
 template <class T>
-void SpeedController<T>::Update(uint32_t PeriodCounts)
+void SpeedController<T>::Update(Sample & s)
 {
-  (void) PeriodCounts;
   // PeriodCounts has units of TIM4 clock ticks per cycle of rear wheel
   // encoder.  TIM4 clock is at 36MHz, one cycle of rear wheel is 2.0*M_PI/200
   // rad.
-  static const float sf = 2.0 * 3.14 * 36e6 / 200.0;
+  static const float sf = 2.0 * constants<float>::pi * 36e6 / 200.0;
   static const float current_max = 6.0;
-  bool dir_bit = PeriodCounts & ~(1 << 31);
+  uint32_t PeriodCounts = s.rearWheelRate;
+  bool dir_bit = PeriodCounts & ~(1 << 31); // get the high bit
   PeriodCounts &= ~(1 << 31);   // clear the high bit which indicates direction
   float vel = static_cast<float>(PeriodCounts);
   if (!dir_bit)
@@ -153,20 +154,20 @@ void SpeedController<T>::Update(uint32_t PeriodCounts)
 
   // Convert duty cycle to an uint32_t in range of [0, TIM4->ARR + 1] and set
   // it in TIM1
-  STM32_TIM1->CCR[0] = static_cast<uint32_t>((STM32_TIM1->ARR + 1) * duty);
+  s.CCR_rw = STM32_TIM1->CCR[1] = static_cast<uint32_t>((STM32_TIM1->ARR + 1) * duty);
 }
 
 template <class T>
 inline void SpeedController<T>::EnableHubMotor()
 {
-  STM32_TIM1->CCR[0] = 0; // 0% duty cycle
+  STM32_TIM1->CCR[1] = 0; // 0% duty cycle
   palClearPad(GPIOC, 11); // enable
 }
 
 template <class T>
 inline void SpeedController<T>::DisableHubMotor()
 {
-  STM32_TIM1->CCR[0] = 0; // 0% duty cycle
+  STM32_TIM1->CCR[1] = 0; // 0% duty cycle
   palSetPad(GPIOC, 11);   // disable
 }
 

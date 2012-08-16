@@ -18,7 +18,7 @@ class SpeedController {
   T SetPoint() const;
   T MinSetPoint() const;
   void MinSetPoint(T min);
-  void Update(uint32_t PeriodCounts);
+  void Update(Sample & s);
 
  private:
   SpeedController();

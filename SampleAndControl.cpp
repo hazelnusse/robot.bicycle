@@ -41,7 +41,7 @@ msg_t SampleAndControl::Control(void * arg)
 
   systime_t time = chTimeNow();     // Initial time
 
-  for (int i = 0; !chThdShouldTerminate(); ++i) {
+  for (uint32_t i = 0; !chThdShouldTerminate(); ++i) {
     time += MS2ST(5);            // Next deadline
     palTogglePad(IOPORT3, GPIOC_TIMING_PIN); // Sanity check for loop timing
 
@@ -50,7 +50,7 @@ msg_t SampleAndControl::Control(void * arg)
     ITG3200Acquire(s);
     ADXL345Acquire(s);
     // copy magnetometer signal to the current sample
-    (i++ % 4 == 0) ? HMC5843Acquire(s) : sb.HoldMagnetometer();
+    (i % 4 == 0) ? HMC5843Acquire(s) : sb.HoldMagnetometer();
     s.steerAngle = STM32_TIM3->CNT; // Capture encoder angle
     s.rearWheelRate = SampleAndControl::timers.Clockticks[0];
     s.frontWheelRate = SampleAndControl::timers.Clockticks[1];
@@ -58,7 +58,8 @@ msg_t SampleAndControl::Control(void * arg)
 
     // Compute new speed control action if controller is enabled.
     if (speedControl.Enabled() && ((i % 20) == 0))
-      speedControl.Update(s.rearWheelRate);
+      speedControl.Update(s);
+
 
     ++sb;                   // Increment to the next sample
 
