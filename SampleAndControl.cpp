@@ -55,6 +55,8 @@ msg_t SampleAndControl::Control(void * arg)
     s.rearWheelRate = SampleAndControl::timers.Clockticks[0];
     s.frontWheelRate = SampleAndControl::timers.Clockticks[1];
     s.steerRate = SampleAndControl::timers.Clockticks[2];
+    s.Speed_sp = speedControl.SetPoint();
+    s.YawRate_sp = 0.0; // need to implement yaw rate controller
 
     // Compute new speed control action if controller is enabled.
     if (speedControl.Enabled() && ((i % 20) == 0))

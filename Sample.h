@@ -13,6 +13,8 @@ class Sample {
   uint32_t rearWheelRate, frontWheelRate, steerRate;
   // pwm outputs for rear wheel and steer
   uint16_t CCR_rw, CCR_steer;
+  // Set point values for Speed and Steer rate
+  float Speed_sp, YawRate_sp;
   // Time sample was taken and any errorcode data we might want to store
   uint32_t systemTime, errorCode;
 };
