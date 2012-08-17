@@ -163,6 +163,7 @@ void SampleAndControl::Enable()
 
 void SampleAndControl::Disable()
 {
+  FloatSpeedController::Instance().Disable();
   chThdTerminate(Control_tp_);
   chThdWait(Control_tp_);
   Control_tp_ = NULL;
