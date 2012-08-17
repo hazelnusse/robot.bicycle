@@ -5,7 +5,8 @@
 #include <cstdint>
 #include <cmath>
 
-#include "sample.h"
+#include "Constants.h"
+#include "Sample.h"
 
 template <class T>
 double norm(T a[3])
@@ -21,7 +22,7 @@ int main(int argc, char *argv[])
     return 0;
   }
   std::ifstream datafile(argv[1], std::ios_base::in |
-                                           std::ios_base::binary);
+                                  std::ios_base::binary);
 
   std::vector<Sample> samples;
   char * membuff;
@@ -48,24 +49,16 @@ int main(int argc, char *argv[])
     delete [] membuff;
   }
 
-  std::cout << "  X     Y    Z" << std::endl;
   for (std::vector<Sample>::const_iterator it = samples.begin();
        it != samples.end();
        ++it) {
-    //int16_t ar[3];
-//    std::cout << it->mag[0] / 256.0 * 9.81 << "   "
-//              << it->mag[1] / 256.0 * 9.81 << "   "
-//              << it->mag[2] / 256.0 * 9.81 << std::endl;
-    std::cout << it->steerAngle << "   "
-              << it->steerRate << "   "
-              << it->rearWheelRate << "   "
-              << it->frontWheelRate << "    "
-              << it->systemTime << std::endl;
-
-//    ar[0] = it->gyro[3];
-//    ar[1] = 0; // it->acc[1];
-//    ar[2] = 0; // it->acc[2];
-//    std::cout << norm(ar) / 256.0 * 9.81  << std::endl;
+    static const float sf = 2.0 * constants<float>::pi * 36e6 / 200.0;
+    static const float current_max = 6.0;
+    std::cout << it->systemTime << ", "
+              << it->Speed_sp   << ", "
+              << sf / (it->rearWheelRate & ~(1 << 31)) << ", "
+              << it->CCR_rw / (0x3FFF + 1.0) << ", "
+              << it->CCR_rw << std::endl;
   }
   std::cout << samples.size() << " Samples read." << std::endl;
 }
