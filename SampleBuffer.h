@@ -34,7 +34,7 @@ class SampleBuffer {
   SampleBuffer(const SampleBuffer &) = delete;
 
   static void * operator new(std::size_t, void * location);
-  static msg_t WriteThread(void * arg);
+  static void WriteThread(void * arg) __attribute__((noreturn));
 
   uint8_t *buffer0, *buffer1;
   uint8_t i_;

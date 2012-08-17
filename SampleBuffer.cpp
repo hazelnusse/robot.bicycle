@@ -13,7 +13,7 @@ SampleBuffer::SampleBuffer()
 {
   tp_ = chThdCreateStatic(waWriteThread,
                           sizeof(waWriteThread),
-                          NORMALPRIO, WriteThread, NULL);
+                          NORMALPRIO, (tfunc_t) WriteThread, NULL);
 
 
 }
@@ -81,16 +81,18 @@ void SampleBuffer::setWriteThread(Thread * tp)
   tp_ = tp;
 }
 
-msg_t SampleBuffer::WriteThread(void * arg)
+__attribute__((noreturn))
+void SampleBuffer::WriteThread(__attribute__((unused))void * arg)
 {
   UINT bytes;
   chRegSetThreadName("WriteThread");
   SampleBuffer & sb = SampleBuffer::Instance();
 
-  while (!sb.File())
-    chThdYield();
-
   while (true) {
+    if (!sb.File()) {
+      chThdYield();
+      continue;
+    }
     Thread * messaging_tp = chMsgWait();
     msg_t message = chMsgGet(messaging_tp);
     chMsgRelease(messaging_tp, 0);
@@ -103,6 +105,4 @@ msg_t SampleBuffer::WriteThread(void * arg)
               sizeof(Sample)*sb.Count(), &bytes);
     }
   }
-
-  return 0;
 }
