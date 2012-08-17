@@ -110,7 +110,7 @@ static MMCConfig mmccfg = {&SPID2, &ls_spicfg, &hs_spicfg};
 /* Command line related.                                                     */
 /*===========================================================================*/
 
-static void cmd_threads(BaseSequentialStream *chp, int argc, char *argv[])
+static void cmd_threads(BaseSequentialStream *chp, int argc, __attribute__((unused)) char *argv[])
 {
   static const char *states[] = {THD_STATE_NAMES};
   Thread *tp;
@@ -151,7 +151,7 @@ static const ShellConfig shell_cfg1 = {
 /*
  * MMC card insertion event.
  */
-static void InsertHandler(eventid_t id)
+static void InsertHandler(__attribute__((unused)) eventid_t id)
 {
   FRESULT err;
 
@@ -172,7 +172,7 @@ static void InsertHandler(eventid_t id)
 /*
  * MMC card removal event.
  */
-static void RemoveHandler(eventid_t id)
+static void RemoveHandler(__attribute__((unused)) eventid_t id)
 {
   mmcDisconnect(&MMCD1);
   fs_ready = false;
@@ -214,10 +214,10 @@ int main()
   // Blink threads
   static WORKING_AREA(waFileSystemBlinkThread, 128);
   chThdCreateStatic(waFileSystemBlinkThread, sizeof(waFileSystemBlinkThread),
-                    NORMALPRIO, FileSystemBlinkThread, &fs_ready);
+                    NORMALPRIO, (tfunc_t) FileSystemBlinkThread, &fs_ready);
   static WORKING_AREA(waSampleAndControlBlinkThread, 128);
   chThdCreateStatic(waSampleAndControlBlinkThread, sizeof(waSampleAndControlBlinkThread),
-                    NORMALPRIO, SampleAndControlBlinkThread, NULL);
+                    NORMALPRIO, (tfunc_t) SampleAndControlBlinkThread, NULL);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except
