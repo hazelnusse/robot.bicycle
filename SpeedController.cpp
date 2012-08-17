@@ -125,7 +125,7 @@ void SpeedController<T>::Update(Sample & s)
   // PeriodCounts has units of TIM4 clock ticks per cycle of rear wheel
   // encoder.  TIM4 clock is at 36MHz, one cycle of rear wheel is 2.0*M_PI/200
   // rad.
-  static const float sf = 2.0 * constants<float>::pi * 36e6 / 200.0;
+  static const float sf = 2.0 * constants<float>::pi * 4.0e6 / 200.0;
   static const float current_max = 6.0;
   uint32_t PeriodCounts = s.rearWheelRate;
   bool dir_bit = PeriodCounts & ~(1 << 31); // get the high bit
@@ -133,13 +133,21 @@ void SpeedController<T>::Update(Sample & s)
   float vel = static_cast<float>(PeriodCounts);
   if (!dir_bit)
     vel *= -1.0;
-  float current = 3.0*(SetPoint() - sf / PeriodCounts);
+
+  float current;
+  if (PeriodCounts != 0) {
+    current = 3.0*(SetPoint() - sf / PeriodCounts);
+  } else {
+    current = 1.0;      // 1.0A just to get things moving
+  }
   
   // Set direction
   if (current > 0.0) {
     palSetPad(GPIOC, 12);    // set to forward direction
   } else {
-    palClearPad(GPIOC, 12);  // set to reverse direction
+    STM32_TIM1->CCR[1] = 0;
+    return;
+    //palClearPad(GPIOC, 12);  // set to reverse direction
   }
 
   // Make current positive
@@ -154,7 +162,7 @@ void SpeedController<T>::Update(Sample & s)
 
   // Convert duty cycle to an uint32_t in range of [0, TIM4->ARR + 1] and set
   // it in TIM1
-  s.CCR_rw = STM32_TIM1->CCR[1] = static_cast<uint32_t>((STM32_TIM1->ARR + 1) * duty);
+  STM32_TIM1->CCR[1] = static_cast<uint32_t>((STM32_TIM1->ARR + 1) * duty);
 }
 
 template <class T>
