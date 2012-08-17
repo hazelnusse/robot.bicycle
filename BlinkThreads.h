@@ -2,7 +2,7 @@
 #define BLINKTHREAD_H
 #include "ch.h"
 
-msg_t FileSystemBlinkThread(void * arg);
-msg_t SampleAndControlBlinkThread(void *arg);
+void FileSystemBlinkThread(void * arg) __attribute__((noreturn));
+void SampleAndControlBlinkThread(void *arg) __attribute__((noreturn));
 
 #endif // BLINKTHREAD_H
