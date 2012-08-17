@@ -12,7 +12,7 @@ class SampleAndControl {
  public:
   static SampleAndControl & Instance();
   static void chshellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
-  static void Control(void * arg);
+  static void Control(void * arg) __attribute__ ((noreturn));
   void Enable();
   bool Enabled() const { return Enabled_; }
   void Disable();

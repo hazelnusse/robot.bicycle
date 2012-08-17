@@ -26,7 +26,7 @@ SampleAndControl::SampleAndControl()
 }
 
 __attribute__((noreturn))
-void SampleAndControl::Control(void * arg)
+void SampleAndControl::Control(__attribute__((unused))void * arg)
 {
   chRegSetThreadName("Control");
 
@@ -82,7 +82,7 @@ void SampleAndControl::Control(void * arg)
     chThdSleepUntil(time);
   }
   sb.Flush();
-  chThdExit(1);
+  chThdExit(0);
 }
 
 void SampleAndControl::chshellcmd(BaseSequentialStream *chp, int argc, char *argv[])
