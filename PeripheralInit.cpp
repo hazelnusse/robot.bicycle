@@ -61,10 +61,14 @@ void configureEncoderTimers(void)
   // edge occurs
   STM32_TIM3->CCMR1 = static_cast<uint16_t>(0x3131);
 
+  // Configure prescalar for speed estimates.  This seems to be needed in order
+  // to slow down the sampling of the IC channels and not get spurious velocity
+  // measurements
+  STM32_TIM4->PSC = 8; // 36e6 / (8 + 1) == 4.0 MHz, --> 250ns / count
   // Configure capture compare register for pulse duration counter
   // CCxS = 01, ICxPSC = 00, ICxF = 0011
-  STM32_TIM4->CCMR1 = static_cast<uint16_t>(0x3131);
-  STM32_TIM4->CCMR2 = static_cast<uint16_t>(0x0031);
+  STM32_TIM4->CCMR1 = static_cast<uint16_t>(0xF1F1);
+  STM32_TIM4->CCMR2 = static_cast<uint16_t>(0x00F1);
 
   // Enable capture on IC1, IC2, IC3, with normal (rising edge) polarity
   STM32_TIM4->CCER = static_cast<uint16_t>(0x0111);
