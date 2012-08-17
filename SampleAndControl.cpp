@@ -25,7 +25,8 @@ SampleAndControl::SampleAndControl()
   SetFilename("samples.dat");
 }
 
-msg_t SampleAndControl::Control(void * arg)
+__attribute__((noreturn))
+void SampleAndControl::Control(void * arg)
 {
   chRegSetThreadName("Control");
 
@@ -46,11 +47,18 @@ msg_t SampleAndControl::Control(void * arg)
     palTogglePad(IOPORT3, GPIOC_TIMING_PIN); // Sanity check for loop timing
 
     Sample & s = sb.CurrentSample();
-    s.systemTime = chTimeNow();            // Store ChibioOS/RT clock
+
+    s.systemTime = chTimeNow();
+
     ITG3200Acquire(s);
     ADXL345Acquire(s);
     // copy magnetometer signal to the current sample
-    (i % 4 == 0) ? HMC5843Acquire(s) : sb.HoldMagnetometer();
+    if (i % 4 == 0) {
+      HMC5843Acquire(s);
+    } else {
+      sb.HoldMagnetometer();
+    }
+
     s.steerAngle = STM32_TIM3->CNT; // Capture encoder angle
     s.rearWheelRate = SampleAndControl::timers.Clockticks[0];
     s.frontWheelRate = SampleAndControl::timers.Clockticks[1];
@@ -59,9 +67,14 @@ msg_t SampleAndControl::Control(void * arg)
     s.YawRate_sp = 0.0; // need to implement yaw rate controller
 
     // Compute new speed control action if controller is enabled.
-    if (speedControl.Enabled() && ((i % 20) == 0))
+    if (speedControl.Enabled() && ((i % 4) == 0))
       speedControl.Update(s);
 
+//    if (yawControl.Enabled())
+//      yawControl.Update(s);
+
+    s.CCR_rw = STM32_TIM1->CCR[1];    // Save rear wheel duty
+    s.CCR_steer = STM32_TIM1->CCR[0]; // Save steer duty
 
     ++sb;                   // Increment to the next sample
 
@@ -69,8 +82,7 @@ msg_t SampleAndControl::Control(void * arg)
     chThdSleepUntil(time);
   }
   sb.Flush();
-  chThdExit(0);
-  return 0;
+  chThdExit(1);
 }
 
 void SampleAndControl::chshellcmd(BaseSequentialStream *chp, int argc, char *argv[])
@@ -144,7 +156,7 @@ void SampleAndControl::Enable()
 
   Control_tp_ = chThdCreateStatic(SampleAndControl::waControlThread,
                                   sizeof(waControlThread),
-                                  NORMALPRIO, Control, NULL);
+                                  NORMALPRIO, (tfunc_t) Control, NULL);
 
   Enabled_ = true;
 }
