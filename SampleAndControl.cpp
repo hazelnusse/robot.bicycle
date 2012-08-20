@@ -67,7 +67,7 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
     s.YawRate_sp = 0.0; // need to implement yaw rate controller
 
     // Compute new speed control action if controller is enabled.
-    if (speedControl.Enabled() && ((i % 4) == 0))
+    if (speedControl.Enabled() && ((i % 10) == 0))
       speedControl.Update(s);
 
 //    if (yawControl.Enabled())

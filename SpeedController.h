@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <cstdint>
 #include "ch.h"
+#include "DiscreteStateSpace.h"
+
 class Sample;
 
 template <class T>
@@ -32,6 +34,7 @@ class SpeedController {
   T SetPoint_;
   T MinSetPoint_;
   static SpeedController * instance_;
+  DiscreteStateSpace<float, 1, 1, 2> PID;
 
 };
 

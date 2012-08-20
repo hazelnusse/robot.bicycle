@@ -81,7 +81,8 @@ CSRC = $(PORTSRC) \
        $(CHIBIOS)/os/various/evtimer.c \
        $(CHIBIOS)/os/various/syscalls.c \
        $(CHIBIOS)/os/various/shell.c \
-       $(CHIBIOS)/os/various/chprintf.c
+       $(CHIBIOS)/os/various/chprintf.c \
+			 syscalls_rb.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -159,7 +160,7 @@ TOPT = -mthumb -DTHUMB
 CWARN = -Wall -Wextra -Wstrict-prototypes
 
 # Define C++ warning options here
-CPPWARN = -Wall -Wextra -Weffc++
+CPPWARN = -Wall -Wextra # -Weffc++
 
 #
 # Compiler settings
@@ -176,7 +177,8 @@ DDEFS =
 DADEFS =
 
 # List all default directories to look for include files here
-DINCDIR =
+#DINCDIR = $(HOME)/Eclipse-ARM/gcc-arm-none-eabi-4_6-2012q2
+DINCDIR = $(HOME)/usr/arm_cm3/arm-none-eabi/include
 
 # List the default directory to look for the libraries here
 DLIBDIR =

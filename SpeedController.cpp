@@ -9,6 +9,8 @@
 #include "Sample.h"
 #include "SpeedController.h"
 #include "Constants.h"
+// #include <Eigen/Dense>
+#include "DiscreteStateSpace.h"
 
 template <class T>
 SpeedController<T> * SpeedController<T>::instance_ = 0;
@@ -17,6 +19,14 @@ template <class T>
 SpeedController<T>::SpeedController()
   : Enabled_(false), SetPoint_(3.0f), MinSetPoint_(3.0f)
 {
+  // These depend on frequency of control update loop -- don't forget to change
+  // these if the control update loop is changed.
+  PID.A << 1.0f, 0.0f, 0.0f, 0.899183922803582f;
+  PID.B << 0.015625000000000f, 0.280197945704512f;
+  PID.C << 0.023063034565387f, 0.280197945704512f;
+  PID.D << 0.041519456177367f;
+  PID.x << 0.0f, 0.0f;
+  PID.u << 0.0f;
   DisableHubMotor();
 }
 
@@ -127,6 +137,7 @@ void SpeedController<T>::Update(Sample & s)
   // rad.
   static const float sf = 2.0 * constants<float>::pi * 4.0e6 / 200.0;
   static const float current_max = 6.0;
+
   uint32_t PeriodCounts = s.rearWheelRate;
   bool dir_bit = PeriodCounts & ~(1 << 31); // get the high bit
   PeriodCounts &= ~(1 << 31);   // clear the high bit which indicates direction
@@ -136,7 +147,9 @@ void SpeedController<T>::Update(Sample & s)
 
   float current;
   if (PeriodCounts != 0) {
-    current = 3.0*(SetPoint() - sf / PeriodCounts);
+    PID.u << SetPoint() - sf / PeriodCounts;
+    PID.Iterate();
+    current = PID.GetOutput()(0, 0);
   } else {
     current = 1.0;      // 1.0A just to get things moving
   }
