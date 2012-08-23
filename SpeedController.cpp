@@ -145,7 +145,7 @@ void SpeedController<T>::Update(Sample & s)
   // PeriodCounts has units of TIM4 clock ticks per cycle of rear wheel
   // encoder.  TIM4 clock is at 1.0MHz, one cycle of rear wheel is 2.0*M_PI/200
   // rad.
-  static const float sf = 2.0 * constants<float>::pi * 1.0e6 / 200.0;
+  static const float sf = 2.0 * constants<float>::pi * 0.5e6 / 200.0;
   static const float current_max = 6.0;
 
   uint32_t PeriodCounts = s.RearWheelRate;
