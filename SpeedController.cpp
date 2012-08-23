@@ -9,24 +9,34 @@
 #include "Sample.h"
 #include "SpeedController.h"
 #include "Constants.h"
-// #include <Eigen/Dense>
-#include "DiscreteStateSpace.h"
 
+// These depend on frequency of control update loop -- don't forget to change
+// these if the control update loop is changed.
 template <class T>
 SpeedController<T> * SpeedController<T>::instance_ = 0;
+
+template <class T>
+const float SpeedController<T>::A[2] = {1.0f, 0.534089953667745f};
+
+template <class T>
+const float SpeedController<T>::B[2] = {0.125f, 1.178973669432010f};
+
+template <class T>
+const float SpeedController<T>::C[2] = {0.312399275353728f, 1.178973669432010f};
+
+template <class T>
+const float SpeedController<T>::D = 5.746075010421994f;
+
+template <class T>
+float SpeedController<T>::x[2] = {0.0f, 0.0f};
+
+template <class T>
+float SpeedController<T>::u = 0.0f;
 
 template <class T>
 SpeedController<T>::SpeedController()
   : Enabled_(false), SetPoint_(3.0f), MinSetPoint_(3.0f)
 {
-  // These depend on frequency of control update loop -- don't forget to change
-  // these if the control update loop is changed.
-  PID.A << 1.0f, 0.0f, 0.0f, 0.899183922803582f;
-  PID.B << 0.015625000000000f, 0.280197945704512f;
-  PID.C << 0.023063034565387f, 0.280197945704512f;
-  PID.D << 0.041519456177367f;
-  PID.x << 0.0f, 0.0f;
-  PID.u << 0.0f;
   DisableHubMotor();
 }
 
@@ -93,7 +103,7 @@ void SpeedController<T>::cmd(BaseSequentialStream *chp, int argc, char *argv[])
   } else if (argc == 1) { // change set point
     T sp = 0.02*((argv[0][0] - '0')*100 +
                  (argv[0][1] - '0')*10  +
-                 (argv[0][2] - '0')*1)  + MinSetPoint();
+                 (argv[0][2] - '0'))  + MinSetPoint();
     SetPoint(sp);
     chprintf(chp, "Set point changed.\r\n");
   } else { // invalid
@@ -133,34 +143,38 @@ template <class T>
 void SpeedController<T>::Update(Sample & s)
 {
   // PeriodCounts has units of TIM4 clock ticks per cycle of rear wheel
-  // encoder.  TIM4 clock is at 36MHz, one cycle of rear wheel is 2.0*M_PI/200
+  // encoder.  TIM4 clock is at 1.0MHz, one cycle of rear wheel is 2.0*M_PI/200
   // rad.
-  static const float sf = 2.0 * constants<float>::pi * 4.0e6 / 200.0;
+  static const float sf = 2.0 * constants<float>::pi * 1.0e6 / 200.0;
   static const float current_max = 6.0;
 
-  uint32_t PeriodCounts = s.rearWheelRate;
+  uint32_t PeriodCounts = s.RearWheelRate;
   bool dir_bit = PeriodCounts & ~(1 << 31); // get the high bit
   PeriodCounts &= ~(1 << 31);   // clear the high bit which indicates direction
-  float vel = static_cast<float>(PeriodCounts);
-  if (!dir_bit)
-    vel *= -1.0;
-
-  float current;
-  if (PeriodCounts != 0) {
-    PID.u << SetPoint() - sf / PeriodCounts;
-    PID.Iterate();
-    current = PID.GetOutput()(0, 0);
-  } else {
-    current = 1.0;      // 1.0A just to get things moving
+  float vel = 0.0;
+  
+  // Determine velocity
+  if (PeriodCounts) {
+    vel = sf / PeriodCounts;
+    if (!dir_bit)
+      vel *= -1.0;
   }
+
+  // Set input to PID controller
+  u = SetPoint() - vel;
+
+  // Compute output of PID Controller
+  float current = C[0]*x[0] + C[1]*x[1] + D*u;
+
+  // Update state of PID controller
+  x[0] = A[0]*x[0] + B[0]*u;
+  x[1] = A[1]*x[1] + B[1]*u;
   
   // Set direction
   if (current > 0.0) {
     palSetPad(GPIOC, 12);    // set to forward direction
   } else {
-    STM32_TIM1->CCR[1] = 0;
-    return;
-    //palClearPad(GPIOC, 12);  // set to reverse direction
+    palClearPad(GPIOC, 12);  // set to reverse direction
   }
 
   // Make current positive
@@ -175,7 +189,8 @@ void SpeedController<T>::Update(Sample & s)
 
   // Convert duty cycle to an uint32_t in range of [0, TIM4->ARR + 1] and set
   // it in TIM1
-  STM32_TIM1->CCR[1] = static_cast<uint32_t>((STM32_TIM1->ARR + 1) * duty);
+  //STM32_TIM1->CCR[1] = static_cast<uint32_t>((STM32_TIM1->ARR + 1) * duty);
+  STM32_TIM1->CCR[1] = 5000;// static_cast<uint32_t>((STM32_TIM1->ARR + 1) * duty);
 }
 
 template <class T>

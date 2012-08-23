@@ -17,7 +17,7 @@
 SampleAndControl * SampleAndControl::instance_ = 0;
 WORKING_AREA(SampleAndControl::waControlThread, 1024);
 FIL SampleAndControl::f_;
-EncoderTimers SampleAndControl::timers;
+EncoderTimers SampleAndControl::timers = {{0, 0, 0}};
 
 SampleAndControl::SampleAndControl()
   : Control_tp_(NULL), Enabled_(false)
@@ -48,7 +48,7 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
 
     Sample & s = sb.CurrentSample();
 
-    s.systemTime = chTimeNow();
+    s.SystemTime = chTimeNow();
 
     ITG3200Acquire(s);
     ADXL345Acquire(s);
@@ -59,11 +59,11 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
       sb.HoldMagnetometer();
     }
 
-    s.steerAngle = STM32_TIM3->CNT; // Capture encoder angle
-    s.rearWheelRate = SampleAndControl::timers.Clockticks[0];
-    s.frontWheelRate = SampleAndControl::timers.Clockticks[1];
-    s.steerRate = SampleAndControl::timers.Clockticks[2];
-    s.Speed_sp = speedControl.SetPoint();
+    s.SteerAngle = STM32_TIM3->CNT; // Capture encoder angle
+    s.RearWheelRate = SampleAndControl::timers.Clockticks[0];
+    s.FrontWheelRate = SampleAndControl::timers.Clockticks[1];
+    s.SteerRate = SampleAndControl::timers.Clockticks[2];
+    s.RearWheelRate_sp = speedControl.SetPoint();
     s.YawRate_sp = 0.0; // need to implement yaw rate controller
 
     // Compute new speed control action if controller is enabled.

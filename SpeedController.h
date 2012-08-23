@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include "ch.h"
-#include "DiscreteStateSpace.h"
+//#include "DiscreteStateSpace.h"
 
 class Sample;
 
@@ -34,7 +34,13 @@ class SpeedController {
   T SetPoint_;
   T MinSetPoint_;
   static SpeedController * instance_;
-  DiscreteStateSpace<float, 1, 1, 2> PID;
+  static const float A[2]; // diagonal entries of 2x2
+  static const float B[2]; // 2x1 column vector
+  static const float C[2]; // 1x2 row vector
+  static const float D;    // 1x1 scalar
+  static float x[2];       // 2x1 column vector
+  static float u;          // 1x1 scalar
+  //DiscreteStateSpace<float, 1, 1, 2> PID;
 
 };
 

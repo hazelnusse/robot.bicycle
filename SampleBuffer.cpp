@@ -31,7 +31,7 @@ Sample & SampleBuffer::PreviousSample()
 void SampleBuffer::HoldMagnetometer()
 {
   for (int i = 0; i < 3; ++i)
-    CurrentSample().mag[i] = PreviousSample().mag[i];
+    CurrentSample().Magnetometer[i] = PreviousSample().Magnetometer[i];
 }
 
 SampleBuffer & SampleBuffer::operator++()

@@ -35,7 +35,7 @@ void HMC5843Acquire(Sample & s)
 
   i2cAcquireBus(&I2CD1);
   i2cMasterTransmitTimeout(&I2CD1, ADDR, &reg_address, 1,
-      reinterpret_cast<uint8_t *>(s.mag), 6, tmo);
+      reinterpret_cast<uint8_t *>(s.Magnetometer), 6, tmo);
   i2cReleaseBus(&I2CD1);
 
   // Reverse bytes in each half word because HMC5843 storage is big-endian, so
@@ -47,6 +47,6 @@ void HMC5843Acquire(Sample & s)
     // ldrh r2, [r4, #0] // loads r2 with contents located at r4+0
     // rev16 r2, r2      // Reverse byte order in each halfword independently
     // strh r2, [r4, #0] // Store contents of r2 to r4+0
-    asm("rev16 %0,%1" :  "=r" (s.mag[i]) : "r" (s.mag[i]));
+    asm("rev16 %0,%1" :  "=r" (s.Magnetometer[i]) : "r" (s.Magnetometer[i]));
   } // for i
 }

@@ -42,6 +42,6 @@ void ADXL345Acquire(Sample & s)
 
   i2cAcquireBus(&I2CD1);
   i2cMasterTransmitTimeout(&I2CD1, ADDR, &reg_address, 1,
-                           reinterpret_cast<uint8_t *>(s.acc), 6, tmo);
+                           reinterpret_cast<uint8_t *>(s.Accelerometer), 6, tmo);
   i2cReleaseBus(&I2CD1);
 }
