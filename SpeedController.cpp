@@ -145,8 +145,6 @@ void SpeedController<T>::Update(Sample & s)
   // PeriodCounts has units of TIM4 clock ticks per cycle of rear wheel
   // encoder.  TIM4 clock is at 1.0MHz, one cycle of rear wheel is 2.0*M_PI/200
   // rad.
-  static const float sf = 2.0 * constants<float>::pi * 0.5e6 / 200.0;
-  static const float current_max = 6.0;
 
   uint32_t PeriodCounts = s.RearWheelRate;
   bool dir_bit = PeriodCounts & ~(1 << 31); // get the high bit
@@ -155,7 +153,7 @@ void SpeedController<T>::Update(Sample & s)
   
   // Determine velocity
   if (PeriodCounts) {
-    vel = sf / PeriodCounts;
+    vel = cf::Wheel_rad_counts_per_sec / PeriodCounts;
     if (!dir_bit)
       vel *= -1.0;
   }
@@ -181,11 +179,11 @@ void SpeedController<T>::Update(Sample & s)
   current = std::fabs(current);
 
   // Saturate current at max continuous current of Copley drive
-  if (current > current_max)
-    current = current_max;
+  if (current > cf::Current_max_rw)
+    current = cf::Current_max_rw;
 
   // Convert from current to PWM duty cycle;
-  float duty = current / current_max;   // float in range of [0.0, 1.0]
+  float duty = current / cf::Current_max_rw;   // float in range of [0.0, 1.0]
 
   // Convert duty cycle to an uint32_t in range of [0, TIM4->ARR + 1] and set
   // it in TIM1
