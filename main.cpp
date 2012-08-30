@@ -132,8 +132,8 @@ static void cmd_threads(BaseSequentialStream *chp, int argc, __attribute__((unus
 }
 
 static const ShellCommand commands[] = {
-  {"speed", FloatSpeedController::shellcmd},     // disable/enable speed control, select set point
-//  {"yawrate", FloatYawRateController::shellcmd}, // disable/enable yawrate control, select set point
+  {"speed", SpeedController::shellcmd},     // disable/enable speed control, select set point
+//  {"yawrate", YawRateController::shellcmd}, // disable/enable yawrate control, select set point
   {"control_loop", SampleAndControl::chshellcmd},
   {"threads", cmd_threads},
   {NULL, NULL}

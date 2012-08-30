@@ -81,8 +81,8 @@ CSRC = $(PORTSRC) \
        $(CHIBIOS)/os/various/evtimer.c \
        $(CHIBIOS)/os/various/syscalls.c \
        $(CHIBIOS)/os/various/shell.c \
-       $(CHIBIOS)/os/various/chprintf.c \
-			 syscalls_rb.c
+       $(CHIBIOS)/os/various/chprintf.c
+#			 syscalls_rb.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -94,6 +94,7 @@ CPPSRC = BlinkThreads.cpp \
 				 HMC5843.cpp \
 				 SampleBuffer.cpp \
 				 SpeedController.cpp \
+				 YawRateController.cpp \
 				 SampleAndControl.cpp \
 				 Interrupts.cpp
 				 

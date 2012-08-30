@@ -12,6 +12,7 @@
 #include "SampleAndControl.h"
 #include "SampleBuffer.h"
 #include "SpeedController.h"
+#include "YawRateController.h"
 
 // Class static data
 SampleAndControl * SampleAndControl::instance_ = 0;
@@ -37,7 +38,8 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
   ADXL345Init();
   HMC5843Init();
 
-  FloatSpeedController & speedControl = FloatSpeedController::Instance();
+  SpeedController & speedControl = SpeedController::Instance();
+  YawRateController & yawControl = YawRateController::Instance();
   SampleBuffer & sb = SampleBuffer::Instance();
 
   systime_t time = chTimeNow();     // Initial time
@@ -70,18 +72,22 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
     if (speedControl.Enabled() && ((i % 10) == 0))
       speedControl.Update(s);
 
-//    if (yawControl.Enabled())
-//      yawControl.Update(s);
+    if (yawControl.Enabled()) {
+      yawControl.Update(s);
+    }
 
     s.CCR_rw = STM32_TIM1->CCR[1];    // Save rear wheel duty
     s.CCR_steer = STM32_TIM1->CCR[0]; // Save steer duty
 
+    s.SystemState = 0;
+
+
     ++sb;                   // Increment to the next sample
 
-    // Otherwise go to sleep until next 5ms interval
+    // Go to sleep until next 5ms interval
     chThdSleepUntil(time);
   }
-  sb.Flush();
+  sb.Flush();  // ensure all data is written to disk
   chThdExit(0);
 }
 
@@ -163,7 +169,7 @@ void SampleAndControl::Enable()
 
 void SampleAndControl::Disable()
 {
-  FloatSpeedController::Instance().Disable();
+  SpeedController::Instance().Disable();
   chThdTerminate(Control_tp_);
   chThdWait(Control_tp_);
   Control_tp_ = NULL;

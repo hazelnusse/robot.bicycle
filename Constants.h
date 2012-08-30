@@ -20,7 +20,7 @@ class constants {
   static constexpr T Gyroscope_sensitivity = rad_per_degree / 14.375;
 
   // Accelerometer constants
-  static constexpr T Accelerometer_sensitivity = 1.0 / (g * 256.0);
+  static constexpr T Accelerometer_sensitivity = g / 256.0;
 
   // Magnetometer constants
   static constexpr T Magnetometer_sensitivity = 1.0 / 1620.0;

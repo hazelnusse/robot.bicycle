@@ -7,52 +7,54 @@
 #include "hal.h"
 
 #include "Sample.h"
-#include "SpeedController.h"
+#include "YawRateController.h"
 #include "Constants.h"
 
 // These depend on frequency of control update loop -- don't forget to change
 // these if the control update loop is changed.
-SpeedController * SpeedController::instance_ = 0;
+YawRateController * YawRateController::instance_ = 0;
 
-const float SpeedController::A[2] = {1.0f, 0.534089953667745f};
+// TODO
+// create appropriate state space matrices for observer controller
+const float YawRateController::A[2] = {1.0f, 0.534089953667745f};
 
-const float SpeedController::B[2] = {0.125f, 1.178973669432010f};
+const float YawRateController::B[2] = {0.125f, 1.178973669432010f};
 
-const float SpeedController::C[2] = {0.312399275353728f, 1.178973669432010f};
+const float YawRateController::C[2] = {0.312399275353728f, 1.178973669432010f};
 
-const float SpeedController::D = 5.746075010421994f;
+const float YawRateController::D = 5.746075010421994f;
 
-float SpeedController::x[2] = {0.0f, 0.0f};
+float YawRateController::x[2] = {0.0f, 0.0f};
 
-float SpeedController::u = 0.0f;
+float YawRateController::u = 0.0f;
 
-SpeedController::SpeedController()
+YawRateController::YawRateController()
   : Enabled_(false), SetPoint_(0.0f), MinSetPoint_(0.0f)
 {
-  DisableHubMotor();
+  DisableSteerMotor();
 }
 
-inline void * SpeedController::operator new(size_t, void * location)
+inline void * YawRateController::operator new(size_t, void * location)
 {
   return location;
 }
 
-SpeedController & SpeedController::Instance()
+YawRateController & YawRateController::Instance()
 {
-  static uint8_t allocation[sizeof(SpeedController)];
+  static uint8_t allocation[sizeof(YawRateController)];
 
   if (instance_ == 0)
-      instance_ = new (allocation) SpeedController;
+      instance_ = new (allocation) YawRateController;
 
   return *instance_;
 }
 
-void SpeedController::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
+void YawRateController::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
-  SpeedController::Instance().cmd(chp, argc, argv);
+  YawRateController::Instance().cmd(chp, argc, argv);
 }
 
-void SpeedController::cmd(BaseSequentialStream *chp, int argc, char *argv[])
+void YawRateController::cmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
   if (argc == 0) { // toggle enabled/disabled
     if (Enabled()) {
@@ -77,7 +79,7 @@ void SpeedController::cmd(BaseSequentialStream *chp, int argc, char *argv[])
   }
 }
 
-void SpeedController::Update(Sample & s)
+void YawRateController::Update(Sample & s)
 {
   // PeriodCounts has units of TIM4 clock ticks per cycle of rear wheel
   // encoder.  TIM4 clock is at 1.0MHz, one cycle of rear wheel is 2.0*M_PI/200
@@ -106,10 +108,11 @@ void SpeedController::Update(Sample & s)
   x[1] = A[1]*x[1] + B[1]*u;
   
   // Set direction
+  // TODO: Check direction is correct
   if (current > 0.0) {
-    palSetPad(GPIOC, 12);    // set to forward direction
+    palSetPad(GPIOC, 8);    // set to forward direction
   } else {
-    palClearPad(GPIOC, 12);  // set to reverse direction
+    palClearPad(GPIOC, 8);  // set to reverse direction
   }
 
   // Make current positive
@@ -124,17 +127,18 @@ void SpeedController::Update(Sample & s)
 
   // Convert duty cycle to an uint32_t in range of [0, TIM4->ARR + 1] and set
   // it in TIM1
-  STM32_TIM1->CCR[1] = static_cast<uint32_t>((STM32_TIM1->ARR + 1) * duty);
+  STM32_TIM1->CCR[0] = static_cast<uint32_t>((STM32_TIM1->ARR + 1) * duty);
 }
 
-void SpeedController::EnableHubMotor()
+void YawRateController::EnableSteerMotor()
 {
-  STM32_TIM1->CCR[1] = 0; // 0% duty cycle
-  palClearPad(GPIOC, 11); // enable
+  STM32_TIM1->CCR[0] = 0; // 0% duty cycle
+  palClearPad(GPIOC, 9); // enable
 }
 
-void SpeedController::DisableHubMotor()
+void YawRateController::DisableSteerMotor()
 {
-  STM32_TIM1->CCR[1] = 0; // 0% duty cycle
-  palSetPad(GPIOC, 11);   // disable
+  STM32_TIM1->CCR[0] = 0; // 0% duty cycle
+  palSetPad(GPIOC, 9);   // disable
 }
+

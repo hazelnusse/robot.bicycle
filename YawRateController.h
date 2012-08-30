@@ -1,18 +1,18 @@
-#ifndef SPEEDCONTROLLER_H
-#define SPEEDCONTROLLER_H
+#ifndef YAWRATECONTROLLER_H
+#define YAWRATECONTROLLER_H
 #include <cstddef>
 #include <cstdint>
 #include "ch.h"
 
 class Sample;
 
-class SpeedController {
+class YawRateController {
  public:
-  static SpeedController & Instance();
+  static YawRateController & Instance();
   static void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
-  void Enable() { EnableHubMotor(); Enabled_ = true; }
+  void Enable() { EnableSteerMotor(); Enabled_ = true; }
   bool Enabled() const { return Enabled_; }
-  void Disable() { DisableHubMotor(); Enabled_ = false; }
+  void Disable() { DisableSteerMotor(); Enabled_ = false; }
   bool Disabled() const { return !Enabled_; }
   void SetPoint(const float speed) { SetPoint_ = speed; }
   float SetPoint() const { return SetPoint_; }
@@ -21,17 +21,17 @@ class SpeedController {
   void Update(Sample & s);
 
  private:
-  SpeedController();
-  ~SpeedController();
+  YawRateController();
+  ~YawRateController();
   void cmd(BaseSequentialStream *chp, int argc, char *argv[]);
   static void *operator new(std::size_t, void * location);
-  static void EnableHubMotor();
-  static void DisableHubMotor();
+  static void EnableSteerMotor();
+  static void DisableSteerMotor();
 
   bool Enabled_;
   float SetPoint_;
   float MinSetPoint_;
-  static SpeedController * instance_;
+  static YawRateController * instance_;
   static const float A[2]; // diagonal entries of 2x2
   static const float B[2]; // 2x1 column vector
   static const float C[2]; // 1x2 row vector
@@ -40,4 +40,5 @@ class SpeedController {
   static float u;          // 1x1 scalar
 };
 
-#endif // SPEEDCONTROLLER_H
+#endif // YAWRATECONTROLLER_H
+

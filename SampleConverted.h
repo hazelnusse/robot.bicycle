@@ -17,8 +17,8 @@ class SampleConverted {
   double RearWheelRate_sp, YawRate_sp;
   // Time sample was taken
   double Time;
-  // System error codes
-  uint32_t ErrorCodes;
+  // System state bits
+  uint32_t SystemState;
 };
 
 #endif
