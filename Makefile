@@ -137,7 +137,7 @@ INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
 
 MCU  = cortex-m3
 #TOOLCHAINDIR = /home/luke/Eclipse-ARM/gcc-arm-none-eabi-4_6-2012q2/bin
-TOOLCHAINDIR = /home/luke/usr/arm_cm3/bin
+TOOLCHAINDIR = $(HOME)/usr/arm_cm3/bin
 TRGT = $(TOOLCHAINDIR)/arm-none-eabi-
 CC   = $(TRGT)gcc
 CPPC = $(TRGT)g++
