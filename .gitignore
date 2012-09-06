@@ -3,3 +3,5 @@ build
 .dep
 .*.cpp.sw?
 .*.h.sw?
+datasheets
+collected_data
