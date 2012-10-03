@@ -94,8 +94,9 @@ CSRC = $(PORTSRC) \
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 CPPSRC = BlinkThreads.cpp \
-				 PeripheralInit.cpp \
 				 main.cpp \
+				 MPU6050.cpp \
+				 PeripheralInit.cpp \
 				 SampleBuffer.cpp \
 				 SpeedController.cpp \
 				 YawRateController.cpp \

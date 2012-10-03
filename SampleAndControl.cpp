@@ -5,6 +5,7 @@
 #include "chprintf.h"
 #include "ff.h"
 
+#include "MPU6050.h"
 #include "SampleAndControl.h"
 #include "SampleBuffer.h"
 #include "SpeedController.h"
@@ -26,13 +27,7 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
 {
   chRegSetThreadName("Control");
 
-  /*
-   * Initialize the StickIMU Sensors
-   */
-  //ITG3200Init();
-  //ADXL345Init();
-  //HMC5843Init();
-
+  MPU6050 & imu = MPU6050::Instance();
   SpeedController & speedControl = SpeedController::Instance();
   YawRateController & yawControl = YawRateController::Instance();
   SampleBuffer & sb = SampleBuffer::Instance();
@@ -47,14 +42,7 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
 
     s.SystemTime = chTimeNow();
 
-    //ITG3200Acquire(s);
-    //ADXL345Acquire(s);
-    // copy magnetometer signal to the current sample
-    //if (i % 4 == 0) {
-    //  HMC5843Acquire(s);
-    //} else {
-    //  sb.HoldMagnetometer();
-    //}
+    imu.Acquire(s);
 
     s.RearWheelAngle = STM32_TIM8->CNT;
     s.FrontWheelAngle = STM32_TIM4->CNT;

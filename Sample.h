@@ -8,7 +8,7 @@ class Sample {
   // System Time
   uint32_t SystemTime;
   // IMU raw sensor data
-  int16_t Gyroscope[4], Accelerometer[3];
+  int16_t MPU6050[7];//  Accelerometer[3], Temperature, Gyroscope[3];
   // Angular position encoder steer data
   uint32_t RearWheelAngle, FrontWheelAngle, SteerAngle;
   // speed estimates from timer capture compare registers
