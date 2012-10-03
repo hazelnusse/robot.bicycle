@@ -20,6 +20,7 @@
 
 #include "ch.h"
 #include "hal.h"
+#include "PeripheralInit.h"
 
 #if HAL_USE_PAL || defined(__DOXYGEN__)
 /**
