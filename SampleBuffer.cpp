@@ -28,12 +28,6 @@ Sample & SampleBuffer::PreviousSample()
   return (i_ == 0) ? buffer[NUMBER_OF_SAMPLES - 1] : buffer[i_ - 1];
 }
 
-void SampleBuffer::HoldMagnetometer()
-{
-  for (int i = 0; i < 3; ++i)
-    CurrentSample().Magnetometer[i] = PreviousSample().Magnetometer[i];
-}
-
 SampleBuffer & SampleBuffer::operator++()
 {
   if (++i_ == NUMBER_OF_SAMPLES) {

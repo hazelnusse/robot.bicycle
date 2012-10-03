@@ -86,25 +86,10 @@ static void tmr_init(void *p)
 /**
  * @brief FS object.
  */
-FATFS MMC_FS;
-
-/**
- * MMC driver instance.
- */
-MMCDriver MMCD1;
+static FATFS SDC_FS;
 
 /* FS mounted and ready.*/
 static bool fs_ready = false;
-
-/* Maximum speed SPI configuration (18MHz, CPHA=0, CPOL=0, MSb first).*/
-static SPIConfig hs_spicfg = {NULL, GPIOB, GPIOB_SPI2NSS, SPI_CR1_BR_0};
-
-/* Low speed SPI configuration (281.250kHz, CPHA=0, CPOL=0, MSb first).*/
-static SPIConfig ls_spicfg = {NULL, GPIOB, GPIOB_SPI2NSS,
-                              SPI_CR1_BR_2 | SPI_CR1_BR_1};
-
-/* MMC/SD over SPI driver configuration.*/
-static MMCConfig mmccfg = {&SPID2, &ls_spicfg, &hs_spicfg};
 
 /*===========================================================================*/
 /* Command line related.                                                     */
@@ -156,14 +141,14 @@ static void InsertHandler(__attribute__((unused)) eventid_t id)
   FRESULT err;
 
   /*
-   * On insertion MMC initialization and FS mount.
+   * On insertion SDC initialization and FS mount.
    */
-  if (mmcConnect(&MMCD1)) {
+  if (sdcConnect(&SDCD1))
     return;
-  }
-  err = f_mount(0, &MMC_FS);
+
+  err = f_mount(0, &SDC_FS);
   if (err != FR_OK) {
-    mmcDisconnect(&MMCD1);
+    sdcDisconnect(&SDCD1);
     return;
   }
   fs_ready = true;
@@ -174,7 +159,7 @@ static void InsertHandler(__attribute__((unused)) eventid_t id)
  */
 static void RemoveHandler(__attribute__((unused)) eventid_t id)
 {
-  mmcDisconnect(&MMCD1);
+  sdcDisconnect(&SDCD1);
   fs_ready = false;
 }
 
@@ -198,26 +183,25 @@ int main()
   chSysInit();
   chRegSetThreadName("main");
 
-  sdStart(&SD2, NULL); // Activate serial driver 2 using default configuration
-  shellInit();         // Shell manager initialization
+  shellInit();            // Shell manager initialization
 
-  // SD card configuration
-  mmcObjectInit(&MMCD1);     // Initialize MMCD1
-  mmcStart(&MMCD1, &mmccfg); // Configure and activate MMCD1 for SPI2
-  tmr_init(&MMCD1);          // Activates the card insertion monitor.
+  sdStart(&SD2, NULL);    // Activate serial driver 2, default configuration
+
+  sdcStart(&SDCD1, NULL); // Activate SDC driver 1, default configuration
+  tmr_init(&SDCD1);       // Activates the card insertion monitor.
 
   // I2C onfiguration
   static const I2CConfig i2cfg = { OPMODE_I2C, 400000, FAST_DUTY_CYCLE_2 };
-  i2cObjectInit(&I2CD1);    // Initialize I2CD1
-  i2cStart(&I2CD1, &i2cfg); // Configure and activate I2CD1 
+  i2cObjectInit(&I2CD2);    // Initialize I2CD2
+  i2cStart(&I2CD2, &i2cfg); // Configure and activate I2CD2
 
   // Blink threads
   static WORKING_AREA(waFileSystemBlinkThread, 128);
   chThdCreateStatic(waFileSystemBlinkThread, sizeof(waFileSystemBlinkThread),
                     NORMALPRIO, (tfunc_t) FileSystemBlinkThread, &fs_ready);
-  static WORKING_AREA(waSampleAndControlBlinkThread, 128);
-  chThdCreateStatic(waSampleAndControlBlinkThread, sizeof(waSampleAndControlBlinkThread),
-                    NORMALPRIO, (tfunc_t) SampleAndControlBlinkThread, NULL);
+  //static WORKING_AREA(waSampleAndControlBlinkThread, 128);
+  //chThdCreateStatic(waSampleAndControlBlinkThread, sizeof(waSampleAndControlBlinkThread),
+  //                  NORMALPRIO, (tfunc_t) SampleAndControlBlinkThread, NULL);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except

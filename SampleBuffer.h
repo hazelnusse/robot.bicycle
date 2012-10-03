@@ -17,7 +17,6 @@ class SampleBuffer {
   static SampleBuffer & Instance();
   Sample & CurrentSample();
   Sample & PreviousSample();
-  void HoldMagnetometer();
   SampleBuffer & operator++();
   void Flush();
   uint8_t Count() const {return i_;}

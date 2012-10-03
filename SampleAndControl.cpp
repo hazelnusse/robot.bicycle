@@ -26,7 +26,6 @@ SampleAndControl::SampleAndControl()
   SetFilename("samples.dat");
 }
 
-__attribute__((noreturn))
 void SampleAndControl::Control(__attribute__((unused))void * arg)
 {
   chRegSetThreadName("Control");
@@ -34,9 +33,9 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
   /*
    * Initialize the StickIMU Sensors
    */
-  ITG3200Init();
-  ADXL345Init();
-  HMC5843Init();
+  //ITG3200Init();
+  //ADXL345Init();
+  //HMC5843Init();
 
   SpeedController & speedControl = SpeedController::Instance();
   YawRateController & yawControl = YawRateController::Instance();
@@ -46,25 +45,29 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
 
   for (uint32_t i = 0; !chThdShouldTerminate(); ++i) {
     time += MS2ST(5);            // Next deadline
-    palTogglePad(IOPORT3, GPIOC_TIMING_PIN); // Sanity check for loop timing
+    palTogglePad(IOPORT6, GPIOF_TIMING_PIN); // Sanity check for loop timing
 
     Sample & s = sb.CurrentSample();
 
     s.SystemTime = chTimeNow();
 
-    ITG3200Acquire(s);
-    ADXL345Acquire(s);
+    //ITG3200Acquire(s);
+    //ADXL345Acquire(s);
     // copy magnetometer signal to the current sample
-    if (i % 4 == 0) {
-      HMC5843Acquire(s);
-    } else {
-      sb.HoldMagnetometer();
-    }
+    //if (i % 4 == 0) {
+    //  HMC5843Acquire(s);
+    //} else {
+    //  sb.HoldMagnetometer();
+    //}
 
-    s.SteerAngle = STM32_TIM3->CNT; // Capture encoder angle
+    s.RearWheelAngle = STM32_TIM8->CNT;
+    s.FrontWheelAngle = STM32_TIM4->CNT;
+    s.SteerAngle = STM32_TIM3->CNT;
+
     s.RearWheelRate = SampleAndControl::timers.Clockticks[0];
     s.FrontWheelRate = SampleAndControl::timers.Clockticks[1];
     s.SteerRate = SampleAndControl::timers.Clockticks[2];
+
     s.RearWheelRate_sp = speedControl.SetPoint();
     s.YawRate_sp = 0.0; // need to implement yaw rate controller
 
@@ -76,11 +79,10 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
       yawControl.Update(s);
     }
 
-    s.CCR_rw = STM32_TIM1->CCR[1];    // Save rear wheel duty
-    s.CCR_steer = STM32_TIM1->CCR[0]; // Save steer duty
+    s.CCR_rw = STM32_TIM1->CCR[0];    // Save rear wheel duty
+    s.CCR_steer = STM32_TIM1->CCR[1]; // Save steer duty
 
     s.SystemState = 0;
-
 
     ++sb;                   // Increment to the next sample
 
