@@ -5,10 +5,6 @@
 #include "chprintf.h"
 #include "ff.h"
 
-#include "ADXL345.h"
-#include "ITG3200.h"
-#include "HMC5843.h"
-
 #include "SampleAndControl.h"
 #include "SampleBuffer.h"
 #include "SpeedController.h"
