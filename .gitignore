@@ -5,3 +5,4 @@ build
 .*.h.sw?
 datasheets
 collected_data
+CopleyConfiguration/
