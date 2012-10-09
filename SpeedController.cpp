@@ -124,17 +124,17 @@ void SpeedController::Update(Sample & s)
 
   // Convert duty cycle to an uint32_t in range of [0, TIM4->ARR + 1] and set
   // it in TIM1
-  STM32_TIM1->CCR[1] = static_cast<uint32_t>((STM32_TIM1->ARR + 1) * duty);
+  STM32_TIM1->CCR[0] = static_cast<uint32_t>((STM32_TIM1->ARR + 1) * duty);
 }
 
 void SpeedController::EnableHubMotor()
 {
-  STM32_TIM1->CCR[1] = 0; // 0% duty cycle
-  palClearPad(GPIOC, 11); // enable
+  STM32_TIM1->CCR[0] = 0; // 0% duty cycle
+  palClearPad(GPIOF, 4); // enable
 }
 
 void SpeedController::DisableHubMotor()
 {
-  STM32_TIM1->CCR[1] = 0; // 0% duty cycle
-  palSetPad(GPIOC, 11);   // disable
+  STM32_TIM1->CCR[0] = 0; // 0% duty cycle
+  palSetPad(GPIOF, 4);   // disable
 }
