@@ -259,13 +259,13 @@
  * PA15 - JTAG_TDI            (alternate push pull, AF0, external pull up).
  */
 #define VAL_GPIOA_MODER             (PIN_MODE_INPUT(GPIOA_BUTTON_WKUP) |      \
-                                     PIN_MODE_INPUT(GPIOA_TIM5_CH2) |         \
-                                     PIN_MODE_INPUT(GPIOA_TIM5_CH3) |         \
-                                     PIN_MODE_INPUT(GPIOA_TIM5_CH4) |         \
+                                     PIN_MODE_ALTERNATE(GPIOA_TIM5_CH2) |     \
+                                     PIN_MODE_ALTERNATE(GPIOA_TIM5_CH3) |     \
+                                     PIN_MODE_ALTERNATE(GPIOA_TIM5_CH4) |     \
                                      PIN_MODE_INPUT(GPIOA_PIN4) |             \
                                      PIN_MODE_INPUT(GPIOA_PIN5) |             \
-                                     PIN_MODE_INPUT(GPIOA_TIM3_CH1) |         \
-                                     PIN_MODE_INPUT(GPIOA_TIM3_CH2) |         \
+                                     PIN_MODE_ALTERNATE(GPIOA_TIM3_CH1) |     \
+                                     PIN_MODE_ALTERNATE(GPIOA_TIM3_CH2) |     \
                                      PIN_MODE_OUTPUT(GPIOA_USB_HS_VBUSON) |   \
                                      PIN_MODE_INPUT(GPIOA_OTG_FS_VBUS) |      \
                                      PIN_MODE_OUTPUT(GPIOA_USB_FS_VBUSON) |\
@@ -498,8 +498,8 @@
                                      PIN_MODE_ALTERNATE(GPIOC_PIN3) |         \
                                      PIN_MODE_INPUT(GPIOC_PIN4) |             \
                                      PIN_MODE_INPUT(GPIOC_PIN5) |             \
-                                     PIN_MODE_INPUT(GPIOC_TIM8_CH1) |         \
-                                     PIN_MODE_INPUT(GPIOC_TIM8_CH2) |         \
+                                     PIN_MODE_ALTERNATE(GPIOC_TIM8_CH1) |         \
+                                     PIN_MODE_ALTERNATE(GPIOC_TIM8_CH2) |         \
                                      PIN_MODE_ALTERNATE(GPIOC_SD_D0) |        \
                                      PIN_MODE_ALTERNATE(GPIOC_SD_D1) |        \
                                      PIN_MODE_ALTERNATE(GPIOC_SD_D2) |        \
@@ -621,8 +621,8 @@
                                      PIN_MODE_INPUT(GPIOD_PIN9) |             \
                                      PIN_MODE_INPUT(GPIOD_PIN10) |            \
                                      PIN_MODE_INPUT(GPIOD_PIN11) |            \
-                                     PIN_MODE_INPUT(GPIOD_TIM4_CH1) |         \
-                                     PIN_MODE_INPUT(GPIOD_TIM4_CH2) |         \
+                                     PIN_MODE_ALTERNATE(GPIOD_TIM4_CH1) |     \
+                                     PIN_MODE_ALTERNATE(GPIOD_TIM4_CH2) |     \
                                      PIN_MODE_INPUT(GPIOD_PIN14) |            \
                                      PIN_MODE_INPUT(GPIOD_PIN15))
 #define VAL_GPIOD_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOD_PIN0) |         \
