@@ -27,8 +27,8 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
 {
   chRegSetThreadName("Control");
 
-  MPU6050 & imu = MPU6050::Instance(I2CD2);
-  imu.Initialize();
+  MPU6050 & imu = MPU6050::Instance();
+  imu.Initialize(&I2CD2);
   SpeedController & speedControl = SpeedController::Instance();
   YawRateController & yawControl = YawRateController::Instance();
   SampleBuffer & sb = SampleBuffer::Instance();
