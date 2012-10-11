@@ -1,0 +1,3 @@
+[submodule "Singleton"]
+	path = Singleton
+	url = git://github.com/hazelnusse/Singleton.git
