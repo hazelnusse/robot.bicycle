@@ -140,7 +140,7 @@ INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
 #
 
 MCU  = cortex-m4
-TOOLCHAINDIR = $(HOME)/usr/GNU_ARM_EMBEDDED_CUSTOM
+TOOLCHAINDIR = $(HOME)/usr/GNU_ARM_EMBEDDED
 TRGT = $(TOOLCHAINDIR)/bin/arm-none-eabi-
 CC   = $(TRGT)gcc
 CPPC = $(TRGT)g++
@@ -182,7 +182,7 @@ DDEFS =
 DADEFS =
 
 # List all default directories to look for include files here
-DINCDIR = $(TOOLCHAINDIR)/arm-none-eabi/include
+DINCDIR = $(TOOLCHAINDIR)/arm-none-eabi/include Singleton
 
 # List the default directory to look for the libraries here
 DLIBDIR =
