@@ -27,7 +27,8 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
 {
   chRegSetThreadName("Control");
 
-  MPU6050 & imu = MPU6050::Instance();
+  MPU6050 & imu = MPU6050::Instance(I2CD2);
+  imu.Initialize();
   SpeedController & speedControl = SpeedController::Instance();
   YawRateController & yawControl = YawRateController::Instance();
   SampleBuffer & sb = SampleBuffer::Instance();
@@ -74,6 +75,7 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
     chThdSleepUntil(time);
   }
   sb.Flush();  // ensure all data is written to disk
+  imu.DeInitialize();
   chThdExit(0);
 }
 

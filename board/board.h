@@ -88,7 +88,7 @@
 #define GPIOB_USB_HS_FAULT          5
 #define GPIOB_USB_FS_FAULT          6
 #define GPIOB_PIN7                  7
-#define GPIOB_TIM10_CH1             8
+#define GPIOB_PIN8                  8
 #define GPIOB_PIN9                  9
 #define GPIOB_PIN10                 10
 #define GPIOB_PIN11                 11
@@ -148,8 +148,8 @@
 #define GPIOE_PIN14                 14
 #define GPIOE_PIN15                 15
 
-#define GPIOF_PIN0                  0
-#define GPIOF_PIN1                  1
+#define GPIOF_I2C2_SDA              0
+#define GPIOF_I2C2_SCL              1
 #define GPIOF_XBEE_RESET            2
 #define GPIOF_TIMING_PIN            3
 #define GPIOF_RW_ENABLE             4
@@ -366,7 +366,7 @@
  * PB5  - USB_HS_FAULT              (input floating).
  * PB6  - USB_FS_FAULT              (input floating).
  * PB7  - PIN7                      (input pullup).
- * PB8  - TIM10_CH1                 (alternate 3).
+ * PB8  - PIN8                      (input pullup).
  * PB9  - PIN9                      (input pullup).
  * PB10 - PIN10                     (input pullup).
  * PB11 - PIN11                     (input pullup).
@@ -383,7 +383,7 @@
                                      PIN_MODE_INPUT(GPIOB_USB_HS_FAULT) |     \
                                      PIN_MODE_INPUT(GPIOB_USB_FS_FAULT) |     \
                                      PIN_MODE_INPUT(GPIOB_PIN7) |             \
-                                     PIN_MODE_ALTERNATE(GPIOB_TIM10_CH1) |    \
+                                     PIN_MODE_INPUT(GPIOB_PIN8) |             \
                                      PIN_MODE_INPUT(GPIOB_PIN9) |             \
                                      PIN_MODE_INPUT(GPIOB_PIN10) |            \
                                      PIN_MODE_INPUT(GPIOB_PIN11) |            \
@@ -399,7 +399,7 @@
                                      PIN_OTYPE_PUSHPULL(GPIOB_USB_HS_FAULT) | \
                                      PIN_OTYPE_PUSHPULL(GPIOB_USB_FS_FAULT) | \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN7) |         \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_TIM10_CH1) |    \
+                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN8) |         \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN9) |         \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN10) |        \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN11) |        \
@@ -415,7 +415,7 @@
                                      PIN_OSPEED_100M(GPIOB_USB_HS_FAULT) |    \
                                      PIN_OSPEED_100M(GPIOB_USB_FS_FAULT) |    \
                                      PIN_OSPEED_100M(GPIOB_PIN7) |            \
-                                     PIN_OSPEED_100M(GPIOB_TIM10_CH1) |       \
+                                     PIN_OSPEED_100M(GPIOB_PIN8) |            \
                                      PIN_OSPEED_100M(GPIOB_PIN9) |            \
                                      PIN_OSPEED_100M(GPIOB_PIN10) |           \
                                      PIN_OSPEED_100M(GPIOB_PIN11) |           \
@@ -431,7 +431,7 @@
                                      PIN_PUPDR_FLOATING(GPIOB_USB_HS_FAULT) | \
                                      PIN_PUPDR_FLOATING(GPIOB_USB_FS_FAULT) | \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN7) |           \
-                                     PIN_PUPDR_FLOATING(GPIOB_TIM10_CH1) |    \
+                                     PIN_PUPDR_PULLUP(GPIOB_PIN8) |           \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN9) |           \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN10) |          \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN11) |          \
@@ -447,7 +447,7 @@
                                      PIN_ODR_HIGH(GPIOB_USB_HS_FAULT) |       \
                                      PIN_ODR_HIGH(GPIOB_USB_FS_FAULT) |       \
                                      PIN_ODR_HIGH(GPIOB_PIN7) |               \
-                                     PIN_ODR_HIGH(GPIOB_TIM10_CH1) |          \
+                                     PIN_ODR_HIGH(GPIOB_PIN8) |               \
                                      PIN_ODR_HIGH(GPIOB_PIN9) |               \
                                      PIN_ODR_HIGH(GPIOB_PIN10) |              \
                                      PIN_ODR_HIGH(GPIOB_PIN11) |              \
@@ -463,7 +463,7 @@
                                      PIN_AFIO_AF(GPIOB_USB_HS_FAULT, 0) |     \
                                      PIN_AFIO_AF(GPIOB_USB_FS_FAULT, 0) |     \
                                      PIN_AFIO_AF(GPIOB_PIN7, 0))
-#define VAL_GPIOB_AFRH              (PIN_AFIO_AF(GPIOB_TIM10_CH1, 3) |        \
+#define VAL_GPIOB_AFRH              (PIN_AFIO_AF(GPIOB_PIN8, 0) |             \
                                      PIN_AFIO_AF(GPIOB_PIN9, 0) |             \
                                      PIN_AFIO_AF(GPIOB_PIN10, 0) |            \
                                      PIN_AFIO_AF(GPIOB_PIN11, 0) |            \
@@ -615,7 +615,7 @@
                                      PIN_MODE_INPUT(GPIOD_PIN3) |             \
                                      PIN_MODE_INPUT(GPIOD_PIN4) |             \
                                      PIN_MODE_ALTERNATE(GPIOD_USART2_TX) |    \
-                                     PIN_MODE_INPUT(GPIOD_USART2_RX) |        \
+                                     PIN_MODE_ALTERNATE(GPIOD_USART2_RX) |    \
                                      PIN_MODE_INPUT(GPIOD_PIN7) |             \
                                      PIN_MODE_INPUT(GPIOD_PIN8) |             \
                                      PIN_MODE_INPUT(GPIOD_PIN9) |             \
@@ -826,8 +826,8 @@
 /*
  * GPIOF setup:
  *
- * PF0  - PIN0                      (input pullup, AF0).
- * PF1  - PIN1                      (input pullup, AF0).
+ * PF0  - I2C2_SDA                  (output open drain, pullup, AF4).
+ * PF1  - I2C2_SCL                  (output open drain, pullup, AF4).
  * PF2  - XBEE_RESET                (output pushpull, pullup, AF0).
  * PF3  - TIMING_PIN                (output pushpull, AF0).
  * PF4  - RW_ENABLE                 (output pushpull, AF0).
@@ -843,8 +843,8 @@
  * PF14 - PIN14                     (input pullup, AF0).
  * PF15 - PIN15                     (input pullup, AF0).
  */
-#define VAL_GPIOF_MODER             (PIN_MODE_INPUT(GPIOF_PIN0) |             \
-                                     PIN_MODE_INPUT(GPIOF_PIN1) |             \
+#define VAL_GPIOF_MODER             (PIN_MODE_ALTERNATE(GPIOF_I2C2_SDA) |         \
+                                     PIN_MODE_ALTERNATE(GPIOF_I2C2_SCL) |         \
                                      PIN_MODE_OUTPUT(GPIOF_XBEE_RESET) |      \
                                      PIN_MODE_OUTPUT(GPIOF_TIMING_PIN) |      \
                                      PIN_MODE_OUTPUT(GPIOF_RW_ENABLE) |       \
@@ -859,8 +859,8 @@
                                      PIN_MODE_INPUT(GPIOF_PIN13) |            \
                                      PIN_MODE_INPUT(GPIOF_PIN14) |            \
                                      PIN_MODE_INPUT(GPIOF_PIN15))
-#define VAL_GPIOF_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOF_PIN0) |         \
-                                     PIN_OTYPE_PUSHPULL(GPIOF_PIN1) |         \
+#define VAL_GPIOF_OTYPER            (PIN_OTYPE_OPENDRAIN(GPIOF_I2C2_SDA) |     \
+                                     PIN_OTYPE_OPENDRAIN(GPIOF_I2C2_SCL) |     \
                                      PIN_OTYPE_PUSHPULL(GPIOF_XBEE_RESET) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOF_TIMING_PIN) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOF_RW_ENABLE) |    \
@@ -875,8 +875,8 @@
                                      PIN_OTYPE_PUSHPULL(GPIOF_PIN13) |        \
                                      PIN_OTYPE_PUSHPULL(GPIOF_PIN14) |        \
                                      PIN_OTYPE_PUSHPULL(GPIOF_PIN15))
-#define VAL_GPIOF_OSPEEDR           (PIN_OSPEED_100M(GPIOF_PIN0) |            \
-                                     PIN_OSPEED_100M(GPIOF_PIN1) |            \
+#define VAL_GPIOF_OSPEEDR           (PIN_OSPEED_100M(GPIOF_I2C2_SDA) |        \
+                                     PIN_OSPEED_100M(GPIOF_I2C2_SCL) |        \
                                      PIN_OSPEED_100M(GPIOF_XBEE_RESET) |      \
                                      PIN_OSPEED_100M(GPIOF_TIMING_PIN) |      \
                                      PIN_OSPEED_100M(GPIOF_RW_ENABLE) |       \
@@ -891,8 +891,8 @@
                                      PIN_OSPEED_100M(GPIOF_PIN13) |           \
                                      PIN_OSPEED_100M(GPIOF_PIN14) |           \
                                      PIN_OSPEED_100M(GPIOF_PIN15))
-#define VAL_GPIOF_PUPDR             (PIN_PUPDR_PULLUP(GPIOF_PIN0) |           \
-                                     PIN_PUPDR_PULLUP(GPIOF_PIN1) |           \
+#define VAL_GPIOF_PUPDR             (PIN_PUPDR_PULLUP(GPIOF_I2C2_SDA) |       \
+                                     PIN_PUPDR_PULLUP(GPIOF_I2C2_SCL) |       \
                                      PIN_PUPDR_FLOATING(GPIOF_XBEE_RESET) |   \
                                      PIN_PUPDR_FLOATING(GPIOF_TIMING_PIN) |   \
                                      PIN_PUPDR_FLOATING(GPIOF_RW_ENABLE) |    \
@@ -907,8 +907,8 @@
                                      PIN_PUPDR_PULLUP(GPIOF_PIN13) |          \
                                      PIN_PUPDR_PULLUP(GPIOF_PIN14) |          \
                                      PIN_PUPDR_PULLUP(GPIOF_PIN15))
-#define VAL_GPIOF_ODR               (PIN_ODR_HIGH(GPIOF_PIN0) |               \
-                                     PIN_ODR_HIGH(GPIOF_PIN1) |               \
+#define VAL_GPIOF_ODR               (PIN_ODR_HIGH(GPIOF_I2C2_SDA) |           \
+                                     PIN_ODR_HIGH(GPIOF_I2C2_SCL) |           \
                                      PIN_ODR_HIGH(GPIOF_XBEE_RESET) |         \
                                      PIN_ODR_HIGH(GPIOF_TIMING_PIN) |         \
                                      PIN_ODR_HIGH(GPIOF_RW_ENABLE) |          \
@@ -923,8 +923,8 @@
                                      PIN_ODR_HIGH(GPIOF_PIN13) |              \
                                      PIN_ODR_HIGH(GPIOF_PIN14) |              \
                                      PIN_ODR_HIGH(GPIOF_PIN15))
-#define VAL_GPIOF_AFRL              (PIN_AFIO_AF(GPIOF_PIN0, 0) |             \
-                                     PIN_AFIO_AF(GPIOF_PIN1, 0) |             \
+#define VAL_GPIOF_AFRL              (PIN_AFIO_AF(GPIOF_I2C2_SDA, 4) |         \
+                                     PIN_AFIO_AF(GPIOF_I2C2_SCL, 4) |         \
                                      PIN_AFIO_AF(GPIOF_XBEE_RESET, 0) |       \
                                      PIN_AFIO_AF(GPIOF_TIMING_PIN, 0) |       \
                                      PIN_AFIO_AF(GPIOF_RW_ENABLE, 0) |        \

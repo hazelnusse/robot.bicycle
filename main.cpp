@@ -190,18 +190,10 @@ int main()
   sdcStart(&SDCD1, NULL); // Activate SDC driver 1, default configuration
   tmr_init(&SDCD1);       // Activates the card insertion monitor.
 
-  // I2C onfiguration
-  static const I2CConfig i2cfg = { OPMODE_I2C, 400000, FAST_DUTY_CYCLE_2 };
-  i2cObjectInit(&I2CD2);    // Initialize I2CD2
-  i2cStart(&I2CD2, &i2cfg); // Configure and activate I2CD2
-
   // Blink threads
   static WORKING_AREA(waFileSystemBlinkThread, 128);
   chThdCreateStatic(waFileSystemBlinkThread, sizeof(waFileSystemBlinkThread),
                     NORMALPRIO, (tfunc_t) FileSystemBlinkThread, &fs_ready);
-  //static WORKING_AREA(waSampleAndControlBlinkThread, 128);
-  //chThdCreateStatic(waSampleAndControlBlinkThread, sizeof(waSampleAndControlBlinkThread),
-  //                  NORMALPRIO, (tfunc_t) SampleAndControlBlinkThread, NULL);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except

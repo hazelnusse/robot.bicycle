@@ -79,8 +79,8 @@ void SpeedController::cmd(BaseSequentialStream *chp, int argc, char *argv[])
 
 void SpeedController::Update(Sample & s)
 {
-  // PeriodCounts has units of TIM4 clock ticks per cycle of rear wheel
-  // encoder.  TIM4 clock is at 1.0MHz, one cycle of rear wheel is 2.0*M_PI/200
+  // PeriodCounts has units of TIM5 clock ticks per cycle of rear wheel
+  // encoder.  TIM4 clock is at 4.0MHz, one cycle of rear wheel is 2.0*M_PI/200
   // rad.
 
   uint32_t PeriodCounts = s.RearWheelRate;
@@ -107,9 +107,9 @@ void SpeedController::Update(Sample & s)
   
   // Set direction
   if (current > 0.0) {
-    palSetPad(GPIOC, 12);    // set to forward direction
+    palSetPad(GPIOF, 6);    // set to forward direction
   } else {
-    palClearPad(GPIOC, 12);  // set to reverse direction
+    palClearPad(GPIOF, 6);  // set to reverse direction
   }
 
   // Make current positive
@@ -130,11 +130,11 @@ void SpeedController::Update(Sample & s)
 void SpeedController::EnableHubMotor()
 {
   STM32_TIM1->CCR[0] = 0; // 0% duty cycle
-  palClearPad(GPIOF, 4); // enable
+  palClearPad(GPIOF, 4);  // enable
 }
 
 void SpeedController::DisableHubMotor()
 {
   STM32_TIM1->CCR[0] = 0; // 0% duty cycle
-  palSetPad(GPIOF, 4);   // disable
+  palSetPad(GPIOF, 4);    // disable
 }

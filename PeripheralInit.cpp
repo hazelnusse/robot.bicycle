@@ -12,124 +12,129 @@
 
 // Private functions
 static void configureRCC();
-static void configureEncoderTimers(void);
+static void configureEncoderTimers();
 static void configureMotorPWM();
 
 // This function is called in boardInit(), which is called during halInit()
 void PeripheralInit()
 {
   configureRCC();           // Enable peripheral clocks
-  configureEncoderTimers(); // Configure TIM3,TIM4
-  configureMotorPWM();   // Configure TIM1 PWM
+  configureEncoderTimers();        // Configure Timers
+  configureMotorPWM();      // Configure Motor PWM
 }
 
 static void configureRCC()
 {
-  // SYSCLOCK is at 72.0 MHz
-  // APB1     is at 36.0 MHz
-  // APB2     is at 72.0 MHz
-  // Enable I2C1, SPI2, USART2, TIM3, TIM4
-  RCC->APB1ENR |= ((1 << 21)  // I2C1
-               |   (1 << 17)  // USART2
-               |   (1 << 14)  // SPI2
-               |   (1 <<  2)  // TIM4
-               |   (1 <<  1));// TIM3
+  // SYSCLOCK is at 168.0 MHz
+  // APB1 timers are clocked at  84.0 MHz
+  // APB2 timers are clocked at 168.0 MHz
 
-  // Enable GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, TIM1, AFIO
-  RCC->APB2ENR |= ((1 << 11)  // TIM1
-               |   (1 <<  6)  // GPIOE
-               |   (1 <<  5)  // GPIOD
-               |   (1 <<  4)  // GPIOC
-               |   (1 <<  3)  // GPIOB
-               |   (1 <<  2)  // GPIOA
-               |   (1 <<  0));// AFIO
+  // Enable GPIOF, GPIOE, GPIOD, GPIOC, GPIOB, GPIOA
+  RCC->AHB1ENR |= ((1 <<  5)  // GPIOE
+               |   (1 <<  4)  // GPIOE
+               |   (1 <<  3)  // GPIOD
+               |   (1 <<  2)  // GPIOC
+               |   (1 <<  1)  // GPIOB
+               |   (1 <<  0));// GPIOA
+  // Enable I2C2, USART2, TIM5, TIM4, TIM3
+  RCC->APB1ENR |= ((1 << 22)  // I2C2  --  MPU-6050
+               |   (1 << 17)  // USART2--  XBee Serial
+               |   (1 <<  3)  // TIM5  --  Encoder speed measurement
+               |   (1 <<  2)  // TIM4  --  Front wheel angle measurement
+               |   (1 <<  1));// TIM3  --  Steer angle measurement
+  // Enable TIM10, SDIO, ADC3, TIM8, TIM1
+  RCC->APB2ENR |= ((1 << 11)  // SDIO  --  SD Card
+               |   (1 << 10)  // ADC3  --  Battery monitor
+               |   (1 <<  1)  // TIM8  --  Rear wheel angle measurement
+               |   (1 <<  0));// TIM1  --  PWM Output
 } // configureRCC
 
 void configureEncoderTimers(void)
 {
-  // Set the auto reload value for steer encoder and pulse duration timer
-  STM32_TIM3->ARR = STM32_TIM4->ARR = static_cast<uint16_t>(0xFFFF);
+  // Encoder timers are all 16-bit
+  // TIM3 and TIM4 are APB1@84.0MHz, TIM8 is APB2@168.0MHz.
+  //
+  // The clock speed only affect the filtering that is done in the edge
+  // detector, which is set to be as slow as possible.  To be considered a
+  // rising edge, the incoming signal must be high for 3.0us and 1.5us
+  // respectively.
+  // STM32_TIM8: Rear wheel encoder timer                  
+  // STM32_TIM3: Steer encoder timer                  
+  // STM32_TIM4: Front wheel encoder timer                  
+  stm32_tim_t * encoderTimers[3] = {STM32_TIM8, STM32_TIM3, STM32_TIM4};
+  for (auto timer : encoderTimers) {
+    timer->SMCR = 3;          // Encoder mode 3
+    timer->CCER = 0;          // rising edge polarity
+    timer->ARR = 0xFFFFFFFF;  // count from 0-ARR or ARR-0
+    timer->CCMR1 = 0xF1F1;    // f_DTS/32, N=8, IC1->TI1, IC2->TI2
+    timer->CNT = 0;           // Clear counter
+    timer->CR1 = 1;           // Enable the counter
+  }
 
-  // Put timer 3 in encoder mode
-  STM32_TIM3->SMCR = static_cast<uint16_t>(0x0003);
+  // Encoder rate timer has a 32-bit counter and is clocked at APB1@84.0MHz
+  // STM32_TIM5_CH2:  Rear wheel encoder A
+  // STM32_TIM5_CH3:  Steer encoder A
+  // STM32_TIM5_CH4:  Front wheel encoder A
+  //
+  // Configure prescalar for speed estimates.  This is needed in order to slow
+  // down the sampling of the IC channels to avoid spurious velocity
+  // measurements.  This setting directly affects the accuracy of the speed
+  // estimate.
+  STM32_TIM5->PSC = 20; // f_CLK = 84.0e6 / (20 + 1) == 4.0 MHz, --> .25 us / count
 
-  // Put CC1 & CC2 in input mode IC1 mapped to TI1, IC2 mapped to TI2, no
-  // prescalar
-  // Enable digital filtering, see page 397 of RM0008
-  // Inputs are sampled at 36.0 MHz, need 8 samples at hi/low to validate a
-  // transition.  This translates to a .22 micro second delay from when the
-  // edge occurs
-  STM32_TIM3->CCMR1 = static_cast<uint16_t>(0x3131);
-
-  // Configure prescalar for speed estimates.  This seems to be needed in order
-  // to slow down the sampling of the IC channels and not get spurious velocity
-  // measurements
-  STM32_TIM4->PSC = 71; // f_CLK = 36e6 / (71 + 1) == 0.5 MHz, --> 2 us / count
   // Configure capture compare register for pulse duration counter
   // CCxS = 01, ICxPSC = 00, ICxF = 1111: f_sampling = f_CLK / 32, N = 8
-  STM32_TIM4->CCMR1 = static_cast<uint16_t>(0xF1F1);  
-  STM32_TIM4->CCMR2 = static_cast<uint16_t>(0x00F1);
+  // This means rising edge must be stable for .25us * 32 * 8 = 64us to be
+  // considered a transition.
+  STM32_TIM5->CCMR1 = 0xF100;  
+  STM32_TIM5->CCMR2 = 0xF1F1;
 
-  // Enable capture on IC1, IC2, IC3, with normal (rising edge) polarity
-  STM32_TIM4->CCER = static_cast<uint16_t>(0x0111);
+  // Enable capture on IC2, IC3, IC4, with rising edge polarity
+  STM32_TIM5->CCER = (1 << 12) | (1 << 8) | (1 << 4);
 
-  // Enable interrupts on UE, IC1, IC2, IC3
-  STM32_TIM4->DIER = static_cast<uint16_t>(0x000F);
+  // Enable interrupts on IC4, IC3, IC2, UE
+  STM32_TIM5->DIER = (1 << 4) | (1 << 3) | (1 << 2) | (1 << 0);
 
-  // Clear the steer counter
-  STM32_TIM3->CNT = 0;
+  // Clear speed count
+  STM32_TIM5->CNT = 0;
 
-  // Enable both counters
-  STM32_TIM3->CR1 = STM32_TIM4->CR1 = static_cast<uint16_t>(0x0001);
+  // Enable speed timer 
+  STM32_TIM5->CR1 = 1;
 } // configureEncoderTimers()
 
 static void configureMotorPWM()
 {
-  // Order of operations in TIMEBASE_INIT:
-  // CR1
-  // ARR
-  // PSC
-  // RCR
-  // EGR
+  // Disable the timer and enable auto preload register
+  STM32_TIM1->CR1 = (1 << 7);
   
-  // Disable the timer
-  // STM32_TIM1->CR1 = 0; // reset state
+  // TIM1 counter clock = 168.0MHz / (PSC + 1)
+  STM32_TIM1->PSC = 0; // Results in 168MHz TIM3 Counter clock
 
   // TIM1 Frequency = TIM1 counter clock / (ARR + 1)
-  //                = 18 MHz / 2^14
-  //                = 1098.63 Hz
-  STM32_TIM1->ARR = 0x3FFF; // 2^14 - 1
+  //                = 168 MHz / 2^16
+  //                = 2563.48 Hz
+  STM32_TIM1->ARR = 0xFFFF; // 2^16 - 1
 
-  // TIM1 counter clock = 72.0 MHz / (PSC + 1)
-  STM32_TIM1->PSC = 3; // Results in 18MHz TIM3 Counter clock
-  // STM32_TIM1->RCR = 0; // reset state is fine
-  STM32_TIM1->EGR = 1; // immediately update
+  // Select PWM1 mode for OC1 and OC2 (OCX inactive when CNT<CCRX)
+  STM32_TIM1->CCMR1 = (0b110 << 12) | (0b110 << 4);
 
-  // Order of operation in OCXInit:
-  // Disable CCxE CCER
-  // Write to TIM1 CR2 (set/clear OIS1/OIS1N/OIS2/OIS2N)
-  // Write to TIM1 CCMR1 (set/clear OC1M/OC2M, clear CC1S/CC2S)
-  // Write to CCRx 
-  // Write to CCER
-  
-  // Disable all outputs
-  // STM32_TIM1->CCER = 0; // reset state
-  // Set OIS1 & OIS2 so that in idle state, OC1 & OC2 are set (0% duty cycle)
-  STM32_TIM1->CR2 = (1 << 8) | (1 << 10);
+  // Select 0% duty cycle for channel 1 and 2
+  STM32_TIM1->CCR[0] = 0;
+  STM32_TIM1->CCR[1] = 0;
 
-  // Select PWM2 mode for OC1 and OC2 (OC inactive when CNT<CCR1)
-  STM32_TIM1->CCMR1 = 0x7070;
+  // Select OC1 and OC2 polarity to active low and enable them.  We choose
+  // active to be low because Copley drives have been configured with pull up
+  // resistors to ensure that the 5.0V --> 0% duty cycle.
+  // Since OC1 and OC2 are in PWM1 mode, this means:
+  //   CNT <  CCR[X] ===> OCX is active (low)
+  //   CNT >= CCR[X] ===> OCX is inactive (high)
+  STM32_TIM1->CCER = 0x0033;
 
-  // Select 0% duty cycle
-  // STM32_TIM1->CCR[0] = STM32_TIM1->CCR[1] = 0; // reset state
+  // Generate an update event to update all timer registers
+  STM32_TIM1->EGR = 1;
 
-  // Select OC1 and OC2 polarity to active high and enable them.
-  // This means that while CNT  < CCRX, OCX is inactive and hence high.
-  //                 while CNT >= CCRX, OCX is   acitve and hence low.
-  STM32_TIM1->CCER = 0x0011;
-
-  // TIM1 counter enable
-  STM32_TIM1->CR1 = 1;
+  // TIM1 enable
+  STM32_TIM1->CR1 |= 1;
 
   // TIM1 Main Output Enable
   STM32_TIM1->BDTR = (1 << 15);
