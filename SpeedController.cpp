@@ -80,7 +80,7 @@ void SpeedController::cmd(BaseSequentialStream *chp, int argc, char *argv[])
 void SpeedController::Update(Sample & s)
 {
   // PeriodCounts has units of TIM5 clock ticks per cycle of rear wheel
-  // encoder.  TIM4 clock is at 4.0MHz, one cycle of rear wheel is 2.0*M_PI/200
+  // encoder.  TIM5 clock is at 4.0MHz, one cycle of rear wheel is 2.0*M_PI/200
   // rad.
 
   uint32_t PeriodCounts = s.RearWheelRate;

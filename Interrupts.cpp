@@ -4,15 +4,21 @@
 #include "hal.h"
 
 #include "EncoderTimers.h"
-#include "Interrupts.h"
 #include "SampleAndControl.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // VectorE0 is called on a rising/falling edge of the steer index
 // Need to save the steer encoder count and determine the direction, which can
 // be obtained from STM32_TIM3->CNT and STM32_TIM3->CR1[4]  (DIR bit)
-void VectorE0(void)
-{
 
+CH_IRQ_HANDLER(EXTI15_10_IRQHandler)
+{
+  CH_IRQ_PROLOGUE();
+
+  CH_IRQ_EPILOGUE();
 }
 
 // There are 4 ways this interrupt gets called.
@@ -20,7 +26,7 @@ void VectorE0(void)
 // 2) Rising edge on IC2  ( Rear wheel encoder A)
 // 3) Rising edge on IC3  (      Steer encoder A)
 // 4) Risign edge on IC4  (Front wheel encoder A)
-CH_IRQ_HANDLER(Vector108)
+CH_IRQ_HANDLER(TIM5_IRQHandler)
 {
   CH_IRQ_PROLOGUE();
 
@@ -57,7 +63,7 @@ CH_IRQ_HANDLER(Vector108)
     // time of the previous event, CCR_prev[i], plus 2^16 times the number of
     // overflows.
     if (sr & (1 << (i + 2))) { // IC2, IC3, IC4 are on bits 2, 3, 4 of SR
-      uint32_t tmp = STM32_TIM5->CCR[i]; // Timer counts since last overflow
+      uint32_t tmp = STM32_TIM5->CCR[i + 1]; // Timer counts since last overflow
       tmp &= 0x0000FFFF;                 // Mask out top bits, just to be safe
 
       SampleAndControl::timers.Clockticks[i] = tmp + overflows[i]*(1 << 16) - CCR_prev[i];
@@ -73,3 +79,7 @@ CH_IRQ_HANDLER(Vector108)
   }
   CH_IRQ_EPILOGUE();
 }
+
+#ifdef __cplusplus
+}
+#endif

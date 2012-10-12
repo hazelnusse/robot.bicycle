@@ -50,8 +50,8 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
     s.SteerAngle = STM32_TIM3->CNT;
 
     s.RearWheelRate = SampleAndControl::timers.Clockticks[0];
-    s.FrontWheelRate = SampleAndControl::timers.Clockticks[1];
-    s.SteerRate = SampleAndControl::timers.Clockticks[2];
+    s.SteerRate = SampleAndControl::timers.Clockticks[1];
+    s.FrontWheelRate = SampleAndControl::timers.Clockticks[2];
 
     s.RearWheelRate_sp = speedControl.SetPoint();
     s.YawRate_sp = 0.0; // need to implement yaw rate controller
