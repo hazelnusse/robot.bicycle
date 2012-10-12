@@ -5,7 +5,8 @@
 extern "C" {
 #endif
 
-void VectorB8(void);  // TIM4 Global interrupt
+void VectorE0(void);   // EXTI Line[15:10] interrupts, for steer index
+void Vector108(void);  // TIM5 Global interrupt, for encoder speed measurement
 
 #ifdef __cplusplus
 }

@@ -146,7 +146,7 @@ void SampleAndControl::Enable()
 
   SampleBuffer::Instance().File(&SampleAndControl::f_);
 
-  nvicEnableVector(TIM4_IRQn, CORTEX_PRIORITY_MASK(7));
+  nvicEnableVector(TIM5_IRQn, CORTEX_PRIORITY_MASK(7));
 
   Control_tp_ = chThdCreateStatic(SampleAndControl::waControlThread,
                                   sizeof(waControlThread),
@@ -161,7 +161,7 @@ void SampleAndControl::Disable()
   chThdTerminate(Control_tp_);
   chThdWait(Control_tp_);
   Control_tp_ = NULL;
-  nvicDisableVector(TIM4_IRQn);
+  nvicDisableVector(TIM5_IRQn);
   Enabled_ = false;
 }
 

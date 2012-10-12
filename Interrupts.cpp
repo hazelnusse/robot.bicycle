@@ -7,12 +7,20 @@
 #include "Interrupts.h"
 #include "SampleAndControl.h"
 
+// VectorE0 is called on a rising/falling edge of the steer index
+// Need to save the steer encoder count and determine the direction, which can
+// be obtained from STM32_TIM3->CNT and STM32_TIM3->CR1[4]  (DIR bit)
+void VectorE0(void)
+{
+
+}
+
 // There are 4 ways this interrupt gets called.
 // 1) Timer overflow
 // 2) Rising edge on IC2  ( Rear wheel encoder A)
 // 3) Rising edge on IC3  (      Steer encoder A)
 // 4) Risign edge on IC4  (Front wheel encoder A)
-CH_IRQ_HANDLER(VectorB8)
+CH_IRQ_HANDLER(Vector108)
 {
   CH_IRQ_PROLOGUE();
 
