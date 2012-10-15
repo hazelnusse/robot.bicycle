@@ -41,9 +41,8 @@ class constants {
                                                 / Steer_CPR;
 
   // Current command constants
-  static constexpr T Current_max_rw = 6.0;
-  static constexpr T Current_max_steer = 6.0;
-
+  static constexpr T Current_max_rw = 12.0;     //  Copley ADP-090-36
+  static constexpr T Current_max_steer = 6.0;   //  Copley ACJ-055-18
 };
 
 typedef constants<float> cf;
