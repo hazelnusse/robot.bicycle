@@ -78,9 +78,9 @@ void SpeedController::Update(Sample & s)
   
   // Set direction
   if (current > 0.0f) {
-    palSetPad(GPIOF, 6);    // set to forward direction
+    palSetPad(GPIOF, GPIOF_RW_DIR);    // set to forward direction
   } else {
-    palClearPad(GPIOF, 6);  // set to reverse direction
+    palClearPad(GPIOF, GPIOF_RW_DIR);  // set to reverse direction
   }
 
   // Make current positive
@@ -100,12 +100,13 @@ void SpeedController::Update(Sample & s)
 
 void SpeedController::setEnabled(bool state)
 {
+  STM32_TIM1->CCR[0] = 0; // 0% duty cycle
+
   if (state) {
-    palClearPad(GPIOF, 4);  // enable
-    STM32_TIM1->CCR[0] = 0; // 0% duty cycle
+    palClearPad(GPIOF, GPIOF_RW_ENABLE);  // enable
   } else {
-    palSetPad(GPIOF, 4);  //   disable
-    STM32_TIM1->CCR[0] = 0; // 0% duty cycle
+    palSetPad(GPIOF, GPIOF_RW_ENABLE);    //   disable
   }
+
   Enabled_ = state;
 } // setEnabled()

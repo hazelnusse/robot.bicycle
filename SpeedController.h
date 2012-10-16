@@ -10,12 +10,15 @@ class Sample;
 class SpeedController : public Singleton<SpeedController> {
   friend class Singleton<SpeedController>;
  public:
-  static void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
   void setEnabled(bool state);
   bool isEnabled() const { return Enabled_; }
+
   void SetPoint(const float speed) { SetPoint_ = speed; }
   float SetPoint() const { return SetPoint_; }
+
   void Update(Sample & s);
+
+  static void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
 
  private:
   SpeedController();

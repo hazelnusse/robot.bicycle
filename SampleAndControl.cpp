@@ -60,7 +60,7 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
     if (speedControl.isEnabled() && ((i % 10) == 0))
       speedControl.Update(s);
 
-    if (yawControl.Enabled()) {
+    if (yawControl.isEnabled()) {
       yawControl.Update(s);
     }
 
