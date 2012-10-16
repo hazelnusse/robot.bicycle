@@ -1,31 +1,24 @@
 #include "SampleBuffer.h"
 #include "ch.h"
 
-SampleBuffer * SampleBuffer::instance_ = 0;
-
-Sample SampleBuffer::buffer[NUMBER_OF_SAMPLES];
-WORKING_AREA(SampleBuffer::waWriteThread, 1024);
-
 SampleBuffer::SampleBuffer()
-  : buffer0(reinterpret_cast<uint8_t *>(buffer)),
-    buffer1(reinterpret_cast<uint8_t *>(buffer + NUMBER_OF_SAMPLES/2)),
-    i_(0), tp_(NULL), f_(NULL)
+  : buffer0_(reinterpret_cast<uint8_t *>(buffer_)),
+    buffer1_(reinterpret_cast<uint8_t *>(buffer_ + NUMBER_OF_SAMPLES/2)),
+    tp_(0), f_(0), i_(0)
 {
   tp_ = chThdCreateStatic(waWriteThread,
                           sizeof(waWriteThread),
                           NORMALPRIO, (tfunc_t) WriteThread, NULL);
-
-
 }
 
 Sample & SampleBuffer::CurrentSample()
 {
-  return buffer[i_];
+  return buffer_[i_];
 }
 
 Sample & SampleBuffer::PreviousSample()
 {
-  return (i_ == 0) ? buffer[NUMBER_OF_SAMPLES - 1] : buffer[i_ - 1];
+  return (i_ == 0) ? buffer_[NUMBER_OF_SAMPLES - 1] : buffer_[i_ - 1];
 }
 
 SampleBuffer & SampleBuffer::operator++()
@@ -45,29 +38,14 @@ void SampleBuffer::Flush()
   chMsgSend(tp_, 1);  // triggers a call to f_write on front buffer
 }
 
-void * SampleBuffer::operator new(std::size_t, void * location)
-{
-  return location;
-}
-
-SampleBuffer & SampleBuffer::Instance()
-{
-  static uint8_t allocation[sizeof(SampleBuffer)];
-
-  if (instance_ == 0)
-      instance_ = new (allocation) SampleBuffer;
-
-  return *instance_;
-}
-
 uint8_t * SampleBuffer::BackBuffer()
 {
-  return (i_ < (NUMBER_OF_SAMPLES/2)) ? buffer1 : buffer0;
+  return (i_ < (NUMBER_OF_SAMPLES/2)) ? buffer1_ : buffer0_;
 }
 
 uint8_t * SampleBuffer::FrontBuffer()
 {
-  return (i_ < (NUMBER_OF_SAMPLES/2)) ? buffer0 : buffer0;
+  return (i_ < (NUMBER_OF_SAMPLES/2)) ? buffer0_ : buffer0_;
 }
 
 void SampleBuffer::setWriteThread(Thread * tp)

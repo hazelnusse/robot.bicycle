@@ -9,12 +9,14 @@
 #include "ff.h"
 
 #include "Sample.h"
+#include "Singleton.h"
+
 class Thread;
 // class FIL;
 
-class SampleBuffer {
+class SampleBuffer : public Singleton<SampleBuffer> {
+  friend class Singleton<SampleBuffer>;
  public:
-  static SampleBuffer & Instance();
   Sample & CurrentSample();
   Sample & PreviousSample();
   SampleBuffer & operator++();
@@ -28,19 +30,14 @@ class SampleBuffer {
 
  private:
   SampleBuffer();
-  ~SampleBuffer();
-  SampleBuffer & operator=(const SampleBuffer &) = delete;
-  SampleBuffer(const SampleBuffer &) = delete;
 
-  static void * operator new(std::size_t, void * location);
   static void WriteThread(void * arg) __attribute__((noreturn));
 
-  uint8_t *buffer0, *buffer1;
-  uint8_t i_;
+  uint8_t *buffer0_, *buffer1_;
   Thread * tp_;
   FIL * f_;
-  static SampleBuffer * instance_;
-  static Sample buffer[NUMBER_OF_SAMPLES];
-  static WORKING_AREA(waWriteThread, 1024);
+  Sample buffer_[NUMBER_OF_SAMPLES];
+  WORKING_AREA(waWriteThread, 1024);
+  uint32_t i_;
 };
 #endif // SAMPLEBUFFER_H
