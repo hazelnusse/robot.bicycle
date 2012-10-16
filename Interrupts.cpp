@@ -66,15 +66,16 @@ CH_IRQ_HANDLER(TIM5_IRQHandler)
       uint32_t tmp = STM32_TIM5->CCR[i + 1]; // Timer counts since last overflow
       tmp &= 0x0000FFFF;                 // Mask out top bits, just to be safe
 
-      SampleAndControl::timers.Clockticks[i] = tmp + overflows[i]*(1 << 16) - CCR_prev[i];
+      SampleAndControl & sc = SampleAndControl::Instance();
+      sc.timers.Clockticks[i] = tmp + overflows[i]*(1 << 16) - CCR_prev[i];
       overflows[i] = 0;
       CCR_prev[i] = tmp;      // save the capture compare register
 
       // Direction is in dir[2:0] bits
       if (dir & (1 << i))     // Encoder B line is high
-        SampleAndControl::timers.Clockticks[i] |= (1 << 31);  // set high bit
+        sc.timers.Clockticks[i] |= (1 << 31);  // set high bit
       else                    // Encoder B line is low
-        SampleAndControl::timers.Clockticks[i] &= ~(1 << 31); // clear high bit
+        sc.timers.Clockticks[i] &= ~(1 << 31); // clear high bit
     }
   }
   CH_IRQ_EPILOGUE();

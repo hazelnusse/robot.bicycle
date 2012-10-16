@@ -11,22 +11,20 @@
 #include "SpeedController.h"
 #include "YawRateController.h"
 
-// Class static data
-SampleAndControl * SampleAndControl::instance_ = 0;
-WORKING_AREA(SampleAndControl::waControlThread, 1024);
-FIL SampleAndControl::f_;
-EncoderTimers SampleAndControl::timers = {{0, 0, 0}};
-
 SampleAndControl::SampleAndControl()
-  : Control_tp_(NULL), Enabled_(false)
+  : timers({{0, 0, 0}}), Control_tp_(0), Enabled_(false)
 {
-  SetFilename("samples.dat");
+  setFilename("samples.dat");
 }
 
-void SampleAndControl::Control(__attribute__((unused))void * arg)
+void SampleAndControl::Control_(__attribute__((unused))void * arg)
 {
   chRegSetThreadName("Control");
+  SampleAndControl::Instance().Control();
+}
 
+void SampleAndControl::Control()
+{
   MPU6050 & imu = MPU6050::Instance();
   imu.Initialize(&I2CD2);
   SpeedController & speedControl = SpeedController::Instance();
@@ -49,9 +47,9 @@ void SampleAndControl::Control(__attribute__((unused))void * arg)
     s.FrontWheelAngle = STM32_TIM4->CNT;
     s.SteerAngle = STM32_TIM3->CNT;
 
-    s.RearWheelRate = SampleAndControl::timers.Clockticks[0];
-    s.SteerRate = SampleAndControl::timers.Clockticks[1];
-    s.FrontWheelRate = SampleAndControl::timers.Clockticks[2];
+    s.RearWheelRate = timers.Clockticks[0];
+    s.SteerRate = timers.Clockticks[1];
+    s.FrontWheelRate = timers.Clockticks[2];
 
     s.RearWheelRate_sp = speedControl.SetPoint();
     s.YawRate_sp = 0.0; // need to implement yaw rate controller
@@ -87,46 +85,22 @@ void SampleAndControl::chshellcmd(BaseSequentialStream *chp, int argc, char *arg
 void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
   if (argc == 0) { // toggle enabled/disabled
-    if (Enabled()) {
-      Disable();
-      if (Disabled()) {
-        chprintf(chp, "Sample & Control thread disabled.\r\n");
-      } else {
-        chprintf(chp, "Unable to disable Sample & Control thread.\r\n");
-      }
+    if (isEnabled()) {
+      setEnabled(false);
+      chprintf(chp, "Sample & Control thread disabled.\r\n");
     } else {
-      Enable();
-      if (Enabled()) {
-        chprintf(chp, "Sample & Control thread enabled.\r\n");
-      } else {
-        chprintf(chp, "Unable to enable Sample & Control thread.\r\n");
-      }
+      setEnabled(true);
+      chprintf(chp, "Sample & Control thread enabled.\r\n");
     }
   } else if (argc == 1) { // change filename
-    if (Enabled()) {
-      chprintf(chp, "Disable control thread before changing files.\r\n");
-    } else {
-      SetFilename(argv[0]);
-      chprintf(chp, "Filename changed to %s.\r\n", Filename_);
+    if (isEnabled()) {
+      setEnabled(false);
+      chprintf(chp, "Sample & Control thread disabled.\r\n");
     }
+    setFilename(argv[0]);
+    chprintf(chp, "Filename changed to %s.\r\n", Filename_);
   }
   return;
-}
-
-SampleAndControl & SampleAndControl::Instance()
-{
-  static uint8_t allocation[sizeof(SampleAndControl)];
-
-  if (instance_ == 0)
-    instance_ = new (allocation) SampleAndControl;
-
-  return *instance_;
-}
-
-
-void * SampleAndControl::operator new(std::size_t, void * location)
-{
-  return location;
 }
 
 /*
@@ -139,33 +113,32 @@ void * SampleAndControl::operator new(std::size_t, void * location)
  *      performed.
  * 3) Start the control thread.
  */
-void SampleAndControl::Enable()
+void SampleAndControl::setEnabled(bool state)
 {
-  if (f_open(&SampleAndControl::f_, Filename_, FA_CREATE_ALWAYS | FA_WRITE))
-    return;
+  if (state) {
+    if (f_open(&f_, Filename_, FA_CREATE_ALWAYS | FA_WRITE)) return;
 
-  SampleBuffer::Instance().File(&SampleAndControl::f_);
+    SampleBuffer::Instance().File(&f_);
 
-  nvicEnableVector(TIM5_IRQn, CORTEX_PRIORITY_MASK(7));
+    nvicEnableVector(TIM5_IRQn, CORTEX_PRIORITY_MASK(7));
 
-  Control_tp_ = chThdCreateStatic(SampleAndControl::waControlThread,
-                                  sizeof(waControlThread),
-                                  NORMALPRIO, (tfunc_t) Control, NULL);
+    Control_tp_ = chThdCreateStatic(SampleAndControl::waControlThread,
+                                    sizeof(waControlThread),
+                                    NORMALPRIO, (tfunc_t) Control_, 0);
 
-  Enabled_ = true;
+    Enabled_ = true;
+  } else {
+    SpeedController::Instance().setEnabled(false);
+    YawRateController::Instance().setEnabled(false);
+    chThdTerminate(Control_tp_);
+    chThdWait(Control_tp_);
+    Control_tp_ = 0;
+    nvicDisableVector(TIM5_IRQn);
+    Enabled_ = false;
+  }
 }
 
-void SampleAndControl::Disable()
-{
-  SpeedController::Instance().setEnabled(false);
-  chThdTerminate(Control_tp_);
-  chThdWait(Control_tp_);
-  Control_tp_ = NULL;
-  nvicDisableVector(TIM5_IRQn);
-  Enabled_ = false;
-}
-
-void SampleAndControl::SetFilename(const char * name)
+void SampleAndControl::setFilename(const char * name)
 {
   std::strcpy(Filename_, name);
 }

@@ -7,33 +7,28 @@
 #include "ff.h"
 
 #include "EncoderTimers.h"
+#include "Singleton.h"
 
-class SampleAndControl {
+class SampleAndControl : public Singleton<SampleAndControl> {
+  friend class Singleton<SampleAndControl>;
  public:
-  static SampleAndControl & Instance();
   static void chshellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
-  static void Control(void * arg);
-  void Enable();
-  bool Enabled() const { return Enabled_; }
-  void Disable();
-  bool Disabled() const { return !Enabled_; }
-  void SetFilename(const char * name);
+  static void Control_(void * arg);
+  void Control();
+  void setEnabled(bool state);
+  bool isEnabled() const { return Enabled_; }
+  void setFilename(const char * name);
   char * Filename() const;
-  static EncoderTimers timers;
+  EncoderTimers timers;
 
  private:
   SampleAndControl();
-  ~SampleAndControl();
-  SampleAndControl & operator=(const SampleAndControl &) = delete;
-  SampleAndControl(const SampleAndControl &) = delete;
   void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
-  static void *operator new(std::size_t, void * location);
-  static SampleAndControl * instance_;
 
   Thread * Control_tp_;
-  bool Enabled_;
   char Filename_[24];
-  static FIL f_;
-  static WORKING_AREA(waControlThread, 1024);
+  FIL f_;
+  WORKING_AREA(waControlThread, 1024);
+  bool Enabled_;
 };
 #endif // SAMPLEANDCONTROL_H

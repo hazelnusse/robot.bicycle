@@ -10,7 +10,7 @@ void FileSystemBlinkThread(void * arg)
 {
   chRegSetThreadName("fs_blink");
   while (1) {
-    palTogglePad(IOPORT3, GPIOC_LED);
+    palTogglePad(GPIOC, GPIOC_LED);
     chThdSleepMilliseconds(*static_cast<bool *>(arg) ? 125 : 1000);
   }
 }
@@ -23,6 +23,6 @@ void SampleAndControlBlinkThread(__attribute__((unused)) void * arg)
   chRegSetThreadName("sc_blink");
   while (1) {
     palTogglePad(IOPORT3, GPIOC_LED);
-    chThdSleepMilliseconds(sc.Enabled() ? 125 : 1000);
+    chThdSleepMilliseconds(sc.isEnabled() ? 125 : 1000);
   }
 }
