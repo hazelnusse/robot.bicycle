@@ -40,46 +40,41 @@ std::vector<SampleConverted> SampleReader::Convert()
     uint32_t t0 = samples_[0].SystemTime;
     for (int i = 0; i < samples_.size(); ++i) {
       SampleConverted sc;
-      // Gyroscope
-      sc.Temperature = (samples_[i].Gyroscope[0]
-          + cd::Gyroscope_temp_offset) * cd::Gyroscope_temp_sensitivity;
-
-      sc.Gyroscope[0] = samples_[i].Gyroscope[1]
-                                          * cd::Gyroscope_sensitivity;
-
-      sc.Gyroscope[1] = samples_[i].Gyroscope[2]
-                                          * cd::Gyroscope_sensitivity;
-
-      sc.Gyroscope[2] = samples_[i].Gyroscope[3]
-                                          * cd::Gyroscope_sensitivity;
-
+      
       // Accelerometer
-      sc.Accelerometer[0] = samples_[i].Accelerometer[0]
+      sc.Accelerometer[0] = samples_[i].MPU6050[0]
                                               * cd::Accelerometer_sensitivity;
-      sc.Accelerometer[1] = samples_[i].Accelerometer[1]
+      sc.Accelerometer[1] = samples_[i].MPU6050[1]
                                               * cd::Accelerometer_sensitivity;
-      sc.Accelerometer[2] = samples_[i].Accelerometer[2]
+      sc.Accelerometer[2] = samples_[i].MPU6050[2]
                                               * cd::Accelerometer_sensitivity;
+      // Temperature 
+      sc.Temperature = samples_[i].MPU6050[3] * cd::Gyroscope_temp_sensitivity
+                       + cd::Gyroscope_temp_offset;
+      // Gyroscope
+      sc.Gyroscope[0] = samples_[i].MPU6050[4]
+                                          * cd::Gyroscope_sensitivity;
 
-      // Magnetometer
-      sc.Magnetometer[0] = samples_[i].Magnetometer[0]
-                                             * cd::Magnetometer_sensitivity;
-      sc.Magnetometer[1] = samples_[i].Magnetometer[1]
-                                             * cd::Magnetometer_sensitivity;
-      sc.Magnetometer[2] = samples_[i].Magnetometer[2]
-                                             * cd::Magnetometer_sensitivity;
+      sc.Gyroscope[1] = samples_[i].MPU6050[5]
+                                          * cd::Gyroscope_sensitivity;
 
+      sc.Gyroscope[2] = samples_[i].MPU6050[6]
+                                          * cd::Gyroscope_sensitivity;
+
+      // Rear wheel angle
+      sc.RearWheelAngle = samples_[i].RearWheelAngle * cd::Wheel_rad_per_count * 4;
       // Steer
-      sc.SteerAngle = samples_[i].SteerAngle
-                                        * cd::Steer_rad_per_quad_count;
+      sc.SteerAngle = samples_[i].SteerAngle * cd::Steer_rad_per_quad_count;
+      // Front wheel angle
+      sc.RearWheelAngle = samples_[i].FrontWheelAngle * cd::Wheel_rad_per_count * 4;
 
       // Wheel rates and steer rate
       sc.RearWheelRate = cd::Wheel_rad_counts_per_sec
-                                           / samples_[i].RearWheelRate;
+                       / samples_[i].RearWheelRate;
       sc.FrontWheelRate = cd::Wheel_rad_counts_per_sec
-                                            / samples_[i].FrontWheelRate;
+                        / samples_[i].FrontWheelRate;
       sc.SteerRate = cd::Steer_rad_counts_per_sec
-                                       / samples_[i].SteerRate;
+                   / samples_[i].SteerRate;
 
       // Current commands
       sc.I_rw = samples_[i].CCR_rw
@@ -96,10 +91,10 @@ std::vector<SampleConverted> SampleReader::Convert()
                           static_cast<double>(samples_[i].YawRate_sp);
 
       // Convert system time to normal time
-      sc.Time = (samples_[i].SystemTime - t0) * 0.005;
+      sc.Time = (samples_[i].SystemTime - t0) * cd::Seconds_per_Systick;
       
       // No conversion needed for Errorcodes
-      sc.ErrorCodes = samples_[i].ErrorCodes;
+      sc.SystemState = samples_[i].SystemState;
 
       // Add sc to SampleConverted vector
       samplesConverted_.push_back(sc);
