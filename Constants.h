@@ -10,6 +10,7 @@ class constants {
   static constexpr T pi = 4.0*std::atan(1.0);
   static constexpr T pi_2 = 2.0*std::atan(1.0);
   static constexpr T pi_4 = std::atan(1.0);
+  static constexpr T two_pi = 2.0*pi;
   static constexpr T rad_per_degree = pi / 180.0;
   static constexpr T e = std::exp(1.0);
   static constexpr T g = 9.81;
@@ -26,19 +27,20 @@ class constants {
   static constexpr T Accelerometer_sensitivity = g / 16384.0;
 
   // Steer angle
-  static constexpr T Steer_CPR = 4000;
-  static constexpr T Steer_rad_per_count = 2.0 * pi / Steer_CPR;
-  static constexpr T Steer_rad_per_quad_count = Steer_rad_per_count / 4.0;
+  static constexpr int Steer_CPR = 4000;
+  static constexpr int Steer_quad_CPR = 4 * Steer_CPR;
+  static constexpr T Steer_rad_per_count = two_pi / Steer_CPR;
+  static constexpr T Steer_rad_per_quad_count = two_pi / Steer_quad_CPR;
 
   // Wheel rates and steer rate
-  static constexpr T Wheel_CPR = 200;
-  static constexpr T Wheel_rad_per_count = 2.0 * pi / Wheel_CPR;
+  static constexpr int Wheel_CPR = 200;
+  static constexpr int  Wheel_quad_CPR = 4 * Wheel_CPR;
+  static constexpr T Wheel_rad_per_count = two_pi / Wheel_CPR;
+  static constexpr T Wheel_rad_per_quad_count = two_pi / Wheel_quad_CPR;
 
   static constexpr T Rate_Timer_Frequency = 4.0e6;
-  static constexpr T Wheel_rad_counts_per_sec = 2.0 * pi * Rate_Timer_Frequency
-                                                / Wheel_CPR;
-  static constexpr T Steer_rad_counts_per_sec = 2.0 * pi * Rate_Timer_Frequency
-                                                / Steer_CPR;
+  static constexpr T Wheel_rad_counts_per_sec = Rate_Timer_Frequency * Wheel_rad_per_count;
+  static constexpr T Steer_rad_counts_per_sec = Rate_Timer_Frequency * Steer_rad_per_count;
 
   // Current command constants
   static constexpr T Current_max_rw = 12.0;     //  Copley ADP-090-36

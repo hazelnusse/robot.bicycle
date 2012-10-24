@@ -2,6 +2,8 @@
 #include "Sample.h"
 #include "Constants.h"
 
+#include <limits>
+
 SampleReader::SampleReader(const char * fname)
   : converted_(false)
 {
@@ -62,19 +64,21 @@ std::vector<SampleConverted> SampleReader::Convert()
                                           * cd::Gyroscope_sensitivity;
 
       // Rear wheel angle
-      sc.RearWheelAngle = samples_[i].RearWheelAngle * cd::Wheel_rad_per_count * 4;
+      sc.RearWheelAngle = (samples_[i].RearWheelAngle * cd::Wheel_rad_per_quad_count)
+                        - ((1 << 15) * cd::Wheel_rad_per_quad_count);
       // Steer
-      sc.SteerAngle = samples_[i].SteerAngle * cd::Steer_rad_per_quad_count;
+      sc.SteerAngle = (samples_[i].SteerAngle * cd::Steer_rad_per_quad_count)
+                    - ((1 << 15) * cd::Steer_rad_per_quad_count);
+      //sc.SteerAngle = (samples_[i].SteerAngle - (1 << 15)) * cd::Steer_rad_per_quad_count;
+
       // Front wheel angle
-      sc.RearWheelAngle = samples_[i].FrontWheelAngle * cd::Wheel_rad_per_count * 4;
+      sc.FrontWheelAngle = (samples_[i].FrontWheelAngle * cd::Wheel_rad_per_quad_count)
+                        - ((1 << 15) * cd::Wheel_rad_per_quad_count);
 
       // Wheel rates and steer rate
-      sc.RearWheelRate = cd::Wheel_rad_counts_per_sec
-                       / samples_[i].RearWheelRate;
-      sc.FrontWheelRate = cd::Wheel_rad_counts_per_sec
-                        / samples_[i].FrontWheelRate;
-      sc.SteerRate = cd::Steer_rad_counts_per_sec
-                   / samples_[i].SteerRate;
+      sc.RearWheelRate = encoderRate(samples_[i].RearWheelRate, cd::Wheel_rad_counts_per_sec);
+      sc.SteerRate = encoderRate(samples_[i].SteerRate, cd::Steer_rad_counts_per_sec);
+      sc.FrontWheelRate = encoderRate(samples_[i].FrontWheelRate, cd::Wheel_rad_counts_per_sec);
 
       // Current commands
       sc.I_rw = samples_[i].CCR_rw
@@ -103,4 +107,18 @@ std::vector<SampleConverted> SampleReader::Convert()
   }
   std::cout << samplesConverted_.size() << std::endl;
   return samplesConverted_;
+}
+
+
+double SampleReader::encoderRate(uint32_t counts, double rad_counts_per_sec)
+{
+  uint32_t dir_bit = 1 << 31;
+  double direction;
+  if (dir_bit & counts) {
+      direction = -1.0;
+  } else {
+      direction = 1.0;
+  }
+  counts &= ~dir_bit;
+  return direction * rad_counts_per_sec / counts;
 }

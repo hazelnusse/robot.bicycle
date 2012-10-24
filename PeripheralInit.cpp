@@ -51,7 +51,7 @@ static void configureRCC()
 
 void configureEncoderTimers(void)
 {
-  // Encoder timers are all 16-bit
+  // Position encoder timers are all 16-bit
   // TIM3 and TIM4 are APB1@84.0MHz, TIM8 is APB2@168.0MHz.
   //
   // The clock speed only affect the filtering that is done in the edge
@@ -65,9 +65,10 @@ void configureEncoderTimers(void)
   for (auto timer : encoderTimers) {
     timer->SMCR = 3;          // Encoder mode 3
     timer->CCER = 0;          // rising edge polarity
-    timer->ARR = 0xFFFFFFFF;  // count from 0-ARR or ARR-0
+    timer->ARR = 0xFFFF;      // count from 0-ARR or ARR-0
     timer->CCMR1 = 0xF1F1;    // f_DTS/32, N=8, IC1->TI1, IC2->TI2
-    timer->CNT = 0;           // Clear counter
+    timer->EGR = 1;           // Generate an update event
+    timer->CNT = 1 << 15;     // Initialize counter with 2^15
     timer->CR1 = 1;           // Enable the counter
   }
 
@@ -79,24 +80,32 @@ void configureEncoderTimers(void)
   // Configure prescalar for speed estimates.  This is needed in order to slow
   // down the sampling of the IC channels to avoid spurious velocity
   // measurements.  This setting directly affects the accuracy of the speed
-  // estimate.
-  STM32_TIM5->PSC = 20; // f_CLK = 84.0e6 / (20 + 1) == 4.0 MHz, --> .25 us / count
+  // estimate as well as the time before an overflow event will occur.
+  // Overflows indicate the speed is very slow, likely stationary.
+  STM32_TIM5->PSC = 20; // f_CLK = 84.0 MHz / (20 + 1) == 4.0 MHz, --> 0.25 us / count
+
+  // Set the ARR so that counting goes from 0 to 2**16 - 1 and then starts
+  // counting again from 0
+  STM32_TIM5->ARR = 0x0000FFFF;
 
   // Configure capture compare register for pulse duration counter
-  // CCxS = 01, ICxPSC = 00, ICxF = 1111: f_sampling = f_CLK / 32, N = 8
-  // This means rising edge must be stable for .25us * 32 * 8 = 64us to be
+  // CCxS = 01, ICxPSC = 00, ICxF = 0011: f_sampling = f_CLK, N = 8
+  // This means rising edge must be stable for 0.25 us * 8 = 2 us to be
   // considered a transition.
-  STM32_TIM5->CCMR1 = 0xF100;  
-  STM32_TIM5->CCMR2 = 0xF1F1;
+  STM32_TIM5->CCMR1 = 0x3100;  
+  STM32_TIM5->CCMR2 = 0x3131;
 
   // Enable capture on IC2, IC3, IC4, with rising edge polarity
   STM32_TIM5->CCER = (1 << 12) | (1 << 8) | (1 << 4);
 
-  // Enable interrupts on IC4, IC3, IC2, UE
-  STM32_TIM5->DIER = (1 << 4) | (1 << 3) | (1 << 2) | (1 << 0);
-
   // Clear speed count
   STM32_TIM5->CNT = 0;
+
+  // Generate an update event so that all registers are updated.
+  STM32_TIM5->EGR = 1;
+
+  // Enable interrupts on IC4, IC3, IC2, UE
+  STM32_TIM5->DIER = (1 << 4) | (1 << 3) | (1 << 2) | (1 << 0);
 
   // Enable speed timer 
   STM32_TIM5->CR1 = 1;

@@ -43,9 +43,9 @@ void SampleAndControl::Control()
 
     imu.Acquire(s);
 
-    s.RearWheelAngle = STM32_TIM8->CNT;
-    s.FrontWheelAngle = STM32_TIM4->CNT;
-    s.SteerAngle = STM32_TIM3->CNT;
+    s.RearWheelAngle = STM32_TIM8->CNT & 0x0000FFFF;
+    s.FrontWheelAngle = STM32_TIM4->CNT & 0x0000FFFF;
+    s.SteerAngle = STM32_TIM3->CNT & 0x0000FFFF;
 
     s.RearWheelRate = timers.Clockticks[0];
     s.SteerRate = timers.Clockticks[1];

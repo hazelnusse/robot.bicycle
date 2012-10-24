@@ -78,13 +78,11 @@ void SpeedController::Update(Sample & s)
   
   // Set direction
   if (current > 0.0f) {
-    palSetPad(GPIOF, GPIOF_RW_DIR);    // set to forward direction
-  } else {
     palClearPad(GPIOF, GPIOF_RW_DIR);  // set to reverse direction
+  } else {
+    palSetPad(GPIOF, GPIOF_RW_DIR);    // set to forward direction
+    current *= -1.0f;                  // Make current positive
   }
-
-  // Make current positive
-  current = std::fabs(current);
 
   // Saturate current at max continuous current of Copley drive
   if (current > cf::Current_max_rw)
@@ -95,7 +93,7 @@ void SpeedController::Update(Sample & s)
 
   // Convert duty cycle to an uint32_t in range of [0, TIM1->ARR + 1] and set
   // it in TIM1
-  STM32_TIM1->CCR[0] = static_cast<uint32_t>((STM32_TIM1->ARR + 1) * duty);
+  STM32_TIM1->CCR[0] = static_cast<uint32_t>(static_cast<float>(STM32_TIM1->ARR + 1) * duty);
 } // Update()
 
 void SpeedController::setEnabled(bool state)

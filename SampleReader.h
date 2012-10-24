@@ -1,6 +1,7 @@
 #ifndef SAMPLEREADER_H
 #define SAMPLEREADER_H
 
+#include <cstdint>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -15,6 +16,7 @@ class SampleReader {
   std::vector<SampleConverted> Convert();
 
  private:
+  static double encoderRate(uint32_t counts, double rad_counts_per_sec);
   std::vector<Sample> samples_;
   std::vector<SampleConverted> samplesConverted_;
   bool converted_;
