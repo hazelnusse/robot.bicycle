@@ -4,5 +4,7 @@ build
 .*.cpp.sw?
 .*.h.sw?
 datasheets
-collected_data
+collected_data*
+images
+__pycache__
 CopleyConfiguration/
