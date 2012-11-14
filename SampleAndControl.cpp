@@ -6,13 +6,15 @@
 #include "ff.h"
 
 #include "MPU6050.h"
+#include "Fork.h"
+#include "RearWheel.h"
 #include "SampleAndControl.h"
 #include "SampleBuffer.h"
 #include "SpeedController.h"
 #include "YawRateController.h"
 
 SampleAndControl::SampleAndControl()
-  : timers({{0, 0, 0}}), Control_tp_(0), Enabled_(false)
+  : timers({{0, 0, 0}, 0}), Control_tp_(0), Enabled_(false)
 {
   setFilename("samples.dat");
 }
@@ -27,47 +29,78 @@ void SampleAndControl::Control()
 {
   MPU6050 & imu = MPU6050::Instance();
   imu.Initialize(&I2CD2);
-  SpeedController & speedControl = SpeedController::Instance();
-  YawRateController & yawControl = YawRateController::Instance();
+
   SampleBuffer & sb = SampleBuffer::Instance();
+  SpeedController & sc = SpeedController::Instance();
+  RearWheel & rw = RearWheel::Instance();
+  Fork & fork = Fork::Instance();
+  YawRateController & yc = YawRateController::Instance();
 
   systime_t time = chTimeNow();     // Initial time
 
   for (uint32_t i = 0; !chThdShouldTerminate(); ++i) {
-    time += MS2ST(5);            // Next deadline
+    time += MS2ST(5);                        // Next deadline
     palTogglePad(IOPORT6, GPIOF_TIMING_PIN); // Sanity check for loop timing
 
     Sample & s = sb.CurrentSample();
+    uint32_t state = 0;
 
-    s.SystemTime = chTimeNow();
+    s.SystemTime = STM32_TIM5->CNT;//chTimeNow();
 
     imu.Acquire(s);
 
-    s.RearWheelAngle = STM32_TIM8->CNT & 0x0000FFFF;
-    s.FrontWheelAngle = STM32_TIM4->CNT & 0x0000FFFF;
-    s.SteerAngle = STM32_TIM3->CNT & 0x0000FFFF;
+    s.RearWheelAngle = STM32_TIM8->CNT;// & 0x0000FFFF;
+    s.FrontWheelAngle = STM32_TIM4->CNT;// & 0x0000FFFF;
+    s.SteerAngle = STM32_TIM3->CNT;// & 0x0000FFFF;
 
     s.RearWheelRate = timers.Clockticks[0];
     s.SteerRate = timers.Clockticks[1];
     s.FrontWheelRate = timers.Clockticks[2];
 
-    s.RearWheelRate_sp = speedControl.SetPoint();
+    state |= timers.Direction;
+
+    s.RearWheelRate_sp = sc.SetPoint();
     s.YawRate_sp = 0.0; // need to implement yaw rate controller
 
-    // Compute new speed control action if controller is enabled.
-    if (speedControl.isEnabled() && ((i % 10) == 0))
-      speedControl.Update(s);
+    rw.Predict(s.SystemTime);
 
-    if (yawControl.isEnabled()) {
-      yawControl.Update(s);
+    // Compute new speed control action if controller is enabled.
+    if (sc.isEnabled()) {
+      state |= Sample::SpeedControl;
+      sc.Update();
+    }
+
+    // Compute new steer control action if yaw controller is enabled.
+    if (yc.isEnabled()) {
+      state |= Sample::YawRateControl;
+      yc.Update(s);
     }
 
     s.CCR_rw = STM32_TIM1->CCR[0];    // Save rear wheel duty
     s.CCR_steer = STM32_TIM1->CCR[1]; // Save steer duty
 
-    s.SystemState = 0;
+    bool faults = false;
+    // Check for motor faults
+    if (!palReadPad(GPIOF, GPIOF_RW_FAULT)) {
+      state |= Sample::HubMotorFault;
+      faults = true;
+    }
+    
+    if (!palReadPad(GPIOF, GPIOF_STEER_FAULT)) {
+      state |= Sample::SteerMotorFault;
+      faults = true;
+    }
+
+    s.SystemState = state;
 
     ++sb;                   // Increment to the next sample
+
+    if (faults) {
+      rw.setMotorEnabled(false);
+      fork.setMotorEnabled(false);
+      //sc.setEnabled(false);
+      //yc.setEnabled(false);
+    }
 
     // Go to sleep until next 5ms interval
     chThdSleepUntil(time);

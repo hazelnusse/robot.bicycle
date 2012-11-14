@@ -16,7 +16,7 @@ class SpeedController : public Singleton<SpeedController> {
   void SetPoint(const float speed) { SetPoint_ = speed; }
   float SetPoint() const { return SetPoint_; }
 
-  void Update(Sample & s);
+  void Update();
 
   static void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
 

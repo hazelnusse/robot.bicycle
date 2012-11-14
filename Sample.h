@@ -23,7 +23,10 @@ class Sample {
   enum StateFlags {SpeedControl =    1,
                    YawRateControl =  2,
                    HubMotorFault =   4,
-                   SteerMotorFault = 8};
+                   SteerMotorFault = 8,
+                   RearWheelEncoderB = 16,
+                   SteerEncoderB = 32,
+                   FrontWheelEncoderB = 64};
 };
 
 #endif

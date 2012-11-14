@@ -94,9 +94,11 @@ CSRC = $(PORTSRC) \
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 CPPSRC = BlinkThreads.cpp \
+				 Fork.cpp \
 				 main.cpp \
 				 MPU6050.cpp \
 				 PeripheralInit.cpp \
+				 RearWheel.cpp \
 				 SampleBuffer.cpp \
 				 SpeedController.cpp \
 				 YawRateController.cpp \
@@ -140,7 +142,9 @@ INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
 #
 
 MCU  = cortex-m4
-TOOLCHAINDIR = $(HOME)/usr/GNU_ARM_EMBEDDED
+#TOOLCHAINDIR = $(HOME)/usr/GNU_ARM_EMBEDDED
+TOOLCHAINDIR = $(HOME)/toolchain
+#TOOLCHAINDIR = $(HOME)/arm-cs-tools
 TRGT = $(TOOLCHAINDIR)/bin/arm-none-eabi-
 CC   = $(TRGT)gcc
 CPPC = $(TRGT)g++
@@ -218,7 +222,7 @@ ULIBS =
 ##############################################################################
 
 ifeq ($(USE_FPU),yes)
-  USE_OPT += -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16
+  USE_OPT += -march=armv7e-m -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16
   DDEFS += -DCORTEX_USE_FPU=TRUE
 else
   DDEFS += -DCORTEX_USE_FPU=FALSE

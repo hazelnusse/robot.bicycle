@@ -4,7 +4,9 @@
 #include "hal.h"
 
 #include "EncoderTimers.h"
+#include "Sample.h"
 #include "SampleAndControl.h"
+#include "RearWheel.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,8 +32,6 @@ CH_IRQ_HANDLER(TIM5_IRQHandler)
 {
   CH_IRQ_PROLOGUE();
 
-  static uint32_t overflows[3] = { 0, 0, 0 }; // to store # of overflows per
-                                              // per input channel
   static uint32_t CCR_prev[3] = { 0, 0, 0 };  // to store the value of CNT at
                                               // the time of the input capture
                                               // events
@@ -44,37 +44,33 @@ CH_IRQ_HANDLER(TIM5_IRQHandler)
                                   // 0.  Writing '1' has no effect on the bit
                                   // value.
   uint32_t dir = 0;               // To store state of B channel of encoders
-  if (GPIOC->IDR & (1 << GPIOC_TIM8_CH2))
-    dir = 1;
-  if (GPIOA->IDR & (1 << GPIOA_TIM3_CH2))
-    dir |= (1 << 1); 
-  if (GPIOD->IDR & (1 << GPIOD_TIM4_CH2))
-    dir |= (1 << 2);
-
-
-  if (sr & 1) {                   // UE (overflow, since TIM5 is upcounting)
-    // When the timer has overflowed, we increment the overflow counters:
-    ++overflows[0]; ++overflows[1]; ++overflows[2];
-  }
 
   SampleAndControl & sc = SampleAndControl::Instance();
+  RearWheel & rw = RearWheel::Instance();
   for (int i = 0; i < 3; ++i) {
-    // For IC2, IC3, IC4 events the Clockticks is the clock
-    // value at the time of the current IC event, CCR[i], minus the clock value at the
-    // time of the previous event, CCR_prev[i], plus 2^16 times the number of
-    // overflows.
+    // For IC2, IC3, IC4 events the Clockticks is the clock value at the time
+    // of the current IC event, CCR[i], minus the clock value at the time of
+    // the previous event CCR_previ[i]. In the event that the timer has
+    // overflown since that last event, CCR will be less than CCR_prev.
+    // Because of the way unsigned subtraction works, this will still give us
+    // the answer we are looking for.  For example, with 8-bit unsigned types,
+    // 2 - 255 will give 3, which is what we want.
     if (sr & (1 << (i + 2))) { // IC2, IC3, IC4 are on bits 2, 3, 4 of SR
       uint32_t tmp = STM32_TIM5->CCR[i + 1]; // Timer counts since last overflow
-      tmp &= 0x0000FFFF;                // Mask top bits
-      sc.timers.Clockticks[i] = tmp + overflows[i]*(STM32_TIM5->ARR + 1) - CCR_prev[i];
-      overflows[i] = 0;
+      sc.timers.Clockticks[i] = tmp - CCR_prev[i];
       CCR_prev[i] = tmp;      // save the capture compare register
 
       // Direction is in dir[2:0] bits
-      if (dir & (1 << i))     // Encoder B line is high
-        sc.timers.Clockticks[i] |= (1 << 31);  // set high bit
-      else                    // Encoder B line is low
-        sc.timers.Clockticks[i] &= ~(1 << 31); // clear high bit
+      if (i == 0) {
+        dir |= (GPIOC->IDR & (1 << GPIOC_TIM8_CH2)) ? Sample::RearWheelEncoderB : 0;
+        rw.PredictAndCorrect(tmp, sc.timers.Clockticks[0]);
+      } else if (i == 1) {
+        dir |= (GPIOA->IDR & (1 << GPIOA_TIM3_CH2)) ? Sample::SteerEncoderB : 0;
+      } else {
+        dir |= (GPIOD->IDR & (1 << GPIOD_TIM4_CH2)) ? Sample::FrontWheelEncoderB : 0;
+      }
+
+      sc.timers.Direction = dir;
     }
   }
   CH_IRQ_EPILOGUE();
