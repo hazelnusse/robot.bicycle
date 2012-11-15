@@ -33,6 +33,7 @@ void SampleAndControl::Control()
   SampleBuffer & sb = SampleBuffer::Instance();
   SpeedController & sc = SpeedController::Instance();
   RearWheel & rw = RearWheel::Instance();
+  rw.setMotorEnabled(true);
   Fork & fork = Fork::Instance();
   YawRateController & yc = YawRateController::Instance();
 
@@ -98,8 +99,7 @@ void SampleAndControl::Control()
     if (faults) {
       rw.setMotorEnabled(false);
       fork.setMotorEnabled(false);
-      //sc.setEnabled(false);
-      //yc.setEnabled(false);
+      break;
     }
 
     // Go to sleep until next 5ms interval

@@ -21,7 +21,7 @@ class RearWheel : public Singleton<RearWheel> {
 
   float x_,    /*! state estimate               [rad / s]                   */
         u_,    /*! input torque                 [N * m]                     */
-        K_,    /*! Kalmn gain                   [ ]                         */
+        K_,    /*! Kalman gain                  [ ]                         */
         P_,    /*! error covariance             [rad^2 / s^2]               */
         Q_,    /*! process noise covariance     [rad^2 / s^2]               */
         R_;    /*! measurement noise covariance [rad^2 / s^2]               */

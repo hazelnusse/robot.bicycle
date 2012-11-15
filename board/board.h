@@ -899,8 +899,8 @@
                                      PIN_PUPDR_FLOATING(GPIOF_STEER_ENABLE) | \
                                      PIN_PUPDR_FLOATING(GPIOF_RW_DIR) |       \
                                      PIN_PUPDR_FLOATING(GPIOF_STEER_DIR) |    \
-                                     PIN_PUPDR_FLOATING(GPIOF_RW_FAULT) |     \
-                                     PIN_PUPDR_FLOATING(GPIOF_STEER_FAULT) |  \
+                                     PIN_PUPDR_PULLUP(GPIOF_RW_FAULT) |       \
+                                     PIN_PUPDR_PULLUP(GPIOF_STEER_FAULT) |    \
                                      PIN_PUPDR_FLOATING(GPIOF_VIN_MON) |      \
                                      PIN_PUPDR_FLOATING(GPIOF_STEER_ENC_I) |  \
                                      PIN_PUPDR_PULLUP(GPIOF_PIN12) |          \
