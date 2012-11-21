@@ -94,17 +94,16 @@ CSRC = $(PORTSRC) \
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 CPPSRC = BlinkThreads.cpp \
-				 Fork.cpp \
 				 main.cpp \
 				 MPU6050.cpp \
 				 PeripheralInit.cpp \
 				 RearWheel.cpp \
 				 SampleBuffer.cpp \
-				 SpeedController.cpp \
 				 YawRateController.cpp \
 				 SampleAndControl.cpp \
 				 Interrupts.cpp
 
+#				 Fork.cpp \
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
 #       option that results in lower performance and larger code size.

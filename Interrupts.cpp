@@ -23,11 +23,10 @@ CH_IRQ_HANDLER(EXTI15_10_IRQHandler)
   CH_IRQ_EPILOGUE();
 }
 
-// There are 4 ways this interrupt gets called.
-// 1) Timer overflow
-// 2) Rising edge on IC2  ( Rear wheel encoder A)
-// 3) Rising edge on IC3  (      Steer encoder A)
-// 4) Risign edge on IC4  (Front wheel encoder A)
+// There are 3 ways this interrupt gets called.
+// 1) Rising edge on IC2  ( Rear wheel encoder A)
+// 2) Rising edge on IC3  (      Steer encoder A)
+// 3) Risign edge on IC4  (Front wheel encoder A)
 CH_IRQ_HANDLER(TIM5_IRQHandler)
 {
   CH_IRQ_PROLOGUE();
@@ -47,32 +46,43 @@ CH_IRQ_HANDLER(TIM5_IRQHandler)
 
   SampleAndControl & sc = SampleAndControl::Instance();
   RearWheel & rw = RearWheel::Instance();
-  for (int i = 0; i < 3; ++i) {
-    // For IC2, IC3, IC4 events the Clockticks is the clock value at the time
-    // of the current IC event, CCR[i], minus the clock value at the time of
-    // the previous event CCR_previ[i]. In the event that the timer has
-    // overflown since that last event, CCR will be less than CCR_prev.
-    // Because of the way unsigned subtraction works, this will still give us
-    // the answer we are looking for.  For example, with 8-bit unsigned types,
-    // 2 - 255 will give 3, which is what we want.
-    if (sr & (1 << (i + 2))) { // IC2, IC3, IC4 are on bits 2, 3, 4 of SR
-      uint32_t tmp = STM32_TIM5->CCR[i + 1]; // Timer counts since last overflow
-      sc.timers.Clockticks[i] = tmp - CCR_prev[i];
-      CCR_prev[i] = tmp;      // save the capture compare register
 
-      // Direction is in dir[2:0] bits
-      if (i == 0) {
-        dir |= (GPIOC->IDR & (1 << GPIOC_TIM8_CH2)) ? Sample::RearWheelEncoderB : 0;
-        rw.PredictAndCorrect(tmp, sc.timers.Clockticks[0]);
-      } else if (i == 1) {
-        dir |= (GPIOA->IDR & (1 << GPIOA_TIM3_CH2)) ? Sample::SteerEncoderB : 0;
-      } else {
-        dir |= (GPIOD->IDR & (1 << GPIOD_TIM4_CH2)) ? Sample::FrontWheelEncoderB : 0;
-      }
+  uint32_t CCR;
+  // Rear wheel encoder A edge
+  if (sr & (1 << 2)) { // IC2
+    CCR = STM32_TIM5->CCR[1];  // Channel 2
+    sc.timers.Clockticks[0] = CCR - CCR_prev[0];
+    CCR_prev[0] = CCR;
+    float w = cf::Wheel_rad_halfquad_counts_per_sec / sc.timers.Clockticks[0];
+    if (STM32_TIM8->CR1 & (1 << 4)) {
+      dir |=  Sample::RearWheelEncoderB;
+      w = -w;
+    }
+    rw.Update(CCR, w);    // Update state estimation
+  }
 
-      sc.timers.Direction = dir;
+  // Steer encoder A edge
+  if (sr & (1 << 3)) { // IC3
+    CCR = STM32_TIM5->CCR[2];  // Channel 3
+    sc.timers.Clockticks[1] = CCR - CCR_prev[1];
+    CCR_prev[1] = CCR;
+    if (STM32_TIM3->CR1 & (1 << 4)) {
+      dir |=  Sample::SteerEncoderB;
     }
   }
+
+  // Front wheel encoder A edge
+  if (sr & (1 << 4)) { // IC4
+    CCR = STM32_TIM5->CCR[3];  // Channel 4
+    sc.timers.Clockticks[2] = CCR - CCR_prev[2];
+    CCR_prev[2] = CCR;
+    if (STM32_TIM4->CR1 & (1 << 4)) {
+      dir |=  Sample::FrontWheelEncoderB;
+    }
+  }
+
+  sc.timers.Direction = dir;
+
   CH_IRQ_EPILOGUE();
 }
 

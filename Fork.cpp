@@ -31,7 +31,7 @@ void Fork::homeFork(BaseSequentialStream * chp)
 
 void Fork::setMotorEnabled(bool state)
 {
-  STM32_TIM1->CCR[0] = 0; // set 0% duty cycle
+  STM32_TIM1->CCR[1] = 0; // set 0% duty cycle
   if (state) {
     palClearPad(GPIOF, GPIOF_STEER_ENABLE);  // enable
   } else {

@@ -8,7 +8,7 @@
 
 #include "BlinkThreads.h"
 #include "SampleAndControl.h"
-#include "SpeedController.h"
+#include "RearWheel.h"
 
 /*===========================================================================*/
 /* Card insertion monitor.                                                   */
@@ -117,7 +117,7 @@ static void cmd_threads(BaseSequentialStream *chp, int argc, __attribute__((unus
 }
 
 static const ShellCommand commands[] = {
-  {"speed", SpeedController::shellcmd},     // disable/enable speed control, select set point
+  {"speed", RearWheel::shellcmd},     // disable/enable speed control, select set point
 //  {"yawrate", YawRateController::shellcmd}, // disable/enable yawrate control, select set point
   {"control_loop", SampleAndControl::chshellcmd},
   {"threads", cmd_threads},

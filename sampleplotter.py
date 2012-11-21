@@ -16,7 +16,8 @@ class Samples(object):
         data = self.data
 
         #  Rear wheel subplot
-        rw_data = np.c_[data['RearWheelAngle'], data['RearWheelRate']]
+        rw_data = np.c_[data['RearWheelAngle'], data['RearWheelRate'],
+                        data['RearWheelRate_sp']]
 
         if v_est=='LPP':
             F = lpf([[ 0.703795508985816, 0.084013518175189],
@@ -26,14 +27,10 @@ class Samples(object):
                     [0])
             F.input(data['RearWheelAngle'])
 
-            #v = np.zeros(len(data['T']))
-            #dt = data['T'][1] - data['T'][0]    # Assumes evenly spaced time
-            #for i in range(len(v) - 1):
-            #    v[i + 1] = (data['RearWheelAngle'][i + 1] - data['RearWheelAngle'][i])/dt
-
             v = F.output()
 
             rw_data = np.c_[rw_data, v]
+
         lines = ax[0].plot(data['T'], rw_data)
         lines[0].set_label('$\\theta_R$')
         lines[1].set_label('$\dot{\\theta}_R$')
@@ -100,4 +97,17 @@ class Samples(object):
         ax.set_xlabel('time [s]')
         ax.set_title('MPU-6050 temperature measurement')
         plt.axis('tight')
+
+    def plotTime(self):
+        f, ax = plt.subplots(1)
+        data = self.data
+        N = len(data['T'])
+        dt = np.zeros(N - 1)
+        for i in range(N - 1):
+            dt[i] = data['T'][i + 1] - data['T'][i]
+        n, bins, patches = ax.hist(dt, bins=20)
+        ax.set_ylabel('Occurances')
+        ax.set_xlabel('Sample period')
+        ax.set_title('mean = {0}, std dev. = {1}'.format(dt.mean(),
+            dt.std()))
 

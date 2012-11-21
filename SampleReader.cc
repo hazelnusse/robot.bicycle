@@ -64,21 +64,19 @@ std::vector<SampleConverted> SampleReader::Convert()
                                           * cd::Gyroscope_sensitivity;
 
       // Rear wheel angle
-      sc.RearWheelAngle = (samples_[i].RearWheelAngle * cd::Wheel_rad_per_quad_count)
-                        - ((1 << 15) * cd::Wheel_rad_per_quad_count);
+      sc.RearWheelAngle = samples_[i].RearWheelAngle * cd::Wheel_rad_per_quad_count;
       // Steer
       sc.SteerAngle = (samples_[i].SteerAngle * cd::Steer_rad_per_quad_count)
                     - ((1 << 15) * cd::Steer_rad_per_quad_count);
       //sc.SteerAngle = (samples_[i].SteerAngle - (1 << 15)) * cd::Steer_rad_per_quad_count;
 
       // Front wheel angle
-      sc.FrontWheelAngle = (samples_[i].FrontWheelAngle * cd::Wheel_rad_per_quad_count)
-                        - ((1 << 15) * cd::Wheel_rad_per_quad_count);
+      sc.FrontWheelAngle = samples_[i].FrontWheelAngle * cd::Wheel_rad_per_quad_count;
 
       // Wheel rates and steer rate
-      sc.RearWheelRate = encoderRate(samples_[i].RearWheelRate, cd::Wheel_rad_counts_per_sec);
-      sc.SteerRate = encoderRate(samples_[i].SteerRate, cd::Steer_rad_counts_per_sec);
-      sc.FrontWheelRate = encoderRate(samples_[i].FrontWheelRate, cd::Wheel_rad_counts_per_sec);
+      sc.RearWheelRate = encoderRate(samples_[i].SystemState & Sample::RearWheelEncoderB, samples_[i].RearWheelRate, cd::Wheel_rad_halfquad_counts_per_sec);
+      sc.SteerRate = encoderRate(samples_[i].SystemState & Sample::SteerEncoderB, samples_[i].SteerRate, cd::Steer_rad_counts_per_sec);
+      sc.FrontWheelRate = encoderRate(samples_[i].SystemState & Sample::FrontWheelEncoderB, samples_[i].FrontWheelRate, cd::Wheel_rad_counts_per_sec);
 
       // Current commands
       sc.I_rw = samples_[i].CCR_rw
@@ -95,7 +93,7 @@ std::vector<SampleConverted> SampleReader::Convert()
                           static_cast<double>(samples_[i].YawRate_sp);
 
       // Convert system time to normal time
-      sc.Time = (samples_[i].SystemTime - t0) * cd::Seconds_per_Systick;
+      sc.Time = (samples_[i].SystemTime - t0) * cd::timer_dt;
       
       // No conversion needed for Errorcodes
       sc.SystemState = samples_[i].SystemState;
@@ -110,15 +108,13 @@ std::vector<SampleConverted> SampleReader::Convert()
 }
 
 
-double SampleReader::encoderRate(uint32_t counts, double rad_counts_per_sec)
+double SampleReader::encoderRate(bool dir, uint32_t counts, double rad_counts_per_sec)
 {
-  uint32_t dir_bit = 1 << 31;
   double direction;
-  if (dir_bit & counts) {
+  if (dir) {
       direction = -1.0;
   } else {
       direction = 1.0;
   }
-  counts &= ~dir_bit;
   return direction * rad_counts_per_sec / counts;
 }

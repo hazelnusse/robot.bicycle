@@ -2,15 +2,19 @@
 
 #include "ch.h"
 #include "hal.h"
+#include "chprintf.h"
 
 #include "Constants.h"
 #include "RearWheel.h"
 
 
 RearWheel::RearWheel()
-  : x_(0.0f), u_(0.0f), K_(0.0f), P_(0.0f), Q_(1.0e-6f), R_(1.0e-6f), n_(0)
+  : N_(0), N_c_(0), r_(0.0f), u_(0.0f), x_(0.0f), x_c_(0.0f), K_(0.0f),
+    P_(0.1f), Q_(0.01f), R_(1e-6f)
 {
-
+  turnOff();
+  setCurrent(0.0f);
+  setDirNegative();      // negative direction of rear wheel is "forward"
 }
 
 /*! \brief Update state estimate in absence of new measurement.
@@ -19,64 +23,103 @@ RearWheel::RearWheel()
  *
  *
  */
-void RearWheel::Predict(uint32_t n)
-{
-  uint32_t h = n - n_;
-  x_ = A(h) * x_ + B(h) * u_;     // State estimate extrapolation
-  P_ = A(h) * P_ * A(h) + Q_;     // Error covariance extrapolation
-  n_ = n;
-}
+//void RearWheel::Predict(uint32_t n)
+//{
+//  uint32_t h = n - n_;
+//  x_ = A(h) * x_ + B(h) * u_;     // State estimate extrapolation
+//  P_ = A(h) * P_ * A(h) + Q_;     // Error covariance extrapolation
+//  n_ = n;
+//}
+//
+//void RearWheel::PredictAndCorrect(uint32_t n, uint32_t counts)
+//{
+//  Predict(n);
+//  x_ += K_*(cf::Wheel_rad_per_halfquad_count / counts - x_);
+//  P_ -= K_*P_;
+//  K_ = P_ / R_;
+//}
 
-void RearWheel::PredictAndCorrect(uint32_t n, uint32_t counts)
-{
-  Predict(n);
-  x_ += K_*(cf::Wheel_rad_per_halfquad_count / counts - x_);
-  P_ -= K_*P_;
-  K_ = P_ / R_;
-}
-
-float RearWheel::A(uint32_t n)
-{
-  return 1.0f - (cf::c_rw / cf::J * cf::Rate_Timer_sec_per_count) * n;
-}
-
-float RearWheel::B(uint32_t n)
-{
-  return (cf::kT_rw / cf::J * cf::Rate_Timer_sec_per_count) * n;
-}
+//float RearWheel::A(uint32_t n)
+//{
+//  return 1.0f - (cf::c_rw / cf::J * cf::Rate_Timer_sec_per_count) * n;
+//}
+//
+//float RearWheel::B(uint32_t n)
+//{
+//  return (cf::kT_rw / cf::J * cf::Rate_Timer_sec_per_count) * n;
+//}
 
 
-void RearWheel::SetCurrent(float current)
+void RearWheel::setCurrent(float current)
 {
+  // Saturate current
+  if (current > cf::Current_max_rw)
+    current = cf::Current_max_rw;
+  if (current < -cf::Current_max_rw)
+    current = -cf::Current_max_rw;
+
+  // save current
   u_ = current;
 
   // Set direction
   if (current > 0.0f) {
-    palClearPad(GPIOF, GPIOF_RW_DIR);  // set to reverse direction
+    setDirPositive();
   } else {
-    palSetPad(GPIOF, GPIOF_RW_DIR);    // set to forward direction
+    setDirNegative();
     current = -current;                // Make current positive
   }
   
-  // Saturate current at max continuous current of Copley drive
-  if (current > cf::Current_max_rw)
-    current = cf::Current_max_rw;
-  
-  // Convert from current to PWM duty cycle;
-  float duty = current / cf::Current_max_rw;   // float in range of [0.0, 1.0]
-
-  // Convert duty cycle to an uint32_t in range of [0, TIM1->ARR + 1] and set
-  // it in TIM1
-  STM32_TIM1->CCR[0] = static_cast<uint32_t>(static_cast<float>(STM32_TIM1->ARR + 1) * duty);
+  PWM_CCR(CurrentToCCR(current));
 }
 
-void RearWheel::setMotorEnabled(bool state)
+void RearWheel::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
-  STM32_TIM1->CCR[0] = 0; // set 0% duty cycle
-  if (state) {
-    palClearPad(GPIOF, GPIOF_RW_ENABLE);  // enable
-  } else {
-    palSetPad(GPIOF, GPIOF_RW_ENABLE);    // disable
+  RearWheel::Instance().cmd(chp, argc, argv);
+} // shellcmd()
+
+
+void RearWheel::cmd(BaseSequentialStream *chp, int argc, char *argv[])
+{
+  if (argc == 0) { // toggle enabled/disabled
+    if (isEnabled()) {
+      turnOff();
+      chprintf(chp, "Speed control disabled.\r\n");
+    } else {
+      turnOn();
+      chprintf(chp, "Speed control enabled.\r\n");
+    }
+  } else if (argc == 1) { // change set point
+//    float sp = 0.02f*((argv[0][0] - '0')*100 +
+//                      (argv[0][1] - '0')*10  +
+//                      (argv[0][2] - '0'));
+    float sp = -((argv[0][0] - '0')*100 +
+                 (argv[0][1] - '0')*10  +
+                 (argv[0][2] - '0'))*(cf::Current_max_rw/1000.0f);
+//    RateCommanded(sp);
+    setCurrent(sp);
+    chprintf(chp, "Set point changed.\r\n");
+  } else { // invalid
+    chprintf(chp, "Invalid usage.\r\n");
   }
-  x_ = u_ = P_ = 0.0f;    // zero the state estimate, input, and estimate covariance
-}
+} // cmd()
+
+
+void RearWheel::Update(uint32_t N_c)
+{
+  const uint32_t dN = N_c - N_;
+  const uint32_t a = A(dN);
+  P_ = a * a * P_ + Q(dN);
+  x_ = a * x_ + B(dN) * u_;
+  N_ = N_c;
+} // Update()
+
+void RearWheel::Update(uint32_t N_m, float z)
+{
+  const uint32_t dN = N_m - N_;
+  const uint32_t a = A(dN);
+  P_ = a * a * P_ + Q(dN);
+  K_ = P_/(P_ + R_);
+  P_ *= (1.0f - K_);
+  x_ = a * x_ + B(dN) * u_ +  K_*(z - x_);
+  N_ = N_m;
+} // Update()

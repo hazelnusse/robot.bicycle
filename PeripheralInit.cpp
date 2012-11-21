@@ -1,6 +1,8 @@
-#include "PeripheralInit.h"
 #include "ch.h"
 #include "hal.h"
+#include "PeripheralInit.h"
+#include "Constants.h"
+
 
 // For all peripheral initialization, the following apprach is taken:
 // -- on reset, all inputs are input floating by default
@@ -68,7 +70,7 @@ void configureEncoderTimers(void)
     timer->ARR = 0xFFFF;      // count from 0-ARR or ARR-0
     timer->CCMR1 = 0xF1F1;    // f_DTS/32, N=8, IC1->TI1, IC2->TI2
     timer->EGR = 1;           // Generate an update event
-    timer->CNT = 1 << 15;     // Initialize counter with 2^15
+    timer->CNT = 0; // 1 << 15;     // Initialize counter with 2^15
     timer->CR1 = 1;           // Enable the counter
   }
 
@@ -121,7 +123,7 @@ static void configureMotorPWM()
   // TIM1 Frequency = TIM1 counter clock / (ARR + 1)
   //                = 168 MHz / 2^16
   //                = 2563.48 Hz
-  STM32_TIM1->ARR = 0xFFFF; // 2^16 - 1
+  STM32_TIM1->ARR = reg::PWM_ARR; // 2^16 - 1
 
   // Select PWM1 mode for OC1 and OC2 (OCX inactive when CNT<CCRX)
   STM32_TIM1->CCMR1 = (0b110 << 12) | (0b110 << 4);

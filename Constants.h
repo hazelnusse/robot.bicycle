@@ -16,7 +16,7 @@ class constants {
   static constexpr T g = 9.81;
 
   // Time conversion
-  static constexpr T Seconds_per_Systick = 0.001;
+  static constexpr T timer_dt = 0.25e-6;
 
   // Gyroscope constants
   static constexpr T Gyroscope_temp_offset = 36.53;
@@ -64,8 +64,19 @@ class constants {
   static constexpr T kT_rw = .3;
 };
 
+class reg {
+ public:
+  static constexpr uint32_t PWM_ARR = 0xFFFF;
+};
+
+class con {
+ public:
+  static constexpr uint32_t T_ms = 5;   // main loop update rate in ms
+  static constexpr uint32_t RW_N = 10;  // rear wheel control update prescalar
+                                        // makes rear wheel control run slower
+};
+
 typedef constants<float> cf;
 typedef constants<double> cd;
-typedef constants<long double> cld;
 
 #endif
