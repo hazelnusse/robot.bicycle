@@ -10,11 +10,11 @@
 
 RearWheel::RearWheel()
   : N_(0), N_c_(0), r_(0.0f), u_(0.0f), x_(0.0f), x_c_(0.0f), K_(0.0f),
-    P_(0.1f), Q_(0.01f), R_(1e-6f)
+    P_(0.01f), Q_(2.5e-5f), R_(2.5e-8f)
 {
   turnOff();
-  setCurrent(0.0f);
-  setDirNegative();      // negative direction of rear wheel is "forward"
+  PWM_CCR(0);
+  setDirNegative();      // negative wheel rotation direction is forward
 }
 
 /*! \brief Update state estimate in absence of new measurement.
