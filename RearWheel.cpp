@@ -9,8 +9,6 @@
 
 
 RearWheel::RearWheel()
-  : N_(0), N_c_(0), r_(0.0f), u_(0.0f), x_(0.0f), x_c_(0.0f), K_(0.0f),
-    P_(0.01f), Q_(2.5e-5f), R_(2.5e-8f)
 {
   turnOff();
   PWM_CCR(0);
@@ -68,23 +66,3 @@ void RearWheel::cmd(BaseSequentialStream *chp, int argc, char *argv[])
     chprintf(chp, "Invalid usage.\r\n");
   }
 } // cmd()
-
-void RearWheel::Update(uint32_t N_c)
-{
-  const uint32_t dN = N_c - N_;
-  const uint32_t a = A(dN);
-  P_ = a * a * P_ + Q(dN);
-  x_ = a * x_ + B(dN) * u_;
-  N_ = N_c;
-} // Update()
-
-void RearWheel::Update(uint32_t N_m, float z)
-{
-  const uint32_t dN = N_m - N_;
-  const uint32_t a = A(dN);
-  P_ = a * a * P_ + Q(dN);
-  K_ = P_/(P_ + R_);
-  P_ *= (1.0f - K_);
-  x_ = a * x_ + B(dN) * u_ +  K_*(z - x_);
-  N_ = N_m;
-} // Update()

@@ -6,7 +6,6 @@
 #include "ch.h"
 #include "ff.h"
 
-#include "EncoderTimers.h"
 #include "Singleton.h"
 
 class SampleAndControl : public Singleton<SampleAndControl> {
@@ -19,7 +18,6 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   bool isEnabled() const { return Enabled_; }
   void setFilename(const char * name);
   char * Filename() const;
-  EncoderTimers timers;
 
  private:
   SampleAndControl();

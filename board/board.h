@@ -64,9 +64,9 @@
  * IO pins assignments.
  */
 #define GPIOA_BUTTON_WKUP           0
-#define GPIOA_TIM5_CH2              1
-#define GPIOA_TIM5_CH3              2
-#define GPIOA_TIM5_CH4              3
+#define GPIOA_PIN1                  1
+#define GPIOA_PIN2                  2
+#define GPIOA_PIN3                  3
 #define GPIOA_PIN4                  4
 #define GPIOA_PIN5                  5
 #define GPIOA_TIM3_CH1              6
@@ -242,9 +242,9 @@
  * GPIOA setup:
  *
  * PA0  - BUTTON_WKUP         (input floating, AF0, external pull down).
- * PA1  - TIM5_CH2            (input floating, AF2).
- * PA2  - TIM5_CH3            (input floating, AF2).
- * PA3  - TIM5_CH4            (input floating, AF2).
+ * PA1  - PIN1                (input pullup, AF0).
+ * PA2  - PIN2                (input pullup, AF0).
+ * PA3  - PIN3                (input pullup, AF0).
  * PA4  - PIN4                (input pullup, AF0).
  * PA5  - PIN5                (input pullup, AF0).
  * PA6  - TIM3_CH1            (input floating, AF2).
@@ -259,25 +259,25 @@
  * PA15 - JTAG_TDI            (alternate push pull, AF0, external pull up).
  */
 #define VAL_GPIOA_MODER             (PIN_MODE_INPUT(GPIOA_BUTTON_WKUP) |      \
-                                     PIN_MODE_ALTERNATE(GPIOA_TIM5_CH2) |     \
-                                     PIN_MODE_ALTERNATE(GPIOA_TIM5_CH3) |     \
-                                     PIN_MODE_ALTERNATE(GPIOA_TIM5_CH4) |     \
+                                     PIN_MODE_INPUT(GPIOA_PIN1) |             \
+                                     PIN_MODE_INPUT(GPIOA_PIN2) |             \
+                                     PIN_MODE_INPUT(GPIOA_PIN3) |             \
                                      PIN_MODE_INPUT(GPIOA_PIN4) |             \
                                      PIN_MODE_INPUT(GPIOA_PIN5) |             \
                                      PIN_MODE_ALTERNATE(GPIOA_TIM3_CH1) |     \
                                      PIN_MODE_ALTERNATE(GPIOA_TIM3_CH2) |     \
                                      PIN_MODE_OUTPUT(GPIOA_USB_HS_VBUSON) |   \
                                      PIN_MODE_INPUT(GPIOA_OTG_FS_VBUS) |      \
-                                     PIN_MODE_OUTPUT(GPIOA_USB_FS_VBUSON) |\
+                                     PIN_MODE_OUTPUT(GPIOA_USB_FS_VBUSON) |   \
                                      PIN_MODE_ALTERNATE(GPIOA_OTG_FS_DM) |    \
                                      PIN_MODE_ALTERNATE(GPIOA_OTG_FS_DP) |    \
                                      PIN_MODE_ALTERNATE(GPIOA_JTAG_TMS) |     \
                                      PIN_MODE_ALTERNATE(GPIOA_JTAG_TCK) |     \
                                      PIN_MODE_ALTERNATE(GPIOA_JTAG_TDI))
 #define VAL_GPIOA_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOA_BUTTON_WKUP) |  \
-                                     PIN_OTYPE_PUSHPULL(GPIOA_TIM5_CH2) |     \
-                                     PIN_OTYPE_PUSHPULL(GPIOA_TIM5_CH3) |     \
-                                     PIN_OTYPE_PUSHPULL(GPIOA_TIM5_CH4) |     \
+                                     PIN_OTYPE_PUSHPULL(GPIOA_PIN1) |         \
+                                     PIN_OTYPE_PUSHPULL(GPIOA_PIN2) |         \
+                                     PIN_OTYPE_PUSHPULL(GPIOA_PIN3) |         \
                                      PIN_OTYPE_PUSHPULL(GPIOA_PIN4) |         \
                                      PIN_OTYPE_PUSHPULL(GPIOA_PIN5) |         \
                                      PIN_OTYPE_PUSHPULL(GPIOA_TIM3_CH1) |     \
@@ -291,9 +291,9 @@
                                      PIN_OTYPE_PUSHPULL(GPIOA_JTAG_TCK) |     \
                                      PIN_OTYPE_PUSHPULL(GPIOA_JTAG_TDI))
 #define VAL_GPIOA_OSPEEDR           (PIN_OSPEED_100M(GPIOA_BUTTON_WKUP) |     \
-                                     PIN_OSPEED_100M(GPIOA_TIM5_CH2) |        \
-                                     PIN_OSPEED_100M(GPIOA_TIM5_CH3) |        \
-                                     PIN_OSPEED_100M(GPIOA_TIM5_CH4) |        \
+                                     PIN_OSPEED_100M(GPIOA_PIN1) |            \
+                                     PIN_OSPEED_100M(GPIOA_PIN2) |            \
+                                     PIN_OSPEED_100M(GPIOA_PIN3) |            \
                                      PIN_OSPEED_100M(GPIOA_PIN4) |            \
                                      PIN_OSPEED_100M(GPIOA_PIN5) |            \
                                      PIN_OSPEED_100M(GPIOA_TIM3_CH1) |        \
@@ -307,9 +307,9 @@
                                      PIN_OSPEED_100M(GPIOA_JTAG_TCK) |        \
                                      PIN_OSPEED_100M(GPIOA_JTAG_TDI))
 #define VAL_GPIOA_PUPDR             (PIN_PUPDR_FLOATING(GPIOA_BUTTON_WKUP) |  \
-                                     PIN_PUPDR_FLOATING(GPIOA_TIM5_CH2) |     \
-                                     PIN_PUPDR_FLOATING(GPIOA_TIM5_CH3) |     \
-                                     PIN_PUPDR_FLOATING(GPIOA_TIM5_CH3) |     \
+                                     PIN_PUPDR_PULLUP(GPIOA_PIN1) |           \
+                                     PIN_PUPDR_PULLUP(GPIOA_PIN2) |           \
+                                     PIN_PUPDR_PULLUP(GPIOA_PIN2) |           \
                                      PIN_PUPDR_PULLUP(GPIOA_PIN4) |           \
                                      PIN_PUPDR_PULLUP(GPIOA_PIN5) |           \
                                      PIN_PUPDR_FLOATING(GPIOA_TIM3_CH1) |     \
@@ -323,9 +323,9 @@
                                      PIN_PUPDR_FLOATING(GPIOA_JTAG_TCK) |     \
                                      PIN_PUPDR_FLOATING(GPIOA_JTAG_TDI))
 #define VAL_GPIOA_ODR               (PIN_ODR_HIGH(GPIOA_BUTTON_WKUP) |        \
-                                     PIN_ODR_HIGH(GPIOA_TIM5_CH2) |           \
-                                     PIN_ODR_HIGH(GPIOA_TIM5_CH3) |           \
-                                     PIN_ODR_HIGH(GPIOA_TIM5_CH4) |           \
+                                     PIN_ODR_HIGH(GPIOA_PIN1) |               \
+                                     PIN_ODR_HIGH(GPIOA_PIN2) |               \
+                                     PIN_ODR_HIGH(GPIOA_PIN3) |               \
                                      PIN_ODR_HIGH(GPIOA_PIN4) |               \
                                      PIN_ODR_HIGH(GPIOA_PIN5) |               \
                                      PIN_ODR_HIGH(GPIOA_TIM3_CH1) |           \
@@ -339,9 +339,9 @@
                                      PIN_ODR_HIGH(GPIOA_JTAG_TCK) |           \
                                      PIN_ODR_HIGH(GPIOA_JTAG_TDI))
 #define VAL_GPIOA_AFRL              (PIN_AFIO_AF(GPIOA_BUTTON_WKUP, 0) |      \
-                                     PIN_AFIO_AF(GPIOA_TIM5_CH2, 2) |         \
-                                     PIN_AFIO_AF(GPIOA_TIM5_CH3, 2) |         \
-                                     PIN_AFIO_AF(GPIOA_TIM5_CH4, 2) |         \
+                                     PIN_AFIO_AF(GPIOA_PIN1, 0) |             \
+                                     PIN_AFIO_AF(GPIOA_PIN2, 0) |             \
+                                     PIN_AFIO_AF(GPIOA_PIN3, 0) |             \
                                      PIN_AFIO_AF(GPIOA_PIN4, 0) |             \
                                      PIN_AFIO_AF(GPIOA_PIN5, 0) |             \
                                      PIN_AFIO_AF(GPIOA_TIM3_CH1, 2) |         \

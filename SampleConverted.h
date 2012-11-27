@@ -11,8 +11,6 @@ class __attribute__((__packed__)) SampleConverted {
   double Accelerometer[3], Temperature, Gyroscope[3];
   // Angular position encoder data
   double RearWheelAngle, SteerAngle, FrontWheelAngle;
-  // speed estimates from timer capture compare registers
-  double RearWheelRate, SteerRate, FrontWheelRate;
   // Set point values for speed and yaw rate
   double RearWheelRate_sp, YawRate_sp;
   // Commanded current

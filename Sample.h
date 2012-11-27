@@ -7,18 +7,18 @@ class Sample {
  public:
   // System Time
   uint32_t SystemTime;
-  // IMU raw sensor data
-  int16_t MPU6050[7];
   // Angular position encoder steer data
-  uint32_t RearWheelAngle, SteerAngle, FrontWheelAngle;
-  // speed estimates from timer capture compare registers
-  uint32_t RearWheelRate, SteerRate, FrontWheelRate;
+  uint32_t RearWheelAngle;
+  int32_t SteerAngle;
+  uint32_t FrontWheelAngle;
+  // System state bitfield
+  uint32_t SystemState;
   // Set points for rear wheel and steer rate
   float RearWheelRate_sp, YawRate_sp;
   // pwm outputs for rear wheel and steer
   uint16_t CCR_rw, CCR_steer;
-  // System state bitfield
-  uint32_t SystemState;
+  // IMU raw sensor data
+  int16_t MPU6050[7];
 
   enum StateFlags {SpeedControl =    1,
                    YawRateControl =  2,

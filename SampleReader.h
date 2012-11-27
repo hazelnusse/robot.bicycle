@@ -16,7 +16,6 @@ class SampleReader {
   std::vector<SampleConverted> Convert();
 
  private:
-  static double encoderRate(bool dir, uint32_t counts, double rad_counts_per_sec);
   std::vector<Sample> samples_;
   std::vector<SampleConverted> samplesConverted_;
   bool converted_;

@@ -13,7 +13,7 @@
 #include "YawRateController.h"
 
 SampleAndControl::SampleAndControl()
-  : timers({{0, 0, 0}, 0}), Control_tp_(0), Enabled_(false)
+  : Control_tp_(0), Enabled_(false)
 {
   setFilename("samples.dat");
 }
@@ -51,12 +51,6 @@ void SampleAndControl::Control()
     s.FrontWheelAngle = STM32_TIM4->CNT;
     s.SteerAngle = STM32_TIM3->CNT;
 
-    s.RearWheelRate = timers.Clockticks[0];
-    s.SteerRate = timers.Clockticks[1];
-    s.FrontWheelRate = timers.Clockticks[2];
-
-    state |= timers.Direction;
-
     s.RearWheelRate_sp = rw.RateCommanded();
     s.YawRate_sp = 0.0; // need to implement yaw rate controller
 
@@ -64,7 +58,7 @@ void SampleAndControl::Control()
     if (rw.isEnabled()) {
       state |= Sample::SpeedControl;
       if (i % con::RW_N == 0) {    // only update control law every RW_N times
-        rw.Update(s.SystemTime);
+        // need to implement
       }
     }
 
@@ -150,8 +144,6 @@ void SampleAndControl::setEnabled(bool state)
 
     SampleBuffer::Instance().File(&f_);
 
-    nvicEnableVector(TIM5_IRQn, CORTEX_PRIORITY_MASK(7));
-
     Control_tp_ = chThdCreateStatic(SampleAndControl::waControlThread,
                                     sizeof(waControlThread),
                                     NORMALPRIO, (tfunc_t) Control_, 0);
@@ -163,7 +155,6 @@ void SampleAndControl::setEnabled(bool state)
     chThdTerminate(Control_tp_);
     chThdWait(Control_tp_);
     Control_tp_ = 0;
-    nvicDisableVector(TIM5_IRQn);
     Enabled_ = false;
   }
 }

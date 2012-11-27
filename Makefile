@@ -100,8 +100,7 @@ CPPSRC = BlinkThreads.cpp \
 				 RearWheel.cpp \
 				 SampleBuffer.cpp \
 				 YawRateController.cpp \
-				 SampleAndControl.cpp \
-				 Interrupts.cpp
+				 SampleAndControl.cpp
 
 #				 Fork.cpp \
 # C sources to be compiled in ARM mode regardless of the global setting.

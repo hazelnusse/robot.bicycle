@@ -52,25 +52,19 @@ bool RearWheel::hasFault()
 }
 
 inline
-float RearWheel::RateEstimate() const
-{
-  return x_;
-}
-
-inline
 void RearWheel::QuadratureCount(uint32_t count)
 {
   STM32_TIM8->CNT = count;
 }
 
 inline
-uint32_t RearWheel::QuadratureCount()
+uint32_t RearWheel::QuadratureCount() const
 {
   return STM32_TIM8->CNT;
 }
 
 inline
-uint32_t RearWheel::PWM_CCR()
+uint32_t RearWheel::PWM_CCR() const
 {
   return STM32_TIM1->CCR[0];
 }
@@ -86,23 +80,4 @@ uint32_t RearWheel::CurrentToCCR(float current)
 {
   return static_cast<uint32_t>((((reg::PWM_ARR + 1) / cf::Current_max_rw)) * current);
 }
-
-inline
-float RearWheel::A(uint32_t dN) const
-{
-  return 1.0f - (cf::c_rw / cf::J * cf::timer_dt) * dN;
-}
-
-inline
-float RearWheel::B(uint32_t dN) const
-{
-  return (cf::kT_rw / cf::J * cf::timer_dt) * dN;
-}
-
-inline
-float RearWheel::Q(uint32_t dN) const
-{
-  return (Q_ * cf::timer_dt) * dN;
-}
-
 #endif
