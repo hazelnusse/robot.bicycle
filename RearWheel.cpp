@@ -15,48 +15,16 @@ RearWheel::RearWheel()
   turnOff();
   PWM_CCR(0);
   setDirNegative();      // negative wheel rotation direction is forward
-}
-
-/*! \brief Update state estimate in absence of new measurement.
- *
- * \param[in] t The number of timer counts forward.
- *
- *
- */
-//void RearWheel::Predict(uint32_t n)
-//{
-//  uint32_t h = n - n_;
-//  x_ = A(h) * x_ + B(h) * u_;     // State estimate extrapolation
-//  P_ = A(h) * P_ * A(h) + Q_;     // Error covariance extrapolation
-//  n_ = n;
-//}
-//
-//void RearWheel::PredictAndCorrect(uint32_t n, uint32_t counts)
-//{
-//  Predict(n);
-//  x_ += K_*(cf::Wheel_rad_per_halfquad_count / counts - x_);
-//  P_ -= K_*P_;
-//  K_ = P_ / R_;
-//}
-
-//float RearWheel::A(uint32_t n)
-//{
-//  return 1.0f - (cf::c_rw / cf::J * cf::Rate_Timer_sec_per_count) * n;
-//}
-//
-//float RearWheel::B(uint32_t n)
-//{
-//  return (cf::kT_rw / cf::J * cf::Rate_Timer_sec_per_count) * n;
-//}
-
+} // RearWheel()
 
 void RearWheel::setCurrent(float current)
 {
   // Saturate current
-  if (current > cf::Current_max_rw)
+  if (current > cf::Current_max_rw) {
     current = cf::Current_max_rw;
-  if (current < -cf::Current_max_rw)
+  } else if (current < -cf::Current_max_rw) {
     current = -cf::Current_max_rw;
+  }
 
   // save current
   u_ = current;
@@ -64,19 +32,17 @@ void RearWheel::setCurrent(float current)
   // Set direction
   if (current > 0.0f) {
     setDirPositive();
+    PWM_CCR(CurrentToCCR(current));
   } else {
     setDirNegative();
-    current = -current;                // Make current positive
+    PWM_CCR(CurrentToCCR(-current));
   }
-  
-  PWM_CCR(CurrentToCCR(current));
-}
+} // setCurrent
 
 void RearWheel::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
   RearWheel::Instance().cmd(chp, argc, argv);
 } // shellcmd()
-
 
 void RearWheel::cmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
@@ -102,7 +68,6 @@ void RearWheel::cmd(BaseSequentialStream *chp, int argc, char *argv[])
     chprintf(chp, "Invalid usage.\r\n");
   }
 } // cmd()
-
 
 void RearWheel::Update(uint32_t N_c)
 {
