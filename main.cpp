@@ -2,11 +2,9 @@
 #include "hal.h"
 #include "shell.h"
 #include "evtimer.h"
-#include "chprintf.h"
 
 #include "ff.h"
 
-#include "BlinkThreads.h"
 #include "SampleAndControl.h"
 #include "RearWheel.h"
 
@@ -14,8 +12,8 @@
 /* Card insertion monitor.                                                   */
 /*===========================================================================*/
 
-#define POLLING_INTERVAL                10
-#define POLLING_DELAY                   10
+static const int POLLING_INTERVAL = 20;
+static const int POLLING_DELAY = 20;
 
 /**
  * @brief   Card monitor timer.
@@ -88,39 +86,14 @@ static void tmr_init(void *p)
  */
 static FATFS SDC_FS;
 
-/* FS mounted and ready.*/
-static bool fs_ready = false;
-
 /*===========================================================================*/
 /* Command line related.                                                     */
 /*===========================================================================*/
-
-static void cmd_threads(BaseSequentialStream *chp, int argc, __attribute__((unused)) char *argv[])
-{
-  static const char *states[] = {THD_STATE_NAMES};
-  Thread *tp;
-
-  if (argc > 0) {
-    chprintf(chp, "Usage: threads\r\n");
-    return;
-  }
-  chprintf(chp, "    addr    stack prio refs     state     time name\r\n");
-  tp = chRegFirstThread();
-  do {
-    chprintf(chp, "%.8lx %.8lx %4lu %4lu %9s %8lu %s\r\n",
-            (uint32_t)tp, (uint32_t)tp->p_ctx.r13,
-            (uint32_t)tp->p_prio, (uint32_t)(tp->p_refs - 1),
-            states[tp->p_state], (uint32_t)tp->p_time,
-            tp->p_name);
-    tp = chRegNextThread(tp);
-  } while (tp != NULL);
-}
 
 static const ShellCommand commands[] = {
   {"speed", RearWheel::shellcmd},     // disable/enable speed control, select set point
 //  {"yawrate", YawRateController::shellcmd}, // disable/enable yawrate control, select set point
   {"control_loop", SampleAndControl::chshellcmd},
-  {"threads", cmd_threads},
   {NULL, NULL}
 };
 
@@ -151,7 +124,7 @@ static void InsertHandler(__attribute__((unused)) eventid_t id)
     sdcDisconnect(&SDCD1);
     return;
   }
-  fs_ready = true;
+  palSetPad(GPIOC, GPIOC_LED);
 }
 
 /*
@@ -160,7 +133,7 @@ static void InsertHandler(__attribute__((unused)) eventid_t id)
 static void RemoveHandler(__attribute__((unused)) eventid_t id)
 {
   sdcDisconnect(&SDCD1);
-  fs_ready = false;
+  palClearPad(GPIOC, GPIOC_LED);
 }
 
 /*
@@ -169,7 +142,7 @@ static void RemoveHandler(__attribute__((unused)) eventid_t id)
 int main()
 {
   static const evhandler_t evhndl[] = { InsertHandler, RemoveHandler };
-  Thread *shelltp = NULL;
+  Thread * shelltp = NULL;
   static struct EventListener el0, el1;
 
   /*
@@ -189,11 +162,6 @@ int main()
 
   sdcStart(&SDCD1, NULL); // Activate SDC driver 1, default configuration
   tmr_init(&SDCD1);       // Activates the card insertion monitor.
-
-  // Blink threads
-  static WORKING_AREA(waFileSystemBlinkThread, 128);
-  chThdCreateStatic(waFileSystemBlinkThread, sizeof(waFileSystemBlinkThread),
-                    NORMALPRIO, (tfunc_t) FileSystemBlinkThread, &fs_ready);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except
