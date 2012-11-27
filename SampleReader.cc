@@ -74,9 +74,15 @@ std::vector<SampleConverted> SampleReader::Convert()
       sc.FrontWheelAngle = samples_[i].FrontWheelAngle * cd::Wheel_rad_per_quad_count;
 
       // Wheel rates and steer rate
-      sc.RearWheelRate = encoderRate(samples_[i].SystemState & Sample::RearWheelEncoderB, samples_[i].RearWheelRate, cd::Wheel_rad_halfquad_counts_per_sec);
-      sc.SteerRate = encoderRate(samples_[i].SystemState & Sample::SteerEncoderB, samples_[i].SteerRate, cd::Steer_rad_counts_per_sec);
-      sc.FrontWheelRate = encoderRate(samples_[i].SystemState & Sample::FrontWheelEncoderB, samples_[i].FrontWheelRate, cd::Wheel_rad_counts_per_sec);
+      sc.RearWheelRate = encoderRate(samples_[i].SystemState & Sample::RearWheelEncoderB,
+                                     samples_[i].RearWheelRate,
+                                     cd::Wheel_rad_halfquad_counts_per_sec);
+      sc.SteerRate = encoderRate(samples_[i].SystemState & Sample::SteerEncoderB,
+                                 samples_[i].SteerRate,
+                                 cd::Steer_rad_counts_per_sec);
+      sc.FrontWheelRate = encoderRate(samples_[i].SystemState & Sample::FrontWheelEncoderB,
+                                      samples_[i].FrontWheelRate,
+                                      cd::Wheel_rad_counts_per_sec);
 
       // Current commands
       sc.I_rw = samples_[i].CCR_rw

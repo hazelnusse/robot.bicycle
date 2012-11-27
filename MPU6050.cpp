@@ -58,8 +58,8 @@ void MPU6050::Initialize(I2CDriver * i2c)
                            2, NULL, 0, timeout_);
   i2cReleaseBus(i2c_);
 
-  // Sleep 10 ms to allow PLL to settle
-  systime_t time = chTimeNow() + MS2ST(10);
+  // Sleep 20 ms to allow PLL to settle
+  systime_t time = chTimeNow() + MS2ST(20);
   chThdSleepUntil(time);
 
   tx_data[0] = 25;   // Address of SMPLRT_DIV

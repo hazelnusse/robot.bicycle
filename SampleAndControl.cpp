@@ -57,7 +57,7 @@ void SampleAndControl::Control()
 
     state |= timers.Direction;
 
-    s.RearWheelRate_sp = rw.RateEstimate();
+    s.RearWheelRate_sp = rw.RateCommanded();
     s.YawRate_sp = 0.0; // need to implement yaw rate controller
 
     // Compute new speed control action if controller is enabled.

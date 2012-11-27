@@ -19,7 +19,6 @@ inline
 bool RearWheel::isEnabled()
 {
   return !MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->IDR)), GPIOF_RW_ENABLE));
-  // return !palReadPad(GPIOF, GPIOF_RW_ENABLE);
 }
 
 inline
