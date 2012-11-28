@@ -6,11 +6,10 @@
 #include "ff.h"
 
 #include "MPU6050.h"
-#include "Fork.h"
 #include "RearWheel.h"
 #include "SampleAndControl.h"
 #include "SampleBuffer.h"
-#include "YawRateController.h"
+//#include "YawRateController.h"
 
 SampleAndControl::SampleAndControl()
   : Control_tp_(0), Enabled_(false)
@@ -31,25 +30,23 @@ void SampleAndControl::Control()
 
   SampleBuffer & sb = SampleBuffer::Instance();
   RearWheel & rw = RearWheel::Instance();
-  // Fork & fork = Fork::Instance();
-  YawRateController & yc = YawRateController::Instance();
+  rw.QuadratureCount(0);
+  //YawRateController & yc = YawRateController::Instance();
 
   systime_t time = chTimeNow();     // Initial time
-
+  uint32_t state = 0;
   for (uint32_t i = 0; !chThdShouldTerminate(); ++i) {
     time += MS2ST(con::T_ms);                        // Next deadline
-    palTogglePad(IOPORT6, GPIOF_TIMING_PIN); // Sanity check for loop timing
+    // palTogglePad(IOPORT6, GPIOF_TIMING_PIN); // Sanity check for loop timing
 
     Sample & s = sb.CurrentSample();
-    uint32_t state = 0;
-
-    s.SystemTime = STM32_TIM5->CNT;//chTimeNow();
 
     imu.Acquire(s);
-
     s.RearWheelAngle = rw.QuadratureCount();
     s.FrontWheelAngle = STM32_TIM4->CNT;
     s.SteerAngle = STM32_TIM3->CNT;
+    s.SystemTime = STM32_TIM5->CNT;
+
 
     s.RearWheelRate_sp = rw.RateCommanded();
     s.YawRate_sp = 0.0; // need to implement yaw rate controller
@@ -58,22 +55,22 @@ void SampleAndControl::Control()
     if (rw.isEnabled()) {
       state |= Sample::SpeedControl;
       if (i % con::RW_N == 0) {    // only update control law every RW_N times
-        // need to implement
+        rw.Update(s.SystemTime, s.RearWheelAngle);
       }
     }
 
     // Compute new steer control action if yaw controller is enabled.
-    if (yc.isEnabled()) {
-      state |= Sample::YawRateControl;
-      yc.Update(s);
-    }
+    //if (yc.isEnabled()) {
+    //  state |= Sample::YawRateControl;
+    //  yc.Update(s);
+    //}
 
     s.CCR_rw = rw.PWM_CCR();
     s.CCR_steer = STM32_TIM1->CCR[1]; // Save steer duty
 
     bool faults = false;
     // Check for motor faults
-    if (!palReadPad(GPIOF, GPIOF_RW_FAULT)) {
+    if (rw.hasFault()) {
       state |= Sample::HubMotorFault;
       faults = true;
     }
@@ -84,12 +81,15 @@ void SampleAndControl::Control()
     }
 
     s.SystemState = state;
+    state = 0;
 
-    ++sb;                   // Increment to the next sample
+    // Increment the sample buffer
+    ++sb;
 
+    // Turn of motors if there is a fault condition
     if (faults) {
       rw.turnOff();
-      // fork.setMotorEnabled(false);
+      //yc.turnOff();
       break;
     }
 

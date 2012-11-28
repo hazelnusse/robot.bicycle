@@ -3,22 +3,30 @@
 
 #include <cstdint>
 #include "Singleton.h"
-#include "bitband.h"
 
 class RearWheel : public Singleton<RearWheel> {
   friend class Singleton<RearWheel>;
  public:
   void turnOn();
   void turnOff();
-  bool isEnabled();
+  bool isEnabled() const;
 
-  void RateCommanded(float rearwheel_rate);
   float RateCommanded() const;
+  void RateCommanded(float rate);
+
+  void ProportionalGain(float kp);
+  void IntegralGain(float ki);
+  void DerivativeGain(float kd);
+
+  void Update(uint32_t N, uint32_t cnt);
 
   bool hasFault();
 
   uint32_t PWM_CCR() const;
+
   uint32_t QuadratureCount() const;
+  void QuadratureCount(uint32_t count);
+
   void setCurrent(float current); // make this private!!!
 
   static void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
@@ -29,15 +37,22 @@ class RearWheel : public Singleton<RearWheel> {
   void setDirPositive();
   void setDirNegative();
 
-  void QuadratureCount(uint32_t count);
   void PWM_CCR(uint32_t ccr);
 
   uint32_t CurrentToCCR(float current);
 
   void cmd(BaseSequentialStream *chp, int argc, char *argv[]);
 
-  float u_, /*! Applied current */
-        r_; /*! Commanded rate */
+  float u_,     /*! Applied current */
+        r_,     /*! Commanded rear wheel rate */
+        Kp_,    /*! Proportional gain */
+        Ki_,    /*! Integral gain */
+        Kd_,    /*! Derivative gain */
+        e_int_; /*! Integral of error */
+
+  uint32_t N_,  /*! System timer counts at most recent update */
+           cnt_;/*! Wheel quadrature counts at most recent update */
+
 };
 
 #include "RearWheel_priv.h"

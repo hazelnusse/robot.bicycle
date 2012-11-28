@@ -83,10 +83,8 @@ std::vector<SampleConverted> SampleReader::Convert()
                                      / std::pow(2, 16);
 
       // Control set points
-      sc.RearWheelRate_sp =
-                          static_cast<double>(samples_[i].RearWheelRate_sp);
-      sc.YawRate_sp =
-                          static_cast<double>(samples_[i].YawRate_sp);
+      sc.RearWheelRate_sp = samples_[i].RearWheelRate_sp;
+      sc.YawRate_sp = samples_[i].YawRate_sp;
 
       // Convert system time to normal time
       sc.Time = (samples_[i].SystemTime - t0) * cd::timer_dt;

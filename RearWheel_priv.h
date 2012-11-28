@@ -1,6 +1,7 @@
 #ifndef REARWHEEL_PRIV_H
 #define REARWHEEL_PRIV_H
 
+#include "bitband.h"
 #include "Constants.h"
 
 inline
@@ -16,7 +17,7 @@ void RearWheel::turnOff()
 }
 
 inline
-bool RearWheel::isEnabled()
+bool RearWheel::isEnabled() const
 {
   return !MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->IDR)), GPIOF_RW_ENABLE));
 }
@@ -31,6 +32,24 @@ inline
 float RearWheel::RateCommanded() const
 {
   return r_;
+}
+
+inline
+void RearWheel::ProportionalGain(float kp)
+{
+  Kp_ = kp;
+}
+
+inline
+void RearWheel::IntegralGain(float ki)
+{
+  Ki_ = ki;
+}
+
+inline
+void RearWheel::DerivativeGain(float kd)
+{
+  Kd_ = kd;
 }
 
 inline

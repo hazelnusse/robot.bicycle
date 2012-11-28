@@ -7,13 +7,14 @@
 
 #include "SampleAndControl.h"
 #include "RearWheel.h"
+#include "YawRateController.h"
 
 /*===========================================================================*/
 /* Card insertion monitor.                                                   */
 /*===========================================================================*/
 
-static const int POLLING_INTERVAL = 20;
-static const int POLLING_DELAY = 20;
+#define POLLING_INTERVAL 10
+#define POLLING_DELAY 10
 
 /**
  * @brief   Card monitor timer.
@@ -92,7 +93,7 @@ static FATFS SDC_FS;
 
 static const ShellCommand commands[] = {
   {"speed", RearWheel::shellcmd},     // disable/enable speed control, select set point
-//  {"yawrate", YawRateController::shellcmd}, // disable/enable yawrate control, select set point
+  {"yawrate", YawRateController::shellcmd}, // disable/enable yawrate control, select set point
   {"control_loop", SampleAndControl::chshellcmd},
   {NULL, NULL}
 };
@@ -124,7 +125,7 @@ static void InsertHandler(__attribute__((unused)) eventid_t id)
     sdcDisconnect(&SDCD1);
     return;
   }
-  palSetPad(GPIOC, GPIOC_LED);
+  palClearPad(GPIOC, GPIOC_LED);
 }
 
 /*
@@ -133,7 +134,7 @@ static void InsertHandler(__attribute__((unused)) eventid_t id)
 static void RemoveHandler(__attribute__((unused)) eventid_t id)
 {
   sdcDisconnect(&SDCD1);
-  palClearPad(GPIOC, GPIOC_LED);
+  palSetPad(GPIOC, GPIOC_LED);
 }
 
 /*
