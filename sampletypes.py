@@ -1,11 +1,4 @@
 import numpy as np
-sample_t_old = np.dtype([('gyrot', np.int16), ('gyrox', np.int16), ('gyroy', np.int16), ('gyroz', np.int16),
-                         ('accx', np.int16), ('accy', np.int16), ('accz', np.int16),
-                         ('magx', np.int16), ('magy', np.int16), ('magz', np.int16),
-                         ('steerAngle', np.uint32), ('rearWheelRate', np.uint32), ('frontWheelRate', np.uint32), 
-                         ('steerRate', np.uint32), ('CCR_rw', np.uint16), ('CCR_steer', np.uint16),
-                         ('Speed_sp', np.float32), ('YawRate_sp', np.float32),
-                         ('Time', np.uint32), ('Errorcode', np.uint32)])
 
 sample_t = np.dtype([('T', np.float64),
                      ('accx', np.float64),
@@ -18,9 +11,6 @@ sample_t = np.dtype([('T', np.float64),
                      ('RearWheelAngle', np.float64),
                      ('SteerAngle', np.float64),
                      ('FrontWheelAngle', np.float64),
-                     ('RearWheelRate', np.float64),
-                     ('SteerRate', np.float64),
-                     ('FrontWheelRate', np.float64),
                      ('RearWheelRate_sp', np.float64),
                      ('YawRate_sp', np.float64),
                      ('I_rw', np.float64),

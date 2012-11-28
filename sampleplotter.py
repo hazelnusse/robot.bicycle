@@ -16,24 +16,32 @@ class Samples(object):
         ax = [ax]
 
         #  Rear wheel subplot
-        rw_data = np.c_[data['RearWheelAngle'] % 2.0*np.pi, data['RearWheelRate']]
-
-
-        lines = ax[0].plot(data['T'], rw_data)
-        lines[0].set_label('$\\theta_R$')
-        lines[1].set_label('$\dot{\\theta}_R$')
-        if N:
+        lines = ax[0].plot(data['T'], data['RearWheelAngle'],
+                                      label='$\\theta_R$')
+        if N is not None:
             theta_N = data['RearWheelAngle'][::N]
             t_N = data['T'][::N]
             v = np.zeros(len(t_N))
             for i in range(len(t_N) - 1):
-                v[i] = (theta_N[i + 1] - theta_N[i])/(t_N[i + 1] - t_N[i])
+                dt = t_N[i + 1] - t_N[i]
+                theta_new = theta_N[i + 1]
+                theta_old = theta_N[i]
+                v[i] = (theta_new - theta_old) / dt
                 if i:
-                    if np.abs(v[i] - v[i - 1]) > 50.0:  # underflow/overflow has occurred
-                        v[i] = v[i - 1]
+                    if theta_new - theta_old > 1.5*np.pi:  # underflow occurred
+                        print("uflow@{0}, {1}, {2}".format(t_N[i+1],
+                                                           theta_new,
+                                                           theta_old))
+                        v[i] = (theta_new - 2.0*np.pi - theta_old) / dt
+                    elif theta_new - theta_old < -1.5*np.pi: # overflow occured
+                        print("oflow@{0}, {1}, {2}".format(t_N[i+1],
+                                                           theta_new,
+                                                           theta_old))
+                        v[i] = (theta_new + 2.0*np.pi - theta_old) / dt
 
             ax[0].plot(t_N, v, label='$\\Delta\\theta/\\Delta t$')
         
+        ax[0].plot(data['T'], data['I_rw'])
         ax[0].legend()
         ax[0].set_title('Rear wheel, steer, front wheel optical encoder signals (top to bottom)')
         ax[0].set_ylabel('[rad], [rad / s]')
