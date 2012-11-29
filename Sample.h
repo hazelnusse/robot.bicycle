@@ -24,9 +24,9 @@ class Sample {
                    YawRateControl =  2,
                    HubMotorFault =   4,
                    SteerMotorFault = 8,
-                   RearWheelEncoderB = 16,
-                   SteerEncoderB = 32,
-                   FrontWheelEncoderB = 64};
+                   RearWheelEncoderDir = 16,
+                   SteerEncoderDir = 32,
+                   FrontWheelEncoderDir = 64};
 };
 
 #endif

@@ -15,8 +15,8 @@ if [ -e /run/media/hazelnusse/MICROSD_0/samples.dat ]; then
     echo "Failed to convert data."
     exit 1
   fi
-  echo "Raw data saved to: ./collected_data/${raw_data_file}"
-  echo "Converted data saved to: ./collected_data_converted/${converted_data_file}"
+  echo "Raw data saved to: ${raw_data_file}"
+  echo "Converted data saved to: ${converted_data_file}"
 else
   echo "No SD card available or no samples.dat file present."
 fi

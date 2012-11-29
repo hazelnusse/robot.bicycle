@@ -9,11 +9,12 @@
 
 
 RearWheel::RearWheel()
-  : u_(0.0f), r_(0.0f), Kp_(1.0f), Ki_(0.0f), Kd_(0.0f), e_int_(0.0f)
+  : u_(0.0f), r_(0.0f), Kp_(1.0f), Ki_(0.0f), Kd_(0.0f),
+    e_int_(0.0f), N_(0), cnt_(0)
 {
   turnOff();
   PWM_CCR(0);
-  setDirNegative();      // negative wheel rotation direction is forward
+  setCurrentDirNegative();      // negative wheel rotation direction is forward
 } // RearWheel()
 
 void RearWheel::setCurrent(float current)
@@ -29,13 +30,14 @@ void RearWheel::setCurrent(float current)
   u_ = current;
 
   // Set direction
-  if (current > 0.0f) {
-    setDirPositive();
-    PWM_CCR(CurrentToCCR(current));
+  if (current < 0.0f) {
+    setCurrentDirNegative();
+    current = -current;
   } else {
-    setDirNegative();
-    PWM_CCR(CurrentToCCR(-current));
+    setCurrentDirPositive();
   }
+  
+  PWM_CCR(CurrentToCCR(current));
 } // setCurrent
 
 void RearWheel::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
@@ -48,6 +50,7 @@ void RearWheel::cmd(BaseSequentialStream *chp, int argc, char *argv[])
   if (argc == 0) { // toggle enabled/disabled
     if (isEnabled()) {
       turnOff();
+      setCurrent(0.0f);
       chprintf(chp, "Speed control disabled.\r\n");
     } else {
       turnOn();
@@ -63,10 +66,6 @@ void RearWheel::cmd(BaseSequentialStream *chp, int argc, char *argv[])
       sp = -sp;
 
     RateCommanded(sp);
-//    float sp = -((argv[0][0] - '0')*100 +
-//                 (argv[0][1] - '0')*10  +
-//                 (argv[0][2] - '0'))*(cf::Current_max_rw/1000.0f);
-//    setCurrent(sp);
     chprintf(chp, "Set point changed.\r\n");
   } else { // invalid
     chprintf(chp, "Invalid usage.\r\n");
@@ -75,17 +74,19 @@ void RearWheel::cmd(BaseSequentialStream *chp, int argc, char *argv[])
 
 void RearWheel::Update(uint32_t N, uint32_t cnt)
 {
-  float z = (cnt - cnt_) * cf::Wheel_rad_per_quad_count,
-        e = r_ - z,
-        dt = (N - N_) * cf::timer_dt,
-        e_int_update = e_int_ + e * dt,
-        I = Kp_ * e + Ki_ * e_int_update;
+  float dtheta = static_cast<int32_t>(cnt - cnt_) * cf::Wheel_rad_per_quad_count;
+  float dt = (N - N_) * cf::timer_dt;
+  float z = dtheta / dt;
+  float e = RateCommanded() - z;
+//        dt = (N - N_) * cf::timer_dt,
+//        e_int_update = e_int_ + e * dt,
+//        I = Kp_ * e + Ki_ * e_int_update;
 
-  setCurrent(I);
+  setCurrent(Kp_ * e);
 
-  if (u_ == I) { // we haven't saturated
-    e_int_ = e_int_update;    // update integral of error
-  }
+//  if (u_ == I) { // we haven't saturated
+//    e_int_ = e_int_update;    // update integral of error
+//  }
 
   N_ = N;     // save timer count
   cnt_ = cnt; // save quadrature count

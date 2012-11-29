@@ -74,13 +74,17 @@ std::vector<SampleConverted> SampleReader::Convert()
       sc.FrontWheelAngle = std::fmod(samples_[i].FrontWheelAngle * cd::Wheel_rad_per_quad_count, cd::two_pi);
 
 
-      // Current commands
-      sc.I_rw = samples_[i].CCR_rw
-                                  * cd::Current_max_rw
-                                  / std::pow(2, 16);
-      sc.I_steer = samples_[i].CCR_steer
-                                     * cd::Current_max_steer
-                                     / std::pow(2, 16);
+      // Rear wheel current command
+      double current = samples_[i].CCR_rw * cd::Current_max_rw / std::pow(2, 16);
+      if (samples_[i].SystemState & Sample::RearWheelEncoderDir)
+        current = -current;
+      sc.I_rw = current;
+      
+      // Steer current command
+      current = samples_[i].CCR_steer * cd::Current_max_steer / std::pow(2, 16);
+      if (samples_[i].SystemState & Sample::SteerEncoderDir)
+        current = -current;
+      sc.I_steer = current;
 
       // Control set points
       sc.RearWheelRate_sp = samples_[i].RearWheelRate_sp;

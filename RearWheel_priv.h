@@ -53,15 +53,21 @@ void RearWheel::DerivativeGain(float kd)
 }
 
 inline
-void RearWheel::setDirPositive()
+void RearWheel::setCurrentDirPositive()
 {
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_RW_DIR)) = 0x0;
 }
 
 inline 
-void RearWheel::setDirNegative()
+void RearWheel::setCurrentDirNegative()
 {
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_RW_DIR)) = 0x1;
+}
+
+inline
+bool RearWheel::RotationDirection() const
+{
+  return !MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(STM32_TIM8->SR)), (1 << 4)));
 }
 
 inline

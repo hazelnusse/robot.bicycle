@@ -14,6 +14,8 @@ class RearWheel : public Singleton<RearWheel> {
   float RateCommanded() const;
   void RateCommanded(float rate);
 
+  bool RotationDirection() const;
+
   void ProportionalGain(float kp);
   void IntegralGain(float ki);
   void DerivativeGain(float kd);
@@ -27,15 +29,15 @@ class RearWheel : public Singleton<RearWheel> {
   uint32_t QuadratureCount() const;
   void QuadratureCount(uint32_t count);
 
-  void setCurrent(float current); // make this private!!!
-
   static void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
 
  private:
   RearWheel();
 
-  void setDirPositive();
-  void setDirNegative();
+  void setCurrentDirPositive();
+  void setCurrentDirNegative();
+  void setCurrent(float current);
+
 
   void PWM_CCR(uint32_t ccr);
 
@@ -52,7 +54,6 @@ class RearWheel : public Singleton<RearWheel> {
 
   uint32_t N_,  /*! System timer counts at most recent update */
            cnt_;/*! Wheel quadrature counts at most recent update */
-
 };
 
 #include "RearWheel_priv.h"
