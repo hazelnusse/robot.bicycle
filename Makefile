@@ -15,7 +15,7 @@ endif
 
 # C++ specific options here (added to USE_OPT).
 ifeq ($(USE_CPPOPT),)
-  USE_CPPOPT = -fno-rtti -fno-exceptions -std=c++11
+  USE_CPPOPT = -fno-rtti -fno-exceptions -fno-stack-protector -nostdlib -nodefaultlibs -nostartfiles -std=c++11
 endif
 
 # Enable this if you want the linker to remove unused code and data
@@ -100,6 +100,8 @@ CPPSRC = main.cpp \
 				 SampleBuffer.cpp \
 				 YawRateController.cpp \
 				 SampleAndControl.cpp \
+				 testcxxstuff.cpp \
+				 foo.cpp \
 				 stubs.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.
@@ -166,7 +168,7 @@ TOPT = -mthumb -DTHUMB
 CWARN = -Wall -Wextra -Wstrict-prototypes
 
 # Define C++ warning options here
-CPPWARN = -Wall -Wextra
+CPPWARN = -Wall -Wextra -Weffc++
 
 #
 # Compiler settings
@@ -200,7 +202,7 @@ DLIBS =
 #
 
 # List all user C define here, like -D_DEBUG=1
-UDEFS =
+UDEFS = -DTESTCXXSTUFF=0
 
 # Define ASM defines here
 UADEFS =

@@ -18,10 +18,13 @@
 #include "Sample.h"
 
 MPU6050::MPU6050()
-  : i2c_(0), timeout_(MS2ST(2)), I2C_ADDR(0b1101000), ACCEL_XOUT_ADDR(59)
+  : i2c_(0),
+    i2cfg_({ OPMODE_I2C, 400000, FAST_DUTY_CYCLE_2 }),
+    timeout_(MS2ST(2)),
+    I2C_ADDR(0b1101000),
+    ACCEL_XOUT_ADDR(59)
 {
   // I2C configuration
-  i2cfg_ = { OPMODE_I2C, 400000, FAST_DUTY_CYCLE_2 };
   i2cObjectInit(i2c_);    // Initialize I2CD2
 } // MPU6050())
 

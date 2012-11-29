@@ -10,7 +10,7 @@ class Samples(object):
     def __init__(self, datafile):
         self.data = np.fromfile(datafile, dtype=st.sample_t)
     
-    def plotEncoders(self, N=None):
+    def plotRearWheel(self, N=None):
         f, ax = plt.subplots(1, sharex=False, sharey=False)
         data = self.data
         ax = [ax]
@@ -41,10 +41,12 @@ class Samples(object):
 
             ax[0].plot(t_N, v, label='$\\Delta\\theta/\\Delta t$')
         
-        ax[0].plot(data['T'], data['I_rw'])
+        ax[0].plot(data['T'], data['I_rw'], label='I')
+        ax[0].plot(data['T'], data['RearWheelRate_sp'], label='$\\theta_r$')
         ax[0].legend()
-        ax[0].set_title('Rear wheel, steer, front wheel optical encoder signals (top to bottom)')
-        ax[0].set_ylabel('[rad], [rad / s]')
+        ax[0].set_title('Rear wheel')
+        ax[0].set_ylabel('[rad], [rad / s], [A]')
+        ax[0].set_xlabel('time [s]')
 
 
         #  Steer subplot
@@ -60,8 +62,8 @@ class Samples(object):
         #ax[2].set_xlabel('time [s]')
         #ax[2].set_ylabel('[rad], [rad / s]')
 
-        f.subplots_adjust(hspace=0)
-        plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
+        #f.subplots_adjust(hspace=0)
+        #plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
         plt.axis('tight')
 
     def plotAccelerometer(self):
