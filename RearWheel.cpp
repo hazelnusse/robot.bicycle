@@ -9,7 +9,7 @@
 
 
 RearWheel::RearWheel()
-  : u_(0.0f), r_(0.0f), Kp_(1.0f), Ki_(1.0f), Kd_(0.0f), e_int_(0.0f)
+  : u_(0.0f), r_(0.0f), Kp_(1.0f), Ki_(0.0f), Kd_(0.0f), e_int_(0.0f)
 {
   turnOff();
   PWM_CCR(0);
