@@ -25,19 +25,27 @@ void SampleAndControl::Control_(__attribute__((unused))void * arg)
 
 void SampleAndControl::Control()
 {
+  Enabled_ = true;
   MPU6050 & imu = MPU6050::Instance();
   imu.Initialize(&I2CD2);
 
   SampleBuffer & sb = SampleBuffer::Instance();
   RearWheel & rw = RearWheel::Instance();
   rw.QuadratureCount(0);
+  rw.turnOn();
   //YawRateController & yc = YawRateController::Instance();
 
   systime_t time = chTimeNow();     // Initial time
+  STM32_TIM5->CR1 = 0;              // stop timer
+  STM32_TIM5->CNT = 0;              // zero out the free running timer
+  STM32_TIM5->EGR = 1;              // generate a timer update
+  STM32_TIM5->CR1 = 1;              // start timer
   uint32_t state = 0;
+  uint32_t rw_fault_count = 0;
+  uint32_t steer_fault_count = 0;
+  float tmp = 0.0f;
   for (uint32_t i = 0; !chThdShouldTerminate(); ++i) {
     time += MS2ST(con::T_ms);                        // Next deadline
-    // palTogglePad(IOPORT6, GPIOF_TIMING_PIN); // Sanity check for loop timing
 
     Sample & s = sb.CurrentSample();
 
@@ -53,16 +61,16 @@ void SampleAndControl::Control()
     s.SteerAngle = STM32_TIM3->CNT;
     s.SystemTime = STM32_TIM5->CNT;
 
-
-
     s.RearWheelRate_sp = rw.RateCommanded();
-    s.YawRate_sp = 0.0; // need to implement yaw rate controller
+    // s.YawRate_sp = yc.RateCommanded();
 
     // Compute new speed control action if controller is enabled.
     if (rw.isEnabled()) {
       state |= Sample::SpeedControl;
       if (i % con::RW_N == 0) {    // only update control law every RW_N times
-        rw.Update(s.SystemTime, s.RearWheelAngle);
+        tmp = s.YawRate_sp = rw.Update(s.SystemTime, s.RearWheelAngle);
+      } else {
+        s.YawRate_sp = tmp;
       }
     }
 
@@ -73,18 +81,25 @@ void SampleAndControl::Control()
     //}
 
     s.CCR_rw = rw.PWM_CCR();
-    s.CCR_steer = STM32_TIM1->CCR[1]; // Save steer duty
+    //s.CCR_steer = yc.PWM_CCR();
 
-    bool faults = false;
     // Check for motor faults
     if (rw.hasFault()) {
       state |= Sample::HubMotorFault;
-      faults = true;
+      ++rw_fault_count;
+      if (rw_fault_count > 10)  // debounce
+        break;
+    } else {
+      rw_fault_count = 0;
     }
     
     if (!palReadPad(GPIOF, GPIOF_STEER_FAULT)) {
       state |= Sample::SteerMotorFault;
-      faults = true;
+      ++steer_fault_count;
+      if (steer_fault_count > 10)  // debounce
+        break;
+    } else {
+      steer_fault_count = 0;
     }
 
     s.SystemState = state;
@@ -93,18 +108,15 @@ void SampleAndControl::Control()
     // Increment the sample buffer
     ++sb;
 
-    // Turn of motors if there is a fault condition
-    if (faults) {
-      rw.turnOff();
-      //yc.turnOff();
-      break;
-    }
-
     // Go to sleep until next 5ms interval
     chThdSleepUntil(time);
   }
   sb.Flush();  // ensure all data is written to disk
   imu.DeInitialize();
+  rw.turnOff();
+  // yc.turnOff();
+  Enabled_ = false;
+  f_close(&f_);
   chThdExit(0);
 }
 
@@ -113,7 +125,7 @@ void SampleAndControl::chshellcmd(BaseSequentialStream *chp, int argc, char *arg
   SampleAndControl::Instance().shellcmd(chp, argc, argv);
 }
 
-void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
+void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[] __attribute__((unused)))
 {
   if (argc == 0) { // toggle enabled/disabled
     if (isEnabled()) {
@@ -123,15 +135,9 @@ void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[
       setEnabled(true);
       chprintf(chp, "Sample & Control thread enabled.\r\n");
     }
-  } else if (argc == 1) { // change filename
-    if (isEnabled()) {
-      setEnabled(false);
-      chprintf(chp, "Sample & Control thread disabled.\r\n");
-    }
-    setFilename(argv[0]);
-    chprintf(chp, "Filename changed to %s.\r\n", Filename_);
+  } else {
+    chprintf(chp, "Invalid usage.\r\n");
   }
-  return;
 }
 
 /*
@@ -155,14 +161,8 @@ void SampleAndControl::setEnabled(bool state)
                                     sizeof(waControlThread),
                                     NORMALPRIO, (tfunc_t) Control_, 0);
 
-    Enabled_ = true;
   } else {
-    // RearWheel::Instance().turnOff();
-    // YawRateController::Instance().setEnabled(false);
     chThdTerminate(Control_tp_);
-    chThdWait(Control_tp_);
-    Control_tp_ = 0;
-    Enabled_ = false;
   }
 }
 

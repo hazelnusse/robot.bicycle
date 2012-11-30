@@ -8,12 +8,22 @@ inline
 void RearWheel::turnOn()
 {
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_RW_ENABLE)) = 0x0;
+  Reset();
 }
 
 inline
 void RearWheel::turnOff()
 {
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_RW_ENABLE)) = 0x1;
+  Reset();
+}
+
+inline
+void RearWheel::Reset()
+{
+  e_int_ = 0.0f;
+  PWM_CCR(0);
+  setCurrentDirNegative();// negative wheel rotation direction is forward
 }
 
 inline

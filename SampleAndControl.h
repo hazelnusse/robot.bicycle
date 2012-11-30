@@ -21,8 +21,9 @@ class SampleAndControl : public Singleton<SampleAndControl> {
 
  private:
   SampleAndControl();
+  SampleAndControl(const SampleAndControl &) = delete;
+  SampleAndControl & operator=(const SampleAndControl &) = delete;
   void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
-
   Thread * Control_tp_;
   char Filename_[24];
   FIL f_;

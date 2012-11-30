@@ -30,6 +30,8 @@ class SampleBuffer : public Singleton<SampleBuffer> {
 
  private:
   SampleBuffer();
+  SampleBuffer(const SampleBuffer &) = delete;
+  SampleBuffer & operator=(const SampleBuffer &) = delete;
 
   static void WriteThread(void * arg) __attribute__((noreturn));
 

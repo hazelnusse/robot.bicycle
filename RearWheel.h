@@ -20,7 +20,7 @@ class RearWheel : public Singleton<RearWheel> {
   void IntegralGain(float ki);
   void DerivativeGain(float kd);
 
-  void Update(uint32_t N, uint32_t cnt);
+  float Update(uint32_t N, uint32_t cnt);
 
   bool hasFault();
 
@@ -38,6 +38,7 @@ class RearWheel : public Singleton<RearWheel> {
   void setCurrentDirNegative();
   void setCurrent(float current);
 
+  void Reset();
 
   void PWM_CCR(uint32_t ccr);
 

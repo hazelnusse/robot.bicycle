@@ -58,8 +58,7 @@ void configureEncoderTimers(void)
   //
   // The clock speed only affect the filtering that is done in the edge
   // detector, which is set to be as slow as possible.  To be considered a
-  // rising edge, the incoming signal must be high for 3.0us and 1.5us
-  // respectively.
+  // rising edge, the incoming signal must be high for 1.5us.
   // STM32_TIM8: Rear wheel encoder timer                  
   // STM32_TIM3: Steer encoder timer                  
   // STM32_TIM4: Front wheel encoder timer                  
@@ -67,12 +66,17 @@ void configureEncoderTimers(void)
   for (auto timer : encoderTimers) {
     timer->SMCR = 3;          // Encoder mode 3
     timer->CCER = 0;          // rising edge polarity
-    timer->ARR = 0xFFFF;      // count from 0-ARR or ARR-0
-    timer->CCMR1 = 0xF1F1;    // f_DTS/32, N=8, IC1->TI1, IC2->TI2
+    timer->ARR = reg::ENC_ARR;// count from 0-ARR or ARR-0
+    timer->CCMR1 = 0xC1C1;    // f_DTS/16, N=8, IC1->TI1, IC2->TI2
     timer->CNT = 0;           // Initialize counter
     timer->EGR = 1;           // Generate an update event
     timer->CR1 = 1;           // Enable the counter
   }
+
+  // Timer 8 is clocked at 168MHz so we need to slow down the input capture
+  // filter a bit to make it the same as TIM3 and TIM4
+  STM32_TIM8->CCMR1 = 0xF1F1; // f_DTS/32, N=8, IC1->TI1, IC2->TI2
+  STM32_TIM8->DIER = 1;       // Enable overflow/underflow interrupts
 
   // Configure prescalar
   STM32_TIM5->PSC = 20; // f_CLK =  84.0MHz/(20+1)==4.0 MHz, --> 0.25 us / count
@@ -87,7 +91,7 @@ void configureEncoderTimers(void)
   STM32_TIM5->EGR = 1;
 
   // Enable timer 
-  STM32_TIM5->CR1 = 1;
+  // STM32_TIM5->CR1 = 1;
 } // configureEncoderTimers()
 
 static void configureMotorPWM()

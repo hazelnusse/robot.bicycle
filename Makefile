@@ -102,7 +102,8 @@ CPPSRC = main.cpp \
 				 SampleAndControl.cpp \
 				 testcxxstuff.cpp \
 				 foo.cpp \
-				 stubs.cpp
+				 stubs.cpp \
+				 Interrupts.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
