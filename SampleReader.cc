@@ -41,6 +41,7 @@ std::vector<SampleConverted> SampleReader::Convert()
 {
   if (!converted_) {
     uint32_t t0 = samples_[0].SystemTime;
+    uint32_t t_prev = 0;
     for (int i = 0; i < samples_.size(); ++i) {
       SampleConverted sc;
       
@@ -91,7 +92,14 @@ std::vector<SampleConverted> SampleReader::Convert()
       sc.YawRate_sp = samples_[i].YawRate_sp;
 
       // Convert system time to normal time
-      sc.Time = (samples_[i].SystemTime - t0) * cd::timer_dt;
+      uint32_t t = samples_[i].SystemTime;
+      if (t < t_prev) {
+        std::cout << "Time error." << std::endl;
+        std::cout << "t[" << i-1 << "] = " << t_prev << std::endl;
+        std::cout << "t[" << i << "] = " << t << std::endl;
+      }
+      sc.Time = (t - t0) * cd::timer_dt;
+      t_prev = t;
       
       // No conversion needed for Errorcodes
       sc.SystemState = samples_[i].SystemState;
