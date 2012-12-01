@@ -9,6 +9,7 @@
 #include "Sample.h"
 #include "YawRateController.h"
 #include "Constants.h"
+#include "textutilities.h"
 
 YawRateController::YawRateController()
   : offset_(0), homed_(false), u_(0.0f), r_(0.0f),
@@ -17,29 +18,42 @@ YawRateController::YawRateController()
   turnOff();
 }
 
+void YawRateController::setCurrent(float current)
+{
+  // Saturate current
+  if (current > cf::Current_max_steer) {
+    current = cf::Current_max_steer;
+  } else if (current < -cf::Current_max_steer) {
+    current = -cf::Current_max_steer;
+  }
+
+  // save current
+  u_ = current;
+
+  // Set direction
+  if (current < 0.0f) {
+    setCurrentDirNegative();
+    current = -current;
+  } else {
+    setCurrentDirPositive();
+  }
+  
+  PWM_CCR(CurrentToCCR(current));
+} // setCurrent
+
 void YawRateController::cmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
-  if (argc == 0) { // toggle enabled/disabled
-    if (isEnabled()) {
-      turnOff();
-      chprintf(chp, "Yaw rate control disabled.\r\n");
-    } else {
-      turnOn();
-      chprintf(chp, "Yaw rate control enabled.\r\n");
-    }
-  } else if (argc == 1) { // Change reference yaw rate
-    float sp = 0.02f*((argv[0][0] - '0')*100 +
-                     (argv[0][1] - '0')*10  +
-                     (argv[0][2] - '0'));
-    RateCommanded(sp);
-    chprintf(chp, "Set point changed.\r\n");
+  if (argc == 1) { // Change reference yaw rate
+    RateCommanded(tofloat(argv[0]));
+    chprintf(chp, "Yaw rate set point changed.\r\n");
   } else { // invalid
     chprintf(chp, "Invalid usage.\r\n");
   }
 }
 
-void YawRateController::Update(Sample & s)
+void YawRateController::Update(const Sample & s)
 {
+  (void) s;
 
 } // Update
 

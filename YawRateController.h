@@ -18,18 +18,24 @@ class YawRateController : public Singleton<YawRateController> {
   void RateCommanded(float yaw_rate);
 
   bool hasFault();
+  
+  uint32_t PWM_CCR() const;
 
-  void Update(Sample & s);
+  void Update(const Sample & s);
   
   static void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
-  static void calibrateSteerEncoder(BaseSequentialStream * chp, int argc, char * argv[]);
+  static void calibrateSteerEncoder(BaseSequentialStream * chp,
+                                    int argc, char * argv[]);
   static void homeFork(BaseSequentialStream * chp, int argc, char * argv[]);
 
  private:
   YawRateController();
   
-  void setDirPositive();
-  void setDirNegative();
+  void setCurrentDirPositive();
+  void setCurrentDirNegative();
+  void setCurrent(float current);
+
+  void Reset();
 
   void PWM_CCR(uint32_t ccr);
   uint32_t CurrentToCCR(float current);

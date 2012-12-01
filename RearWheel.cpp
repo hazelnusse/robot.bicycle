@@ -6,7 +6,7 @@
 
 #include "Constants.h"
 #include "RearWheel.h"
-
+#include "textutilities.h"
 
 RearWheel::RearWheel()
   : u_(0.0f), r_(0.0f), Kp_(1.0f), Ki_(1.0f), Kd_(0.0f),
@@ -38,23 +38,11 @@ void RearWheel::setCurrent(float current)
   PWM_CCR(CurrentToCCR(current));
 } // setCurrent
 
-void RearWheel::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
-{
-  RearWheel::Instance().cmd(chp, argc, argv);
-} // shellcmd()
-
 void RearWheel::cmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
   if (argc == 1) { // change set point
-    // format of argument must be a six character string of the form {+-}dd.dd
-    float sp = ((argv[0][1] - '0')*10 +
-                (argv[0][2] - '0')) +
-               ((argv[0][4] - '0')*0.1f +
-                (argv[0][5] - '0')*0.01f);
-    if (argv[0][0] == '-')
-      sp = -sp;
-    RateCommanded(sp);
-    chprintf(chp, "Set point changed.\r\n");
+    RateCommanded(tofloat(argv[0]));
+    chprintf(chp, "Rear wheel rate set point changed.\r\n");
   } else { // invalid
     chprintf(chp, "Invalid usage.\r\n");
   }

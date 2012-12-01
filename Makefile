@@ -103,6 +103,7 @@ CPPSRC = main.cpp \
 				 testcxxstuff.cpp \
 				 foo.cpp \
 				 stubs.cpp \
+				 textutilities.cpp \
 				 Interrupts.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.

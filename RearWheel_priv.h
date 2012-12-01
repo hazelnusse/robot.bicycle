@@ -5,6 +5,12 @@
 #include "Constants.h"
 
 inline
+void RearWheel::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
+{
+  RearWheel::Instance().cmd(chp, argc, argv);
+} // shellcmd()
+
+inline
 void RearWheel::turnOn()
 {
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_RW_ENABLE)) = 0x0;
