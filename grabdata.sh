@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ -e /run/media/hazelnusse/MICROSD_0/samples.dat ]; then
-  datafile="/run/media/hazelnusse/MICROSD_0/samples.dat"
+if [ -e /run/media/hazelnusse/MICROSD_1/samples.dat ]; then
+  datafile="/run/media/hazelnusse/MICROSD_1/samples.dat"
   base_fn="samples_$(date +%H%M)_$(date +%d%^b%Y)"
   raw_data_file="./collected_data/${base_fn}.dat"
   converted_data_file="./collected_data_converted/${base_fn}_converted.dat"
