@@ -14,7 +14,8 @@ class RearWheel : public Singleton<RearWheel> {
   float RateCommanded() const;
   void RateCommanded(float rate);
 
-  bool RotationDirection() const;
+  uint32_t RotationDir() const;
+  uint32_t CurrentDir() const;
 
   void ProportionalGain(float kp);
   void IntegralGain(float ki);

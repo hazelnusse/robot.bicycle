@@ -3,6 +3,7 @@
 
 #include "bitband.h"
 #include "Constants.h"
+#include "Sample.h"
 
 inline
 void RearWheel::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
@@ -81,9 +82,16 @@ void RearWheel::setCurrentDirNegative()
 }
 
 inline
-bool RearWheel::RotationDirection() const
+uint32_t RearWheel::CurrentDir() const
 {
-  return !MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(STM32_TIM8->SR)), (1 << 4)));
+  return (MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->IDR)), GPIOF_RW_DIR))) ? Sample::SteerMotorCurrentDir : 0;
+}
+
+inline
+uint32_t RearWheel::RotationDir() const
+{
+  // return !MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(STM32_TIM8->SR)), (1 << 4)));
+  return (MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(STM32_TIM8->SR)), (1 << 4)))) ? Sample::RearWheelEncoderDir : 0;
 }
 
 inline

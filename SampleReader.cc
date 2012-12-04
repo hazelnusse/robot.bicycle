@@ -77,13 +77,13 @@ std::vector<SampleConverted> SampleReader::Convert()
 
       // Rear wheel current command
       double current = samples_[i].CCR_rw * cd::Current_max_rw / std::pow(2, 16);
-      if (samples_[i].SystemState & Sample::RearWheelEncoderDir)
+      if (samples_[i].SystemState & Sample::RearWheelMotorCurrentDir)
         current = -current;
       sc.I_rw = current;
       
       // Steer current command
       current = samples_[i].CCR_steer * cd::Current_max_steer / std::pow(2, 16);
-      if (samples_[i].SystemState & Sample::SteerEncoderDir)
+      if (samples_[i].SystemState & Sample::SteerMotorCurrentDir)
         current = -current;
       sc.I_steer = current;
 

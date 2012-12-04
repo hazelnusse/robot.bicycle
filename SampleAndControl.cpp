@@ -53,9 +53,8 @@ void SampleAndControl::Control()
     
     // Get rear wheel angle and rear wheel rotation direction
     s.RearWheelAngle = rw.QuadratureCount();
-    if (rw.RotationDirection()) {
-      state |= Sample::RearWheelEncoderDir;
-    }
+    state |= rw.RotationDir() | rw.CurrentDir();
+
 
     s.FrontWheelAngle = STM32_TIM4->CNT;
     s.SteerAngle = STM32_TIM3->CNT;

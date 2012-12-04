@@ -104,6 +104,7 @@ CPPSRC = main.cpp \
 				 foo.cpp \
 				 stubs.cpp \
 				 textutilities.cpp \
+				 VectorTable.cpp \
 				 Interrupts.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.
@@ -143,9 +144,7 @@ INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
 #
 
 MCU  = cortex-m4
-#TOOLCHAINDIR = $(HOME)/usr/GNU_ARM_EMBEDDED
 TOOLCHAINDIR = $(HOME)/toolchain
-#TOOLCHAINDIR = $(HOME)/arm-cs-tools
 TRGT = $(TOOLCHAINDIR)/bin/arm-none-eabi-
 CC   = $(TRGT)gcc
 CPPC = $(TRGT)g++

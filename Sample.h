@@ -20,13 +20,15 @@ class Sample {
   // IMU raw sensor data
   int16_t MPU6050[7];
 
-  enum StateFlags {SpeedControl =    1,
-                   YawRateControl =  2,
-                   HubMotorFault =   4,
-                   SteerMotorFault = 8,
-                   RearWheelEncoderDir = 16,
-                   SteerEncoderDir = 32,
-                   FrontWheelEncoderDir = 64};
+  enum StateFlags {SpeedControl                 = 0x0001,
+                   YawRateControl               = 0x0002,
+                   HubMotorFault                = 0x0004,
+                   SteerMotorFault              = 0x0008,
+                   RearWheelEncoderDir          = 0x0010,
+                   SteerEncoderDir              = 0x0020,
+                   FrontWheelEncoderDir         = 0x0040,
+                   RearWheelMotorCurrentDir     = 0x0080,
+                   SteerMotorCurrentDir         = 0x0100};
 };
 
 #endif
