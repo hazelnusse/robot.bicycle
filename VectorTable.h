@@ -34,7 +34,7 @@ class VectorTable {
   VectorTable(const VectorTable&) = delete;
   VectorTable & operator=(const VectorTable&) = delete;
 
-  static vectors_t vtable_; __attribute__ ((section("ram_vectors")));
+  static vectors_t vtable_;
 };
 
 #endif
