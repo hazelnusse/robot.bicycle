@@ -147,6 +147,8 @@ static void RemoveHandler(__attribute__((unused)) eventid_t id)
  */
 int main()
 {
+  VectorTable v;
+  v.Relocate();
   static const evhandler_t evhndl[] = { InsertHandler, RemoveHandler };
   Thread * shelltp = NULL;
   static struct EventListener el0, el1;
@@ -160,8 +162,6 @@ int main()
    */
   halInit();
   chSysInit();
-  VectorTable v;
-  v.Relocate();
   chRegSetThreadName("main");
 
 #if(TESTCXXSTUFF==1)
