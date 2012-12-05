@@ -6,6 +6,7 @@ if [ -e /run/media/hazelnusse/MICROSD_1/samples.dat ]; then
   raw_data_file="./collected_data/${base_fn}.dat"
   converted_data_file="./collected_data_converted/${base_fn}_converted.dat"
   cp ${datafile} ${raw_data_file}
+  rm -rf ${datafile}
   if [ $? -gt 0 ]; then
     echo "Failed to copy raw data."
     exit 1
