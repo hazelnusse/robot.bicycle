@@ -30,17 +30,22 @@ void SampleAndControl::Control()
   imu.Initialize(&I2CD2);
 
   SampleBuffer & sb = SampleBuffer::Instance();
+
   RearWheel & rw = RearWheel::Instance();
   rw.QuadratureCount(0);
   rw.turnOn();
-  //YawRateController & yc = YawRateController::Instance();
+
+  YawRateController & yc = YawRateController::Instance();
+  yc.turnOn();
 
   systime_t time = chTimeNow();     // Initial time
+  STM32_TIM4->CNT = 0;              // zero out front wheel count
   STM32_TIM5->CNT = 0;              // zero out the free running timer
   uint32_t state = 0;
   uint32_t rw_fault_count = 0;
   uint32_t steer_fault_count = 0;
-  float tmp = 0.0f;
+
+  // Main loop
   for (uint32_t i = 0; !chThdShouldTerminate(); ++i) {
     time += MS2ST(con::T_ms);                        // Next deadline
 
@@ -64,9 +69,7 @@ void SampleAndControl::Control()
     if (rw.isEnabled()) {
       state |= Sample::SpeedControl;
       if (i % con::RW_N == 0) {    // only update control law every RW_N times
-        tmp = s.YawRate_sp = rw.Update(s.SystemTime, s.RearWheelAngle);
-      } else {
-        s.YawRate_sp = tmp;
+        rw.Update(s.SystemTime, s.RearWheelAngle);
       }
     }
 
@@ -89,7 +92,7 @@ void SampleAndControl::Control()
       rw_fault_count = 0;
     }
     
-    if (!palReadPad(GPIOF, GPIOF_STEER_FAULT)) {
+    if (yc.hasFault()) {
       state |= Sample::SteerMotorFault;
       ++steer_fault_count;
       if (steer_fault_count > 10)  // debounce

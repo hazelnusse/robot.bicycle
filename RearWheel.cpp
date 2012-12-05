@@ -48,7 +48,7 @@ void RearWheel::cmd(BaseSequentialStream *chp, int argc, char *argv[])
   }
 } // cmd()
 
-float RearWheel::Update(uint32_t N, uint32_t cnt)
+void RearWheel::Update(uint32_t N, uint32_t cnt)
 {
   float dtheta = static_cast<int16_t>(cnt - cnt_) * cf::Wheel_rad_per_quad_count;
   float dt = (N - N_) * cf::timer_dt;
@@ -67,7 +67,6 @@ float RearWheel::Update(uint32_t N, uint32_t cnt)
 
   N_ = N;     // save timer count
   cnt_ = cnt; // save quadrature count
-  return z;
 }
 
 

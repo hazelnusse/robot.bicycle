@@ -21,7 +21,7 @@ class RearWheel : public Singleton<RearWheel> {
   void IntegralGain(float ki);
   void DerivativeGain(float kd);
 
-  float Update(uint32_t N, uint32_t cnt);
+  void Update(uint32_t N, uint32_t cnt);
 
   bool hasFault();
 
