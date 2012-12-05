@@ -83,8 +83,8 @@ void MPU6050::Initialize(I2CDriver * i2c)
                            3, NULL, 0, timeout_);
   i2cReleaseBus(i2c_);
 
-  // Sleep 10 ms to allow PLL on MPU6050 to settle
-  time = chTimeNow() + MS2ST(10);
+  // Sleep 30 ms to allow PLL and gyro readings on MPU6050 to settle
+  time = chTimeNow() + MS2ST(30);
   chThdSleepUntil(time);
 } // Initialize()
 
