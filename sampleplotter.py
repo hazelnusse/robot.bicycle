@@ -16,7 +16,7 @@ class Samples(object):
         ax = [ax]
 
         #  Rear wheel subplot
-        lines = ax[0].plot(data['T'], data['RearWheelAngle'],
+        lines = ax[0].step(data['T'], data['RearWheelAngle'],
                                       label='$\\theta_R$')
         if N is not None:
             theta_N = data['RearWheelAngle'][::N]
@@ -39,11 +39,11 @@ class Samples(object):
                                                            theta_old))
                         v[i] = (theta_new + 2.0*np.pi - theta_old) / dt
 
-            ax[0].plot(t_N, v, label='$\\Delta\\theta/\\Delta t$')
+            ax[0].step(t_N, v, label='$\\Delta\\theta_R/\\Delta t$')
         
-        ax[0].plot(data['T'], data['I_rw'], label='I')
-        ax[0].plot(data['T'], data['RearWheelRate_sp'], label='$\\theta_r$')
-        ax[0].legend()
+        ax[0].step(data['T'], data['I_rw'], label='I')
+        ax[0].step(data['T'], data['RearWheelRate_sp'], label='$\\theta_r$')
+        ax[0].legend(loc=0)
         ax[0].set_title('Rear wheel')
         ax[0].set_ylabel('[rad], [rad / s], [A]')
         ax[0].set_xlabel('time [s]')
