@@ -38,13 +38,15 @@ void SampleAndControl::Control()
   YawRateController & yc = YawRateController::Instance();
   yc.turnOn();
 
-  systime_t time = chTimeNow();     // Initial time
   STM32_TIM4->CNT = 0;              // zero out front wheel count
   STM32_TIM5->CNT = 0;              // zero out the free running timer
   uint32_t state = 0;
   uint32_t rw_fault_count = 0;
   uint32_t steer_fault_count = 0;
 
+  systime_t time = chTimeNow();     // Initial time
+  time += MS2ST(10);                // Delay 10ms to let timer stabilize
+  chThdSleepUntil(time);
   // Main loop
   for (uint32_t i = 0; !chThdShouldTerminate(); ++i) {
     time += MS2ST(con::T_ms);                        // Next deadline
