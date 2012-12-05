@@ -64,7 +64,7 @@ PROJECT = robot.bike
 PROJECTDIR = .
 
 # Imported source files and paths
-CHIBIOS = $(HOME)/repos/ChibiOS
+CHIBIOS = ./ChibiOS-RT
 include $(PROJECTDIR)/board/board.mk
 include $(CHIBIOS)/os/hal/platforms/STM32F4xx/platform.mk
 include $(CHIBIOS)/os/hal/hal.mk
@@ -75,8 +75,7 @@ include $(CHIBIOS)/os/various/fatfs_bindings/fatfs.mk
 include $(CHIBIOS)/test/test.mk
 
 # Define linker script file here
-LDSCRIPT= $(PORTLD)/STM32F407xG.ld
-#LDSCRIPT= $(PORTLD)/STM32F407xG_CCM.ld
+LDSCRIPT=./STM32F407xG_ram_vectors.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
