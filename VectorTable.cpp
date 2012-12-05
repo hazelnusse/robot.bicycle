@@ -13,5 +13,5 @@ VectorTable::VectorTable()
 void VectorTable::Relocate()
 {
   vtable_ = _vectors; //  copy existing vector table to memory;
-  SCB_VTOR = reinterpret_cast<uint32_t>(&vtable_); // 
+  SCB_VTOR = reinterpret_cast<uint32_t>(&vtable_); // relocate the vector table
 }

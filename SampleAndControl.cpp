@@ -9,7 +9,7 @@
 #include "RearWheel.h"
 #include "SampleAndControl.h"
 #include "SampleBuffer.h"
-//#include "YawRateController.h"
+#include "YawRateController.h"
 
 SampleAndControl::SampleAndControl()
   : Control_tp_(0), Enabled_(false)

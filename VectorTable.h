@@ -23,7 +23,7 @@ struct vectors_t {
   irq_vector_t  pendsv_vector;
   irq_vector_t  systick_vector;
   irq_vector_t  vectors[82];
-} __attribute__((aligned(512)));
+};
 
 class VectorTable {
  public:
@@ -34,7 +34,7 @@ class VectorTable {
   VectorTable(const VectorTable&) = delete;
   VectorTable & operator=(const VectorTable&) = delete;
 
-  static vectors_t vtable_ __attribute__((aligned(512)));
+  static vectors_t vtable_; __attribute__ ((section("ram_vectors")));
 };
 
 #endif

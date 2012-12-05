@@ -31,6 +31,7 @@
 
 #ifndef _CHCONF_H_
 #define _CHCONF_H_
+#include <stdint.h>
 
 /*===========================================================================*/
 /**
@@ -529,6 +530,8 @@
 /*===========================================================================*/
 /* Port-specific settings (override port settings defaulted in chcore.h).    */
 /*===========================================================================*/
+extern uint32_t __ram_vector_table_start__;
+#define CORTEX_VTOR_INIT (uint32_t)&__ram_vector_table_start__
 
 #endif  /* _CHCONF_H_ */
 

@@ -21,8 +21,8 @@
 /*
  * ST32F407xG memory setup.
  */
-__main_stack_size__     = 0x0400;
-__process_stack_size__  = 0x0400;
+__main_stack_size__     = 0x0800;
+__process_stack_size__  = 0x0800;
 
 MEMORY
 {
@@ -118,10 +118,12 @@ SECTIONS
         __main_thread_stack_end__ = .;
     } > ram
     
-    ram_startup : ALIGN(16) SUBALIGN(16)
+    ram_startup : ALIGN(512) SUBALIGN(512)
     {
+        __ram_vector_table_start__ = .;
         KEEP(*(ram_vectors))
-    } > ram
+        __ram_vector_table_end__ = .;
+    } > ram AT > flash
 
     .data :
     {
