@@ -1,3 +1,6 @@
 [submodule "Singleton"]
 	path = Singleton
 	url = git://github.com/hazelnusse/Singleton.git
+[submodule "ChibiOS-RT"]
+	path = ChibiOS-RT
+	url = git://github.com/ChibiOS-Upstream/ChibiOS-RT.git
