@@ -36,10 +36,7 @@ void SampleAndControl::Control()
   //YawRateController & yc = YawRateController::Instance();
 
   systime_t time = chTimeNow();     // Initial time
-  STM32_TIM5->CR1 = 0;              // stop timer
   STM32_TIM5->CNT = 0;              // zero out the free running timer
-  STM32_TIM5->EGR = 1;              // generate a timer update
-  STM32_TIM5->CR1 = 1;              // start timer
   uint32_t state = 0;
   uint32_t rw_fault_count = 0;
   uint32_t steer_fault_count = 0;

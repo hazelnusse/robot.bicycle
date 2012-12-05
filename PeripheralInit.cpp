@@ -91,7 +91,7 @@ void configureEncoderTimers(void)
   STM32_TIM5->EGR = 1;
 
   // Enable timer 
-  // STM32_TIM5->CR1 = 1;
+  STM32_TIM5->CR1 = 1;
 } // configureEncoderTimers()
 
 static void configureMotorPWM()
