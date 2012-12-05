@@ -12,6 +12,7 @@
 #include "SampleAndControl.h"
 #include "RearWheel.h"
 #include "YawRateController.h"
+#include "VectorTable.h"
 
 /*===========================================================================*/
 /* Card insertion monitor.                                                   */
@@ -159,6 +160,8 @@ int main()
    */
   halInit();
   chSysInit();
+  VectorTable v;
+  v.Relocate();
   chRegSetThreadName("main");
 
 #if(TESTCXXSTUFF==1)
