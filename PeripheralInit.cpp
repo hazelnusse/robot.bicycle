@@ -41,7 +41,7 @@ static void configureRCC()
   // Enable I2C2, USART2, TIM5, TIM4, TIM3
   RCC->APB1ENR |= ((1 << 22)  // I2C2  --  MPU-6050
                |   (1 << 17)  // USART2--  XBee Serial
-               |   (1 <<  3)  // TIM5  --  Encoder speed measurement
+               |   (1 <<  3)  // TIM5  --  System timer
                |   (1 <<  2)  // TIM4  --  Front wheel angle measurement
                |   (1 <<  1));// TIM3  --  Steer angle measurement
   // Enable TIM10, SDIO, ADC3, TIM8, TIM1
@@ -78,16 +78,16 @@ void configureEncoderTimers(void)
   STM32_TIM8->CCMR1 = 0xF1F1; // f_DTS/32, N=8, IC1->TI1, IC2->TI2
   STM32_TIM8->DIER = 1;       // Enable overflow/underflow interrupts
 
-  // Configure prescalar
-  STM32_TIM5->PSC = 20; // f_CLK =  84.0MHz/(20+1)==4.0 MHz, --> 0.25 us / count
+  // Disable the timer
+  STM32_TIM5->CR1 = 0;
 
   // Set the ARR so that counting goes from 0 to 2**32 - 1 and then starts
   STM32_TIM5->ARR = 0xFFFFFFFF;
   
-  // Clear count
-  STM32_TIM5->CNT = 0;
+  // Configure prescalar
+  STM32_TIM5->PSC = 83; // f_CLK =  84.0MHz/(83+1)==1.0 MHz, --> 1.0 us / count
 
-  // Generate an update event so that all registers are updated
+  // Generate an update event to update ARR and PSC registers
   STM32_TIM5->EGR = 1;
 
   // Enable timer 

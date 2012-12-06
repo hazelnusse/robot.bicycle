@@ -15,9 +15,6 @@ class constants {
   static constexpr T e = std::exp(1.0);
   static constexpr T g = 9.81;
 
-  // Time conversion
-  static constexpr T timer_dt = 0.25e-6;
-
   // Gyroscope constants
   static constexpr T Gyroscope_temp_offset = 36.53;
   static constexpr T Gyroscope_temp_sensitivity = 1.0 / 340.0;
@@ -42,7 +39,7 @@ class constants {
   static constexpr T Wheel_rad_per_halfquad_count = two_pi / Wheel_halfquad_CPR;
   static constexpr T Wheel_rad_per_quad_count = two_pi / Wheel_quad_CPR;
 
-  static constexpr T Rate_Timer_Frequency = 4.0e6;
+  static constexpr T Rate_Timer_Frequency = 1.0e6;
   static constexpr T Rate_Timer_sec_per_count = 1.0 / Rate_Timer_Frequency;
   static constexpr T Wheel_rad_counts_per_sec = Rate_Timer_Frequency * Wheel_rad_per_count;
   static constexpr T Wheel_rad_halfquad_counts_per_sec = Rate_Timer_Frequency * Wheel_rad_per_halfquad_count;

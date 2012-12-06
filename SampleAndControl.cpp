@@ -9,7 +9,7 @@
 #include "RearWheel.h"
 #include "SampleAndControl.h"
 #include "SampleBuffer.h"
-#include "YawRateController.h"
+// #include "YawRateController.h"
 
 SampleAndControl::SampleAndControl()
   : Control_tp_(0), Enabled_(false)
@@ -35,23 +35,23 @@ void SampleAndControl::Control()
   rw.QuadratureCount(0);
   rw.turnOn();
 
-  YawRateController & yc = YawRateController::Instance();
-  yc.turnOn();
+  // YawRateController & yc = YawRateController::Instance();
+  // yc.turnOn();
 
+//  uint32_t rw_fault_count = 0;
+//  uint32_t steer_fault_count = 0;
   STM32_TIM4->CNT = 0;              // zero out front wheel count
   STM32_TIM5->CNT = 0;              // zero out the free running timer
-  uint32_t state = 0;
-  uint32_t rw_fault_count = 0;
-  uint32_t steer_fault_count = 0;
 
   systime_t time = chTimeNow();     // Initial time
-  time += MS2ST(10);                // Delay 10ms to let timer stabilize
-  chThdSleepUntil(time);
   // Main loop
   for (uint32_t i = 0; !chThdShouldTerminate(); ++i) {
     time += MS2ST(con::T_ms);                        // Next deadline
 
     Sample & s = sb.CurrentSample();
+    uint32_t state = 0;
+    
+    s.SystemTime = STM32_TIM5->CNT;
 
     imu.Acquire(s);
     
@@ -62,7 +62,6 @@ void SampleAndControl::Control()
 
     s.FrontWheelAngle = STM32_TIM4->CNT;
     s.SteerAngle = STM32_TIM3->CNT;
-    s.SystemTime = STM32_TIM5->CNT;
 
     s.RearWheelRate_sp = rw.RateCommanded();
     // s.YawRate_sp = yc.RateCommanded();
@@ -85,26 +84,25 @@ void SampleAndControl::Control()
     //s.CCR_steer = yc.PWM_CCR();
 
     // Check for motor faults
-    if (rw.hasFault()) {
-      state |= Sample::HubMotorFault;
-      ++rw_fault_count;
-      if (rw_fault_count > 10)  // debounce
-        break;
-    } else {
-      rw_fault_count = 0;
-    }
-    
-    if (yc.hasFault()) {
-      state |= Sample::SteerMotorFault;
-      ++steer_fault_count;
-      if (steer_fault_count > 10)  // debounce
-        break;
-    } else {
-      steer_fault_count = 0;
-    }
+//    if (rw.hasFault()) {
+//      state |= Sample::HubMotorFault;
+//      ++rw_fault_count;
+//      if (rw_fault_count > 10)  // debounce
+//        break;
+//    } else {
+//      rw_fault_count = 0;
+//    }
+//    
+//    if (yc.hasFault()) {
+//      state |= Sample::SteerMotorFault;
+//      ++steer_fault_count;
+//      if (steer_fault_count > 10)  // debounce
+//        break;
+//    } else {
+//      steer_fault_count = 0;
+//    }
 
     s.SystemState = state;
-    state = 0;
 
     // Increment the sample buffer
     ++sb;

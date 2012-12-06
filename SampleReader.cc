@@ -33,7 +33,6 @@ SampleReader::SampleReader(const char * fname)
     }
     delete [] membuff;
   }
-  std::cout << samples_.size() << std::endl;
   samplesConverted_.reserve(samples_.size());
 }
 
@@ -41,6 +40,7 @@ std::vector<SampleConverted> SampleReader::Convert()
 {
   if (!converted_) {
     uint32_t t0 = samples_[0].SystemTime;
+    std::cout << "N_t0 = " << t0 << std::endl;
     uint32_t t_prev = 0;
     for (int i = 0; i < samples_.size(); ++i) {
       SampleConverted sc;
@@ -100,7 +100,7 @@ std::vector<SampleConverted> SampleReader::Convert()
         std::cout << "t[" << i-1 << "] = " << t_prev << std::endl;
         std::cout << "t[" << i << "] = " << t << std::endl;
       }
-      sc.Time = (t - t0) * cd::timer_dt;
+      sc.Time = (t - t0) * cd::Rate_Timer_sec_per_count;
       t_prev = t;
       
       // No conversion needed for Errorcodes
@@ -111,6 +111,5 @@ std::vector<SampleConverted> SampleReader::Convert()
     }
     converted_ = true;
   }
-  std::cout << samplesConverted_.size() << std::endl;
   return samplesConverted_;
 }

@@ -51,7 +51,7 @@ void RearWheel::cmd(BaseSequentialStream *chp, int argc, char *argv[])
 void RearWheel::Update(uint32_t N, uint32_t cnt)
 {
   float dtheta = static_cast<int16_t>(cnt - cnt_) * cf::Wheel_rad_per_quad_count;
-  float dt = (N - N_) * cf::timer_dt;
+  float dt = (N - N_) * cf::Rate_Timer_sec_per_count;
   // TODO: try better approximations of derivative, maybe second order
   // derivative filter to get high frequency roll-off
   float z = dtheta / dt;

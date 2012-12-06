@@ -84,7 +84,7 @@ void RearWheel::setCurrentDirNegative()
 inline
 uint32_t RearWheel::CurrentDir() const
 {
-  return (MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->IDR)), GPIOF_RW_DIR))) ? Sample::SteerMotorCurrentDir : 0;
+  return (MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->IDR)), GPIOF_RW_DIR))) ? Sample::RearWheelMotorCurrentDir : 0;
 }
 
 inline
