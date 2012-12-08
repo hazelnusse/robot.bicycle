@@ -1,80 +1,42 @@
-#include "SampleBuffer.h"
 #include "ch.h"
+#include "SampleBuffer.h"
 
 SampleBuffer::SampleBuffer()
-  : buffer0_(reinterpret_cast<uint8_t *>(buffer_)),
-    buffer1_(reinterpret_cast<uint8_t *>(buffer_ + NUMBER_OF_SAMPLES/2)),
-    tp_(0), f_(0), i_(0)
+  : tp_(0), i_(0)
 {
   tp_ = chThdCreateStatic(waWriteThread,
                           sizeof(waWriteThread),
-                          NORMALPRIO, (tfunc_t) WriteThread, NULL);
+                          NORMALPRIO, WriteThread_, NULL);
 }
 
-Sample & SampleBuffer::CurrentSample()
+msg_t SampleBuffer::WriteThread()
 {
-  return buffer_[i_];
-}
-
-Sample & SampleBuffer::PreviousSample()
-{
-  return (i_ == 0) ? buffer_[NUMBER_OF_SAMPLES - 1] : buffer_[i_ - 1];
-}
-
-SampleBuffer & SampleBuffer::operator++()
-{
-  if (++i_ == NUMBER_OF_SAMPLES) {
-    i_ = 0;
-    chMsgSend(tp_, 0);  // triggers a call to f_write() on back buffer
-  } else if (i_ == NUMBER_OF_SAMPLES / 2) {
-    chMsgSend(tp_, 0);  // triggers a call to f_write() on back buffer
-  }
-
-  return *this;
-}
-
-void SampleBuffer::Flush()
-{
-  chMsgSend(tp_, 1);  // triggers a call to f_write on front buffer
-}
-
-uint8_t * SampleBuffer::BackBuffer()
-{
-  return (i_ < (NUMBER_OF_SAMPLES/2)) ? buffer1_ : buffer0_;
-}
-
-uint8_t * SampleBuffer::FrontBuffer()
-{
-  return (i_ < (NUMBER_OF_SAMPLES/2)) ? buffer0_ : buffer0_;
-}
-
-void SampleBuffer::setWriteThread(Thread * tp)
-{
-  tp_ = tp;
-}
-
-__attribute__((noreturn))
-void SampleBuffer::WriteThread(__attribute__((unused))void * arg)
-{
-  UINT bytes;
   chRegSetThreadName("WriteThread");
-  SampleBuffer & sb = SampleBuffer::Instance();
 
-  while (true) {
-    if (!sb.File()) {
-      chThdYield();
-      continue;
-    }
+  while (1) {
     Thread * messaging_tp = chMsgWait();
     msg_t message = chMsgGet(messaging_tp);
-    chMsgRelease(messaging_tp, 0);
-    if (message == 0) { // write the back buffer
-      f_write(sb.File(), sb.BackBuffer(),
-              sizeof(Sample)*NUMBER_OF_SAMPLES/2, &bytes);
-      f_sync(sb.File());
-    } else if (message == 1) { // flush the front buffer
-      f_write(sb.File(), sb.FrontBuffer(),
-              sizeof(Sample)*sb.Count(), &bytes);
+    FRESULT res = FR_OK;
+    if (message == 0) { // increment to next Sample in buffer
+      ++i_;
+
+      if ((i_ == NUMBER_OF_SAMPLES) || (i_ == NUMBER_OF_SAMPLES / 2)) {
+        if (i_ == NUMBER_OF_SAMPLES)
+          i_ = 0;
+
+        UINT bytes;
+        f_write(&f_, reinterpret_cast<uint8_t *>(BackBuffer()),
+                sizeof(Sample)*(NUMBER_OF_SAMPLES/2), &bytes);
+        f_sync(&f_);
+      }
+    } else if (message == -1) { // reset the buffer, close file, toss whatever is in the front buffer (implies we lose at most NUMBER_OF_SAMPLES/2)
+      i_ = 0;
+      res = f_close(&f_);
+    } else {  // open a new file; ASSUMPTION: if the message isn't 0 or -1, it is a pointer to char with the filename.  This should always work as long as you couldn't have a char array located at address 0xFFFFFFFF which is equivalent to -1
+      res = f_open(&f_, reinterpret_cast<const char *>(message), FA_CREATE_ALWAYS | FA_WRITE);
     }
-  }
+    chMsgRelease(messaging_tp, res);  // return the result of file operation, or zero for increment
+  } // while
+
+  return 0;
 }

@@ -6,9 +6,9 @@
 #include "Sample.h"
 
 inline
-void RearWheel::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
+void RearWheel::shellcmd_(BaseSequentialStream *chp, int argc, char *argv[])
 {
-  RearWheel::Instance().cmd(chp, argc, argv);
+  RearWheel::Instance().shellcmd(chp, argc, argv);
 } // shellcmd()
 
 inline
