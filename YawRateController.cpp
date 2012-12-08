@@ -41,7 +41,7 @@ void YawRateController::setCurrent(float current)
   PWM_CCR(CurrentToCCR(current));
 } // setCurrent
 
-void YawRateController::cmd(BaseSequentialStream *chp, int argc, char *argv[])
+void YawRateController::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
   if (argc == 1) { // Change reference yaw rate
     RateCommanded(tofloat(argv[0]));

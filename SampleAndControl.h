@@ -11,23 +11,30 @@
 class SampleAndControl : public Singleton<SampleAndControl> {
   friend class Singleton<SampleAndControl>;
  public:
-  static void chshellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
+  void Start(const char * filename = "samples.dat");  // need to implement a way to pass filename const char *);
+  void Stop();
+  bool isRunning() const;
+
   static void Control_(void * arg);
-  void Control();
-  void setEnabled(bool state);
-  bool isEnabled() const { return Enabled_; }
-  void setFilename(const char * name);
-  char * Filename() const;
+  static void shellcmd_(BaseSequentialStream *chp, int argc, char *argv[]);
 
  private:
   SampleAndControl();
   SampleAndControl(const SampleAndControl &) = delete;
   SampleAndControl & operator=(const SampleAndControl &) = delete;
+
   void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
-  Thread * Control_tp_;
-  char Filename_[24];
-  FIL f_;
+  void Control();
+  void StartCollection();
+  void StopCollection();
+
   WORKING_AREA(waControlThread, 1024);
-  bool Enabled_;
+  // Mailbox mbox_;
+  // msg_t messages_[10];
+  Thread * tp_;
+  bool Running_;
+  bool stop_;
 };
+
+#include "SampleAndControl_priv.h"
 #endif // SAMPLEANDCONTROL_H

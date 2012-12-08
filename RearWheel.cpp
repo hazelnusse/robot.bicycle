@@ -38,7 +38,7 @@ void RearWheel::setCurrent(float current)
   PWM_CCR(CurrentToCCR(current));
 } // setCurrent
 
-void RearWheel::cmd(BaseSequentialStream *chp, int argc, char *argv[])
+void RearWheel::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
   if (argc == 1) { // change set point
     RateCommanded(tofloat(argv[0]));

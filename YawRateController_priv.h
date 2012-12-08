@@ -5,9 +5,9 @@
 #include "Constants.h"
 
 inline
-void YawRateController::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
+void YawRateController::shellcmd_(BaseSequentialStream *chp, int argc, char *argv[])
 {
-  YawRateController::Instance().cmd(chp, argc, argv);
+  YawRateController::Instance().shellcmd(chp, argc, argv);
 }
 
 inline

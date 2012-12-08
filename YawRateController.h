@@ -23,7 +23,7 @@ class YawRateController : public Singleton<YawRateController> {
 
   void Update(const Sample & s);
   
-  static void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
+  static void shellcmd_(BaseSequentialStream *chp, int argc, char *argv[]);
   static void calibrateSteerEncoder(BaseSequentialStream * chp,
                                     int argc, char * argv[]);
   static void homeFork(BaseSequentialStream * chp, int argc, char * argv[]);
@@ -40,7 +40,7 @@ class YawRateController : public Singleton<YawRateController> {
   void PWM_CCR(uint32_t ccr);
   uint32_t CurrentToCCR(float current);
 
-  void cmd(BaseSequentialStream *chp, int argc, char *argv[]);
+  void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
 
   void calibrateSteerEncoder(BaseSequentialStream * chp);
   void homeFork(BaseSequentialStream * chp);

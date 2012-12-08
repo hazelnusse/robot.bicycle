@@ -30,7 +30,7 @@ class RearWheel : public Singleton<RearWheel> {
   uint32_t QuadratureCount() const;
   void QuadratureCount(uint32_t count);
 
-  static void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
+  static void shellcmd_(BaseSequentialStream *chp, int argc, char *argv[]);
 
  private:
   RearWheel();
@@ -45,7 +45,7 @@ class RearWheel : public Singleton<RearWheel> {
 
   uint32_t CurrentToCCR(float current);
 
-  void cmd(BaseSequentialStream *chp, int argc, char *argv[]);
+  void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
 
   float u_,     /*! Applied current */
         r_,     /*! Commanded rear wheel rate */
