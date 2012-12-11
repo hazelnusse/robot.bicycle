@@ -51,9 +51,8 @@ void SampleAndControl::controlThread()
     Sample & s = samples[i % NUMBER_OF_SAMPLES];
 
     // Begin data collection
-    s.SystemTime = STM32_TIM5->CNT;
-    s.RearWheelAngle = rw.QuadratureCount();
-    imu.Acquire(s);
+    sampleTimers(s);  // sample timer/encoder counts
+    imu.Acquire(s);   // sample rate gyro, accelerometer and temperature sensors
     // End data collection
 
     // Begin control
@@ -76,6 +75,8 @@ void SampleAndControl::controlThread()
 
     data = true;
 
+    // Measure computation time
+    s.ComputationTime = STM32_TIM5->CNT - s.SystemTime;
     // Go to sleep until next 5ms interval
     chThdSleepUntil(time);
   } // for i @ 200Hz
@@ -235,4 +236,12 @@ msg_t SampleAndControl::Start(const char * filename)
   }
 
   return m;
+}
+
+void SampleAndControl::sampleTimers(Sample & s)
+{
+  s.SystemTime = STM32_TIM5->CNT;
+  s.RearWheelAngle = STM32_TIM8->CNT;
+  s.SteerAngle = STM32_TIM3->CNT;
+  s.FrontWheelAngle = STM32_TIM4->CNT;
 }

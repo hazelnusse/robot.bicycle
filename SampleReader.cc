@@ -102,6 +102,9 @@ std::vector<SampleConverted> SampleReader::Convert()
       }
       sc.Time = (t - t0) * cd::Rate_Timer_sec_per_count;
       t_prev = t;
+
+      // Convert loop time
+      sc.ComputationTime = samples_[i].ComputationTime * cd::Rate_Timer_sec_per_count;
       
       // No conversion needed for Errorcodes
       sc.SystemState = samples_[i].SystemState;

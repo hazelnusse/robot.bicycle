@@ -85,7 +85,7 @@ void configureEncoderTimers(void)
   STM32_TIM5->ARR = 0xFFFFFFFF;
   
   // Configure prescalar
-  STM32_TIM5->PSC = 83; // f_CLK =  84.0MHz/(83+1)==1.0 MHz, --> 1.0 us / count
+  STM32_TIM5->PSC = 20; // f_CLK =  84.0MHz/(20+1)==4.0 MHz, --> 0.25 us / count
 
   // Generate an update event to update ARR and PSC registers
   STM32_TIM5->EGR = 1;

@@ -7,6 +7,8 @@ class __attribute__((__packed__)) SampleConverted {
  public:
   // Time sample was taken
   double Time;
+  // Control loop sample and control time
+  double ComputationTime;
   // IMU sensor data
   double Accelerometer[3], Temperature, Gyroscope[3];
   // Angular position encoder data

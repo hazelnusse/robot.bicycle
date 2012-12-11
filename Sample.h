@@ -7,6 +7,8 @@ class Sample {
  public:
   // System Time
   uint32_t SystemTime;
+  // Control loop computation time
+  uint32_t ComputationTime;
   // Angular position encoder steer data
   uint32_t RearWheelAngle;
   int32_t SteerAngle;

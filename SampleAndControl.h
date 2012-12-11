@@ -31,8 +31,11 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   static void writeThread_(void * arg);
   void writeThread();
 
+  // Data collection related
+  void sampleTimers(Sample & s);
+
   WORKING_AREA(waControlThread, 1024);
-  WORKING_AREA(waWriteThread, 1024);
+  WORKING_AREA(waWriteThread, 256);
   Sample samples[NUMBER_OF_SAMPLES];
   FIL f_;
   char filename_[24];
