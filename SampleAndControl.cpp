@@ -90,8 +90,7 @@ void SampleAndControl::controlThread()
   if (static_cast<FRESULT>(msg) != FR_OK) {
     ++write_errors;
   }
-  chThdTerminate(tp_write);
-  chThdYield();           // yield this time slot
+  chThdYield();           // yield this time slot so write thread can finish
 
   f_close(&f_);           // close the file
 
@@ -200,7 +199,7 @@ void SampleAndControl::writeThread()
   FRESULT res = FR_OK;
   uint8_t *b;
 
-  while (!chThdShouldTerminate()) {
+  while (1) {
     Thread * calling_thread = chMsgWait();
     m = chMsgGet(calling_thread);
     chMsgRelease(calling_thread, res);
