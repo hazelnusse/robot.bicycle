@@ -98,17 +98,23 @@ class Samples(object):
         plt.axis('tight')
 
     def plotTime(self):
-        f, ax = plt.subplots(1)
+        f, ax = plt.subplots(2, sharex=False, sharey=False)
         data = self.data
         N = len(data['T'])
         dt = np.zeros(N - 1)
         for i in range(N - 1):
             dt[i] = data['T'][i + 1] - data['T'][i]
-        n, bins, patches = ax.hist(dt, bins=20)
-        ax.set_ylabel('Occurances')
-        ax.set_xlabel('Sample period')
-        ax.set_title('mean = {0}, std dev. = {1}'.format(dt.mean(),
+        n, bins, patches = ax[0].hist(dt, bins=20)
+        ax[0].set_ylabel('Occurances')
+        ax[0].set_xlabel('Sample period')
+        ax[0].set_title('mean = {0}, std dev. = {1}'.format(dt.mean(),
             dt.std()))
+
+        n, bins, patches = ax[1].hist(data['T_c'], bins=20)
+        ax[1].set_ylabel('Occurances')
+        ax[1].set_xlabel('Computation time')
+        ax[1].set_title('mean = {0}, std dev. = {1}'.format(data['T_c'].mean(),
+            data['T_c'].std()))
 
     def plotState(self):
         f, ax = plt.subplots(1)

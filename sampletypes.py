@@ -1,6 +1,7 @@
 import numpy as np
 
 sample_t = np.dtype([('T', np.float64),
+                     ('T_c', np.float64),
                      ('accx', np.float64),
                      ('accy', np.float64),
                      ('accz', np.float64),
