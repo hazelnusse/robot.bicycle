@@ -110,3 +110,28 @@ class Samples(object):
         ax.set_title('mean = {0}, std dev. = {1}'.format(dt.mean(),
             dt.std()))
 
+    def plotState(self):
+        f, ax = plt.subplots(1)
+        data = self.data
+        sc = np.c_[np.bitwise_and(data['SystemState'], st.SpeedControl),
+               np.right_shift(np.bitwise_and(data['SystemState'],
+                   st.YawRateControl), st.YawRateControl),
+               np.right_shift(np.bitwise_and(data['SystemState'],
+                   st.HubMotorFault), st.HubMotorFault),
+               np.right_shift(np.bitwise_and(data['SystemState'],
+                   st.SteerMotorFault), st.SteerMotorFault),
+               np.right_shift(np.bitwise_and(data['SystemState'],
+                   st.RearWheelEncoderDir), st.RearWheelEncoderDir),
+               np.right_shift(np.bitwise_and(data['SystemState'],
+                   st.SteerEncoderDir), st.SteerEncoderDir),
+               np.right_shift(np.bitwise_and(data['SystemState'],
+                   st.FrontWheelEncoderDir), st.FrontWheelEncoderDir),
+               np.right_shift(np.bitwise_and(data['SystemState'],
+                   st.RearWheelMotorCurrentDir), st.RearWheelMotorCurrentDir),
+               np.right_shift(np.bitwise_and(data['SystemState'],
+                   st.SteerMotorCurrentDir), st.SteerMotorCurrentDir)]
+        lines = ax.matshow(sc.T[:, 4400:4500], aspect=1)
+
+        #ax[0].legend(loc=0)
+        #ax.set_title('System state flags')
+        #ax.set_xlabel('time [s]')

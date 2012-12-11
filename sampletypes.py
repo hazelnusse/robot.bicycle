@@ -16,3 +16,14 @@ sample_t = np.dtype([('T', np.float64),
                      ('I_rw', np.float64),
                      ('I_steer', np.float64),
                      ('SystemState', np.uint32)])
+
+
+SpeedControl = np.uint32(0x0001)
+YawRateControl = np.uint32(0x0002)
+HubMotorFault = np.uint32(0x0004)
+SteerMotorFault = np.uint32(0x0008)
+RearWheelEncoderDir = np.uint32(0x0010)
+SteerEncoderDir = np.uint32(0x0020)
+FrontWheelEncoderDir = np.uint32(0x0040)
+RearWheelMotorCurrentDir = np.uint32(0x0080)
+SteerMotorCurrentDir = np.uint32(0x0100)
