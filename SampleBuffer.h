@@ -12,34 +12,33 @@
 #include "Singleton.h"
 
 class Thread;
-// class FIL;
 
 class SampleBuffer : public Singleton<SampleBuffer> {
   friend class Singleton<SampleBuffer>;
  public:
   Sample & CurrentSample();
-  Sample & PreviousSample();
-  SampleBuffer & operator++();
-  void Flush();
-  uint8_t Count() const {return i_;}
-  uint8_t * BackBuffer();
-  uint8_t * FrontBuffer();
-  void setWriteThread(Thread * tp);
-  inline void File(FIL * f) {f_ = f;}
-  inline FIL * File(void) const {return f_;}
+  msg_t Increment();
+  msg_t setFile(const char * filename);
+  msg_t Reset();
 
  private:
   SampleBuffer();
   SampleBuffer(const SampleBuffer &) = delete;
   SampleBuffer & operator=(const SampleBuffer &) = delete;
 
-  static void WriteThread(void * arg) __attribute__((noreturn));
+  Sample * BackBuffer();
+  Sample * FrontBuffer();
+  static msg_t WriteThread_(void * arg);
+  msg_t WriteThread();
 
-  uint8_t *buffer0_, *buffer1_;
-  Thread * tp_;
-  FIL * f_;
-  Sample buffer_[NUMBER_OF_SAMPLES];
+  Sample buffer0_[NUMBER_OF_SAMPLES/2];
+  Sample buffer1_[NUMBER_OF_SAMPLES/2];
   WORKING_AREA(waWriteThread, 1024);
+  FIL f_;
+  Thread * tp_;
   uint32_t i_;
 };
+
+#include "SampleBuffer_priv.h"
+
 #endif // SAMPLEBUFFER_H

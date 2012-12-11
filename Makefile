@@ -44,6 +44,7 @@ endif
 # Enables the use of FPU on Cortex-M4.
 ifeq ($(USE_FPU),)
   USE_FPU = yes
+  #USE_FPU = no
 endif
 
 # Enable this if you really want to use the STM FWLib.
@@ -96,15 +97,17 @@ CPPSRC = main.cpp \
 				 MPU6050.cpp \
 				 PeripheralInit.cpp \
 				 RearWheel.cpp \
-				 SampleBuffer.cpp \
-				 YawRateController.cpp \
+				 Sample.cpp \
 				 SampleAndControl.cpp \
+				 YawRateController.cpp \
 				 testcxxstuff.cpp \
 				 foo.cpp \
 				 stubs.cpp \
 				 textutilities.cpp \
 				 VectorTable.cpp \
 				 Interrupts.cpp
+
+# 				 SampleBuffer.cpp \
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler

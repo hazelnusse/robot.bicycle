@@ -31,4 +31,5 @@ class Sample {
                    SteerMotorCurrentDir         = 0x0100};
 };
 
+void clearSample(Sample & s);
 #endif

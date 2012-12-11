@@ -4,40 +4,34 @@
 #include "SampleBuffer.h"
 
 inline
-bool SampleAndControl::isRunning() const
-{
-  return Running_;
-}
-
-inline
 void SampleAndControl::shellcmd_(BaseSequentialStream *chp, int argc, char *argv[])
 {
   SampleAndControl::Instance().shellcmd(chp, argc, argv);
 }
 
 inline
-void SampleAndControl::Start(const char * filename)
+msg_t SampleAndControl::Stop()
 {
-  SampleBuffer::Instance().setFile(filename); // Blocks until msg received
-  StartCollection();
+  msg_t m;
+  chThdTerminate(tp_control);
+  m = chThdWait(tp_control);
+  tp_control = 0;
+  return m;
 }
 
+__attribute__((noreturn))
 inline
-void SampleAndControl::StartCollection()
+void SampleAndControl::controlThread_(__attribute__((unused))void * arg)
 {
-  chMsgSend(tp_, 1);            // Blocks until Control release message
+  SampleAndControl::Instance().controlThread();
 }
 
+__attribute__((noreturn))
 inline
-void SampleAndControl::Stop()
+void SampleAndControl::writeThread_(__attribute__((unused)) void * arg)
 {
-  StopCollection();
-  SampleBuffer::Instance().Reset();  // Blocks until file is closed
+  SampleAndControl::Instance().writeThread();
 }
 
-inline
-void SampleAndControl::StopCollection()
-{
-  chMsgSend(tp_, 0);
-}
+
 #endif

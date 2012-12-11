@@ -6,97 +6,113 @@
 #include "MPU6050.h"
 #include "RearWheel.h"
 #include "SampleAndControl.h"
-#include "SampleBuffer.h"
+// #include "SampleBuffer.h"
 // #include "YawRateController.h"
 
 SampleAndControl::SampleAndControl()
-  : tp_(NULL), Running_(false), stop_(false)
+  : tp_control(0), tp_write(0)
 {
-  tp_ = chThdCreateStatic(SampleAndControl::waControlThread,
-                          sizeof(waControlThread),
-                          NORMALPRIO, (tfunc_t) Control_, 0);
-  // chMBInit(&mbox_, messages_, 10);
 }
 
-__attribute__((noreturn))
-void SampleAndControl::Control_(__attribute__((unused))void * arg)
+void SampleAndControl::controlThread()
 {
-  SampleAndControl::Instance().Control();
-}
-
-void SampleAndControl::Control()
-{
-  // Things that get done only once
   chRegSetThreadName("Control");
+  FRESULT res;
+  msg_t msg;
+
+  res = f_open(&f_, filename_, FA_CREATE_ALWAYS | FA_WRITE);
+  if (res != FR_OK) {
+    chSysHalt(); while (1) {}   // couldn't properly open the file!
+  }
+
+  for (uint32_t i = 0; i < NUMBER_OF_SAMPLES; ++i)
+    clearSample(samples[i]);
 
   MPU6050 & imu = MPU6050::Instance();
   imu.Initialize(&I2CD2);
 
   RearWheel & rw = RearWheel::Instance();
-  SampleBuffer & sb = SampleBuffer::Instance();
   // YawRateController & yc = YawRateController::Instance();
 
-  // Runs forever, waiting for start or stop messages
-  while (1) {
-    Thread * messaging_tp = chMsgWait();    // wait until we get a message
-    msg_t message = chMsgGet(messaging_tp); // retrieve the message
-    chMsgRelease(messaging_tp, 0);          // release the thread that sent message
+  // zero out wheel encoders and system timer
+  STM32_TIM4->CNT = STM32_TIM5->CNT = STM32_TIM8->CNT = 0;
+  rw.turnOn();
+  //yc.turnOn();
+  systime_t time = chTimeNow();     // Initial time
+  bool data = false;                // flag to indicate we have data to write
+  uint32_t write_errors = 0;
+  //uint32_t rw_fault_count = 0;
+  //uint32_t steer_fault_count = 0;
+  // Sampling loop, runs at 200Hz
+  for (uint32_t i = 0; !chThdShouldTerminate(); ++i) {
+    time += MS2ST(con::T_ms);       // Next deadline
 
-    if (message == 0) {
-      Running_ = false;
-      rw.turnOff();
-    } else if (message == 1) { // Start collection
-      Running_ = true;
-      stop_ = false;
-      // chMsgRelease(messaging_tp, 0);
-      // zero out wheel encoders and system timer
-      STM32_TIM4->CNT = STM32_TIM5->CNT = STM32_TIM8->CNT = 0;
-      rw.turnOn();
-      //yc.turnOn();
-      systime_t time = chTimeNow();     // Initial time
-      //uint32_t rw_fault_count = 0;
-      //uint32_t steer_fault_count = 0;
-      // Sampling loop, runs at 200Hz
-      uint32_t i = 0;
-      while (!stop_) {
-        time += MS2ST(con::T_ms);       // Next deadline
-        // check to see if we are suppsed to end data collection
-        chSysLock();
-        stop_ = chMsgIsPendingI(chThdSelf());
-        chSysUnlock();
+    // Get a sample to populate
+    Sample & s = samples[i % NUMBER_OF_SAMPLES];
 
-        // Get a sample to populate
-        Sample & s = sb.CurrentSample();
+    // Begin data collection
+    s.SystemTime = STM32_TIM5->CNT;
+    s.RearWheelAngle = rw.QuadratureCount();
+    imu.Acquire(s);
+    // End data collection
 
-        // Begin data collection
-        s.SystemTime = STM32_TIM5->CNT;
-        // s.RearWheelAngle = rw.QuadratureCount();
-        // imu.Acquire(s);
-        // End data collection
+    // Begin control
+    // End control
+    
+    // Begin data logging
+    if (data && (i % (NUMBER_OF_SAMPLES/2) == 0)) {
+      msg_t buffer;
+      if ((i / (NUMBER_OF_SAMPLES/2)) & 1) {  // i is an odd multiple NUMBER_OF_SAMPLES/2  (64, 192, 320, ...)
+        buffer = reinterpret_cast<msg_t>(samples);   // log data in samples[0:63]
+      } else {  // i is an even multiple of NUMBER_OF_SAMPLES/2 (0, 128, 256, ...)
+        buffer = reinterpret_cast<msg_t>(samples + (NUMBER_OF_SAMPLES/2)); // log data in samples[63:127]
+      }
+      msg = chMsgSend(tp_write, buffer);
+      if (static_cast<FRESULT>(msg) != FR_OK) {
+        ++write_errors;
+      }
+    }
+    // End data logging 
 
-        // Increment the sample buffer
-        // sb.Increment();
-        ++i;
+    data = true;
 
-        // Go to sleep until next 5ms interval
-        chThdSleepUntil(time);
-      } // while @ 200Hz
-    } // start collection
-  } // while (1)
+    // Go to sleep until next 5ms interval
+    chThdSleepUntil(time);
+  } // for i @ 200Hz
+  
+  // Clean up
+  imu.DeInitialize();
+  rw.turnOff();
+  //yc.turnOff();
+  // End cleanup
+
+  msg = chMsgSend(tp_write, 0); // send a message to end the write thread.
+  if (static_cast<FRESULT>(msg) != FR_OK) {
+    ++write_errors;
+  }
+  chThdTerminate(tp_write);
+  chThdYield();           // yield this time slot
+
+  f_close(&f_);           // close the file
+
+  chThdExit(write_errors);
 }
 
 // Caller: Shell thread
 void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[] __attribute__((unused)))
 {
-  if (argc == 0) {        // Start/Stop data collection, default filename
-    if (isRunning()) {    // Data collection enabled
-      chprintf(chp, "running.\r\n");
-      Stop();             // Stop it
+  if (argc == 0) {         // Start/Stop data collection, default filename
+    if (tp_control) {      // Data collection enabled
+      msg_t m = Stop();    // Stop it
       chprintf(chp, "Data collection and control terminated.\r\n");
-    } else {              // Data collecton disabled
-      chprintf(chp, "not running.\r\n");
-      Start();            // Start data collection to default file "samples.dat"
-      chprintf(chp, "Data collection and control initiated.\r\n");
+      chprintf(chp, "Errors: %d.\r\n", m);
+    } else {               // Data collecton disabled
+      msg_t m = Start("samples.dat");// Start data collection to default file "samples.dat"
+      if (m == 0) {
+        chprintf(chp, "Data collection and control initiated.\r\n");
+      } else {
+        chprintf(chp, "Errors starting threads with error:  %d.\r\n", m);
+      }
     }
   }
 //  else if (argc == 1) { // Start/Stop data collection, with filename
@@ -176,4 +192,48 @@ void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[
   // sb.Reset();  // Throw away the data in the partially filled front buffer
   // rw.turnOff();
   // yc.turnOff();
-  // imu.DeInitialize();
+
+void SampleAndControl::writeThread()
+{
+  UINT bytes;
+  msg_t m = -1;
+  FRESULT res = FR_OK;
+  uint8_t *b;
+
+  while (!chThdShouldTerminate()) {
+    Thread * calling_thread = chMsgWait();
+    m = chMsgGet(calling_thread);
+    chMsgRelease(calling_thread, res);
+
+    if (m == 0) break;
+
+    b = reinterpret_cast<uint8_t *>(m);
+
+    res = f_write(&f_, b, sizeof(Sample)*NUMBER_OF_SAMPLES/2, &bytes);
+  }
+  chThdExit(0);
+}
+
+msg_t SampleAndControl::Start(const char * filename)
+{
+  msg_t m = 0;
+  std::strcpy(filename_, filename);   // save the filename
+  tp_write = chThdCreateStatic(SampleAndControl::waWriteThread,
+                          sizeof(waWriteThread),
+                          NORMALPRIO,
+                          reinterpret_cast<tfunc_t>(writeThread_),
+                          0);
+  if (!tp_write) {
+    m = (1 << 0);
+  }
+  tp_control = chThdCreateStatic(SampleAndControl::waControlThread,
+                          sizeof(waControlThread),
+                          NORMALPRIO,
+                          reinterpret_cast<tfunc_t>(controlThread_),
+                          0);
+  if (!tp_control) {
+    m |= (1 << 1);
+  }
+
+  return m;
+}

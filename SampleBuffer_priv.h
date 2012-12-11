@@ -6,7 +6,14 @@
 inline
 msg_t SampleBuffer::Increment()
 {
-  return chMsgSend(tp_, 0);
+  ++i_;
+
+  if ((i_ == NUMBER_OF_SAMPLES) || (i_ == NUMBER_OF_SAMPLES / 2)) {
+    if (i_ == NUMBER_OF_SAMPLES)
+      i_ = 0;
+    return chMsgSend(tp_, 0);
+  }
+  return 1;
 }
 
 inline
