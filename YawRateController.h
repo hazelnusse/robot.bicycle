@@ -48,6 +48,12 @@ class YawRateController : public Singleton<YawRateController> {
   void calibrateSteerEncoder(BaseSequentialStream * chp);
   void homeFork(BaseSequentialStream * chp);
 
+  static CH_IRQ_HANDLER(CalibrationISR_);
+  void CalibrationISR();
+
+  int32_t counts_[10];
+  uint32_t dir_[10], i_;
+
   int32_t offset_; /*! Calibration constant */
   bool homed_;     /*! Whether the fork has been homed */
   float u_,        /*! Applied current */
