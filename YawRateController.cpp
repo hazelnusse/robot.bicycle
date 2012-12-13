@@ -43,7 +43,15 @@ void YawRateController::setCurrent(float current)
 
 void YawRateController::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
-  if (argc == 1) { // Change reference yaw rate
+  if (argc == 0) { // toggle enabled
+    if (isEnabled()) {
+      turnOff();
+      chprintf(chp, "Yaw rate control disabled.\r\n");
+    } else {
+      turnOn();
+      chprintf(chp, "Yaw rate control enabled.\r\n");
+    }
+  } else if (argc == 1) { // change set point
     RateCommanded(tofloat(argv[0]));
     chprintf(chp, "Yaw rate set point changed.\r\n");
   } else { // invalid

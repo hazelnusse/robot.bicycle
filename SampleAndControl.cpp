@@ -61,6 +61,11 @@ void SampleAndControl::controlThread()
     // End data collection
 
     // Begin control
+    if (rw.isEnabled() & (i % con::RW_N == 0))
+      rw.Update(s.SystemTime, s.RearWheelAngle);
+
+    if (yc.isEnabled() & (i % con::YC_N == 0))
+      yc.Update(s);
     // End control
     
     // Begin data logging
@@ -128,8 +133,7 @@ void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[
   } else if (argc == 1) { // Start/Stop data collection, with filename
     if (tp_control) {     // Data collection enabled
       msg_t m = Stop();   // Stop it, ignoring the argument
-      chprintf(chp, "Data collection and control terminated.\r\n");
-      chprintf(chp, "Errors: %d.\r\n", m);
+      chprintf(chp, "Errors starting threads with error:  %d.\r\n", m);
     } else {              // Data collection is disabled
       msg_t m = Start(argv[0]);// Start data collection to file in argv[0]
       if (m == 0) {

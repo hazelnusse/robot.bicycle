@@ -72,6 +72,8 @@ class con {
   static constexpr uint32_t T_ms = 5;   // main loop update rate in ms
   static constexpr uint32_t RW_N = 10;  // rear wheel control update prescalar
                                         // makes rear wheel control run slower
+  static constexpr uint32_t YC_N = 1;   // yaw rate control update prescalar
+                                        // makes yaw rate controller run slower
 };
 
 typedef constants<float> cf;

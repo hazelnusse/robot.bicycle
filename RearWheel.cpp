@@ -43,10 +43,10 @@ void RearWheel::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
   if (argc == 0) { // toggle enabled
     if (isEnabled()) {
       turnOff();
-      chprintf(chp, "Rear wheel motor disabled.\r\n");
+      chprintf(chp, "Rear wheel rate control disabled.\r\n");
     } else {
       turnOn();
-      chprintf(chp, "Rear wheel motor enabled.\r\n");
+      chprintf(chp, "Rear wheel rate control enabled.\r\n");
     }
   } else if (argc == 1) { // change set point
     RateCommanded(tofloat(argv[0]));
