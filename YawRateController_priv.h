@@ -2,6 +2,7 @@
 #define YAWRATECONTROLLER_PRIV_H
 
 #include "bitband.h"
+#include "hal.h"
 #include "Constants.h"
 
 inline

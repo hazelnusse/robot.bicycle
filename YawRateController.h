@@ -1,6 +1,6 @@
 #ifndef YAWRATECONTROLLER_H
 #define YAWRATECONTROLLER_H
-#include <cstddef>
+
 #include <cstdint>
 #include "ch.h"
 #include "Singleton.h"

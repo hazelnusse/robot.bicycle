@@ -33,6 +33,8 @@ class SampleAndControl : public Singleton<SampleAndControl> {
 
   // Data collection related
   void sampleTimers(Sample & s);
+  void samplePinStates(Sample & s);
+  void sampleSetPoints(Sample & s);
 
   WORKING_AREA(waControlThread, 1024);
   WORKING_AREA(waWriteThread, 256);

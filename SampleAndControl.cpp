@@ -32,18 +32,20 @@ void SampleAndControl::controlThread()
   imu.Initialize(&I2CD2);
 
   RearWheel & rw = RearWheel::Instance();
+  rw.Reset();
+  rw.turnOn();
   // YawRateController & yc = YawRateController::Instance();
+  // yc.Reset();
+  //yc.turnOn();
 
   // zero out wheel encoders and system timer
   STM32_TIM4->CNT = STM32_TIM5->CNT = STM32_TIM8->CNT = 0;
-  rw.turnOn();
-  //yc.turnOn();
-  systime_t time = chTimeNow();     // Initial time
   bool data = false;                // flag to indicate we have data to write
   uint32_t write_errors = 0;
   //uint32_t rw_fault_count = 0;
   //uint32_t steer_fault_count = 0;
-  // Sampling loop, runs at 200Hz
+
+  systime_t time = chTimeNow();     // Initial time
   for (uint32_t i = 0; !chThdShouldTerminate(); ++i) {
     time += MS2ST(con::T_ms);       // Next deadline
 
@@ -51,8 +53,10 @@ void SampleAndControl::controlThread()
     Sample & s = samples[i % NUMBER_OF_SAMPLES];
 
     // Begin data collection
-    sampleTimers(s);  // sample timer/encoder counts
+    sampleTimers(s);  // sample system time/encoder counts/PWM duty cycle
     imu.Acquire(s);   // sample rate gyro, accelerometer and temperature sensors
+    //samplePinStates(s);
+    //sampleSetPoints(s);
     // End data collection
 
     // Begin control
@@ -85,6 +89,8 @@ void SampleAndControl::controlThread()
   imu.DeInitialize();
   rw.turnOff();
   //yc.turnOff();
+  rw.Reset();
+  //yc.Reset();
   // End cleanup
 
   msg = chMsgSend(tp_write, 0); // send a message to end the write thread.
@@ -114,17 +120,20 @@ void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[
         chprintf(chp, "Errors starting threads with error:  %d.\r\n", m);
       }
     }
-  }
-//  else if (argc == 1) { // Start/Stop data collection, with filename
-//    if (isRunning()) {    // Data collection enabled
-//      chprintf(chp, "running.\r\n");
-//      Stop();             // Stop it, ignoring the argument
-//    } else {              // Data collection is disabled
-//      chprintf(chp, "not running.\r\n");
-//      Start(argv[0]);     // Start data collection to filename in argv[0]
-//    }
-//  }
-  else {
+  } else if (argc == 1) { // Start/Stop data collection, with filename
+    if (tp_control) {     // Data collection enabled
+      msg_t m = Stop();   // Stop it, ignoring the argument
+      chprintf(chp, "Data collection and control terminated.\r\n");
+      chprintf(chp, "Errors: %d.\r\n", m);
+    } else {              // Data collection is disabled
+      msg_t m = Start(argv[0]);// Start data collection to file in argv[0]
+      if (m == 0) {
+        chprintf(chp, "Data collection and control initiated.\r\n");
+      } else {
+        chprintf(chp, "Errors starting threads with error:  %d.\r\n", m);
+      }
+    }
+  } else {
     chprintf(chp, "Invalid usage.\r\n");
   }
 }
@@ -238,10 +247,3 @@ msg_t SampleAndControl::Start(const char * filename)
   return m;
 }
 
-void SampleAndControl::sampleTimers(Sample & s)
-{
-  s.SystemTime = STM32_TIM5->CNT;
-  s.RearWheelAngle = STM32_TIM8->CNT;
-  s.SteerAngle = STM32_TIM3->CNT;
-  s.FrontWheelAngle = STM32_TIM4->CNT;
-}

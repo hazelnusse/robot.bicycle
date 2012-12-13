@@ -103,6 +103,7 @@ CPPSRC = main.cpp \
 				 testcxxstuff.cpp \
 				 foo.cpp \
 				 stubs.cpp \
+				 SystemCommands.cpp \
 				 textutilities.cpp \
 				 VectorTable.cpp \
 				 Interrupts.cpp

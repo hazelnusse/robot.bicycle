@@ -11,6 +11,8 @@ class RearWheel : public Singleton<RearWheel> {
   void turnOff();
   bool isEnabled() const;
 
+  void Reset();
+
   float RateCommanded() const;
   void RateCommanded(float rate);
 
@@ -38,8 +40,6 @@ class RearWheel : public Singleton<RearWheel> {
   void setCurrentDirPositive();
   void setCurrentDirNegative();
   void setCurrent(float current);
-
-  void Reset();
 
   void PWM_CCR(uint32_t ccr);
 

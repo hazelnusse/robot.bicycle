@@ -40,7 +40,15 @@ void RearWheel::setCurrent(float current)
 
 void RearWheel::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
-  if (argc == 1) { // change set point
+  if (argc == 0) { // toggle enabled
+    if (isEnabled()) {
+      turnOff();
+      chprintf(chp, "Rear wheel motor disabled.\r\n");
+    } else {
+      turnOn();
+      chprintf(chp, "Rear wheel motor enabled.\r\n");
+    }
+  } else if (argc == 1) { // change set point
     RateCommanded(tofloat(argv[0]));
     chprintf(chp, "Rear wheel rate set point changed.\r\n");
   } else { // invalid
