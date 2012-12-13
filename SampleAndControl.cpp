@@ -1,13 +1,11 @@
-#include "ch.h"
-#include "hal.h"
+#include <cstring>
+
+#include "SampleAndControl.h"
 #include "chprintf.h"
-// #include "ff.h"
 
 #include "MPU6050.h"
 #include "RearWheel.h"
-#include "SampleAndControl.h"
-// #include "SampleBuffer.h"
-// #include "YawRateController.h"
+#include "YawRateController.h"
 
 SampleAndControl::SampleAndControl()
   : tp_control(0), tp_write(0)
@@ -34,9 +32,9 @@ void SampleAndControl::controlThread()
   RearWheel & rw = RearWheel::Instance();
   rw.Reset();
   rw.turnOn();
-  // YawRateController & yc = YawRateController::Instance();
-  // yc.Reset();
-  //yc.turnOn();
+  YawRateController & yc = YawRateController::Instance();
+  yc.Reset();
+  yc.turnOn();
 
   // zero out wheel encoders and system timer
   STM32_TIM4->CNT = STM32_TIM5->CNT = STM32_TIM8->CNT = 0;
@@ -55,8 +53,11 @@ void SampleAndControl::controlThread()
     // Begin data collection
     sampleTimers(s);  // sample system time/encoder counts/PWM duty cycle
     imu.Acquire(s);   // sample rate gyro, accelerometer and temperature sensors
-    //samplePinStates(s);
-    //sampleSetPoints(s);
+    // sampleStates(s);  // sample various system states
+    state_ = sampleSystemState() | Sample::CollectionEnabled;
+
+    s.RearWheelRate_sp = rw.RateCommanded();
+    s.YawRate_sp = yc.RateCommanded();
     // End data collection
 
     // Begin control
@@ -70,6 +71,7 @@ void SampleAndControl::controlThread()
       } else {  // i is an even multiple of NUMBER_OF_SAMPLES/2 (0, 128, 256, ...)
         buffer = reinterpret_cast<msg_t>(samples + (NUMBER_OF_SAMPLES/2)); // log data in samples[63:127]
       }
+      state_ |= Sample::FileSystemWriteTriggered;
       msg = chMsgSend(tp_write, buffer);
       if (static_cast<FRESULT>(msg) != FR_OK) {
         ++write_errors;
@@ -79,6 +81,8 @@ void SampleAndControl::controlThread()
 
     data = true;
 
+    // Save system state;
+    s.SystemState = state_;
     // Measure computation time
     s.ComputationTime = STM32_TIM5->CNT - s.SystemTime;
     // Go to sleep until next 5ms interval
@@ -88,9 +92,9 @@ void SampleAndControl::controlThread()
   // Clean up
   imu.DeInitialize();
   rw.turnOff();
-  //yc.turnOff();
+  yc.turnOff();
   rw.Reset();
-  //yc.Reset();
+  yc.Reset();
   // End cleanup
 
   msg = chMsgSend(tp_write, 0); // send a message to end the write thread.
@@ -100,6 +104,8 @@ void SampleAndControl::controlThread()
   chThdYield();           // yield this time slot so write thread can finish
 
   f_close(&f_);           // close the file
+  for (int i = 0; i < 24; ++i) // clear the filename
+    filename_[i] = 0;       // clear the filename
 
   chThdExit(write_errors);
 }

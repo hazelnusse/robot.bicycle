@@ -4,10 +4,13 @@
 #include <cstddef>
 
 #include "ch.h"
+#include "hal.h"
 #include "ff.h"
 
 #include "Sample.h"
 #include "Singleton.h"
+#include "RearWheel.h"
+#include "YawRateController.h"
 
 
 #define NUMBER_OF_SAMPLES 128
@@ -17,6 +20,10 @@ class SampleAndControl : public Singleton<SampleAndControl> {
  public:
   msg_t Start(const char * filename);  // need to implement a way to pass filename const char *);
   msg_t Stop();
+
+  const char * fileName() const;
+  uint32_t sampleSystemState() const;
+  uint32_t systemState() const;
 
   static void controlThread_(void * arg);
   static void shellcmd_(BaseSequentialStream *chp, int argc, char *argv[]);
@@ -33,8 +40,6 @@ class SampleAndControl : public Singleton<SampleAndControl> {
 
   // Data collection related
   void sampleTimers(Sample & s);
-  void samplePinStates(Sample & s);
-  void sampleSetPoints(Sample & s);
 
   WORKING_AREA(waControlThread, 1024);
   WORKING_AREA(waWriteThread, 256);
@@ -43,6 +48,7 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   char filename_[24];
   Thread * tp_control;
   Thread * tp_write;
+  uint32_t state_;
 };
 
 #include "SampleAndControl_priv.h"

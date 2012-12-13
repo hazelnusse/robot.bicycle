@@ -533,6 +533,8 @@
 extern uint32_t __ram_vector_table_start__;
 #define CORTEX_VTOR_INIT (uint32_t)&__ram_vector_table_start__
 
+#define CHPRINTF_USE_FLOAT TRUE
+
 #endif  /* _CHCONF_H_ */
 
 /** @} */

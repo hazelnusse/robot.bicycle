@@ -7,5 +7,6 @@ class SystemCommands {
  public:
   static void disablemotors(BaseSequentialStream *chp, int argc, char *argv[]);
   static void reset(BaseSequentialStream *chp, int argc, char *argv[]);
+  static void status(BaseSequentialStream *chp, int argc, char *argv[]);
 };
 #endif

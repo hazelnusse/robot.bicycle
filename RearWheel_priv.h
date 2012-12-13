@@ -89,7 +89,6 @@ uint32_t RearWheel::CurrentDir() const
 inline
 uint32_t RearWheel::RotationDir() const
 {
-  // return !MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(STM32_TIM8->SR)), (1 << 4)));
   return (MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(STM32_TIM8->SR)), (1 << 4)))) ? Sample::RearWheelEncoderDir : 0;
 }
 

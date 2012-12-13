@@ -30,7 +30,9 @@ class Sample {
                    SteerEncoderDir              = 0x0020,
                    FrontWheelEncoderDir         = 0x0040,
                    RearWheelMotorCurrentDir     = 0x0080,
-                   SteerMotorCurrentDir         = 0x0100};
+                   SteerMotorCurrentDir         = 0x0100,
+                   FileSystemWriteTriggered     = 0x0200,
+                   CollectionEnabled            = 0x8000};// used primarily for GUI
 };
 
 void clearSample(Sample & s);

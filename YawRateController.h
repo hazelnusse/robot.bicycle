@@ -14,8 +14,13 @@ class YawRateController : public Singleton<YawRateController> {
   void turnOff();
   bool isEnabled() const;
   
+  void Reset();
+  
   float RateCommanded() const;
   void RateCommanded(float yaw_rate);
+
+  uint32_t RotationDir() const;
+  uint32_t CurrentDir() const;
 
   bool hasFault();
   
@@ -34,8 +39,6 @@ class YawRateController : public Singleton<YawRateController> {
   void setCurrentDirPositive();
   void setCurrentDirNegative();
   void setCurrent(float current);
-
-  void Reset();
 
   void PWM_CCR(uint32_t ccr);
   uint32_t CurrentToCCR(float current);
