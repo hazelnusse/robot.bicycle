@@ -116,8 +116,7 @@ void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[
   if (argc == 0) {         // Start/Stop data collection, default filename
     if (tp_control) {      // Data collection enabled
       msg_t m = Stop();    // Stop it
-      chprintf(chp, "Data collection and control terminated.\r\n");
-      chprintf(chp, "Errors: %d.\r\n", m);
+      chprintf(chp, "Data collection and control terminated with %d errors.\r\n", m);
     } else {               // Data collecton disabled
       msg_t m = Start("samples.dat");// Start data collection to default file "samples.dat"
       if (m == 0) {
