@@ -87,8 +87,6 @@ void SampleAndControl::controlThread()
 
     data = true;
 
-    // Save system state;
-    state_ &= ~(Sample::CollectionEnabled | Sample::FileSystemWriteTriggered);
     s.SystemState = state_;
     // Measure computation time
     s.ComputationTime = STM32_TIM5->CNT - s.SystemTime;
@@ -130,6 +128,10 @@ void SampleAndControl::controlThread()
     if (res != FR_OK)
       ++write_errors;
   }
+
+  // Save system state, clearing a few bits.
+  state_ &= ~(Sample::CollectionEnabled | Sample::FileSystemWriteTriggered
+              | Sample::RearWheelMotorEnable | Sample::SteerMotorEnable);
 
   f_close(&f_);           // close the file
   for (int i = 0; i < 24; ++i) // clear the filename
