@@ -23,7 +23,8 @@ void SampleAndControl::controlThread()
     chSysHalt(); while (1) {}   // couldn't properly open the file!
   }
 
-  for (uint32_t i = 0; i < NUMBER_OF_SAMPLES; ++i)
+  uint32_t i = 0;
+  for (; i < NUMBER_OF_SAMPLES; ++i)
     clearSample(samples[i]);
 
   MPU6050 & imu = MPU6050::Instance();
@@ -87,6 +88,7 @@ void SampleAndControl::controlThread()
     data = true;
 
     // Save system state;
+    state_ &= ~(Sample::CollectionEnabled | Sample::FileSystemWriteTriggered);
     s.SystemState = state_;
     // Measure computation time
     s.ComputationTime = STM32_TIM5->CNT - s.SystemTime;
@@ -106,7 +108,28 @@ void SampleAndControl::controlThread()
   if (static_cast<FRESULT>(msg) != FR_OK) {
     ++write_errors;
   }
-  chThdYield();           // yield this time slot so write thread can finish
+
+  while (tp_write) {
+    chThdYield();           // yield this time slot so write thread can finish
+  }
+
+  // Write remaing samples in partially filled buffer.
+  {
+    uint32_t j = i % NUMBER_OF_SAMPLES;   // j \in [0, NUMBER_OF_SAMPLES)
+    uint8_t * b;
+    UINT bytes;
+    if (j > (NUMBER_OF_SAMPLES/2 - 1)) {  // j \in [NUMBER_OF_SAMPLES/2, NUMBER_OF_SAMPLES)
+      b = reinterpret_cast<uint8_t *>(samples + NUMBER_OF_SAMPLES/2);
+      j %= NUMBER_OF_SAMPLES/2;
+    } else {
+      b = reinterpret_cast<uint8_t *>(samples);
+    }
+    if (j) { // there are samples to write
+      res = f_write(&f_, b, sizeof(Sample)*j, &bytes);
+    }
+    if (res != FR_OK)
+      ++write_errors;
+  }
 
   f_close(&f_);           // close the file
   for (int i = 0; i < 24; ++i) // clear the filename
@@ -229,6 +252,7 @@ void SampleAndControl::writeThread()
 
     res = f_write(&f_, b, sizeof(Sample)*NUMBER_OF_SAMPLES/2, &bytes);
   }
+  tp_write = 0;
   chThdExit(0);
 }
 
