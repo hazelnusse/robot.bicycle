@@ -30,7 +30,7 @@ class VectorTable {
   VectorTable();
   void Relocate();
   void SetISR(uint32_t N, irq_vector_t ISR) { vtable_.vectors[N] = ISR; }
-  irq_vector_t GetISR(uint32_t N) const;
+  irq_vector_t GetISR(uint32_t N) const { return vtable_.vectors[N]; }
 
  private:
   VectorTable(const VectorTable&) = delete;

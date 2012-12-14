@@ -32,7 +32,7 @@ static void configureRCC()
   // APB2 timers are clocked at 168.0 MHz
 
   // Enable GPIOF, GPIOE, GPIOD, GPIOC, GPIOB, GPIOA
-  RCC->AHB1ENR |= ((1 <<  5)  // GPIOE
+  RCC->AHB1ENR |= ((1 <<  5)  // GPIOF
                |   (1 <<  4)  // GPIOE
                |   (1 <<  3)  // GPIOD
                |   (1 <<  2)  // GPIOC
@@ -44,8 +44,9 @@ static void configureRCC()
                |   (1 <<  3)  // TIM5  --  System timer
                |   (1 <<  2)  // TIM4  --  Front wheel angle measurement
                |   (1 <<  1));// TIM3  --  Steer angle measurement
-  // Enable TIM10, SDIO, ADC3, TIM8, TIM1
-  RCC->APB2ENR |= ((1 << 11)  // SDIO  --  SD Card
+  // Enable SYSCFG, SDIO, ADC3, TIM8, TIM1
+  RCC->APB2ENR |= ((1 << 14)  // SYSCFG
+               |   (1 << 11)  // SDIO  --  SD Card
                |   (1 << 10)  // ADC3  --  Battery monitor
                |   (1 <<  1)  // TIM8  --  Rear wheel angle measurement
                |   (1 <<  0));// TIM1  --  PWM Output

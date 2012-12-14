@@ -12,9 +12,14 @@
 #include "Constants.h"
 #include "textutilities.h"
 #include "VectorTable.h"
+  
+
+#define EDGES 16
+int16_t counts_[EDGES];
+volatile uint8_t i_;
 
 YawRateController::YawRateController()
-  : i_(0), offset_(0), homed_(false), u_(0.0f), r_(0.0f),
+  : offset_(0), homed_(false), u_(0.0f), r_(0.0f),
     x_{0.0f, 0.0f, 0.0f, 0.0f, 0.0f}
 {
   turnOff();
@@ -70,35 +75,59 @@ void YawRateController::Update(const Sample & s)
 
 void YawRateController::calibrateSteerEncoder(BaseSequentialStream * chp)
 {
-  // Spawn a thread that waits until 10 rising and falling edges of steer index
-  // have occured
-  char response[4];
-  chprintf(chp, "Is the fork locked? [y/n]\r\n");
-  if (shellGetLine(chp, response, sizeof(response)))
-    return;
+  float mean[2];
+  for (int j = 0; j < 2; j++) {
+    char response[4];
+    chprintf(chp, "Is the fork locked? [y/n]\r\n");
+    if (shellGetLine(chp, response, sizeof(response))) return;
 
-  if ((response[0] == 'n') | (response[0] == 'N'))
-    return;
+    if ((response[0] == 'n') | (response[0] == 'N')) return;
 
-  STM32_TIM3->CNT = 0;  // zero out the steer count when fork is locked
-  i_ = 0;               // zero out number of times interrupt has triggered
-  for (int i = 0; i < 10; ++i) {
-    counts_[i] = dir_[i] = 0;
+    STM32_TIM3->CNT = 0;  // zero out the steer count when fork is locked
+    i_ = 0;               // zero out number of times interrupt has triggered
+    for (uint8_t i = 0; i < EDGES; ++i) {
+      counts_[i] = 0;
+    }
+
+    chprintf(chp, "Unlock the fork and move it back and forth %u times\r\n", EDGES/4);
+
+    VectorTable v;
+    irq_vector_t vec40 = v.GetISR(EXTI15_10_IRQn);
+    v.SetISR(EXTI15_10_IRQn, CalibrationISR_);
+    uint16_t tmp = SYSCFG->EXTICR[2];
+    SYSCFG->EXTICR[2] = SYSCFG_EXTICR3_EXTI11_PF;
+    nvicEnableVector(EXTI15_10_IRQn, CORTEX_PRIORITY_MASK(7));
+    EXTI->IMR = (1 << 11);
+    EXTI->RTSR = (1 << 11);
+    EXTI->FTSR = (1 << 11);
+
+    while (i_ < EDGES) { } // sit and spin until the fork has moved back and forth 10 times
+
+    EXTI->IMR = 0;
+    EXTI->RTSR = 0;
+    EXTI->FTSR = 0;
+    SYSCFG->EXTICR[2] = tmp;
+    nvicDisableVector(EXTI15_10_IRQn);
+    v.SetISR(EXTI15_10_IRQn, vec40);
+
+    float sum = 0.0f;
+    for (uint8_t i = 0; i < EDGES; ++i) {
+      chprintf(chp, "%d\r\n", counts_[i]);
+      sum += counts_[i];
+    }
+
+    mean[j] = sum / EDGES;
+    chprintf(chp, "Offset mean: %f\r\n", mean[j]);
+
+    if (j == 0) {
+      chprintf(chp, "Reverse the fork fixture and lock the fork straight.\r\n");
+    }
   }
-
-  chprintf(chp, "Unlock the fork and move it back and forth 10 times");
-
-  VectorTable v;
-  irq_vector_t vec40 = v.GetISR(EXTI15_10_IRQn);
-  v.SetISR(EXTI15_10_IRQn, CalibrationISR_);
-  chSysLock();
-  nvicEnableVector(EXTI15_10_IRQn, CORTEX_PRIORITY_MASK(7));
-  while (i_ < 10) { } // sit and spin until the fork has moved back and forth 10 times
-  chSysUnlock();
-  v.SetISR(EXTI15_10_IRQn, vec40);
-
-  for (int i = 0; i < 10; ++i)
-    chprintf(chp, "%d, %u\r\n", counts_[i], dir_[i]);
+  float mean_both_runs = (mean[0] + mean[1])/2.0f;
+  chprintf(chp, "Mean: %f\r\n", mean_both_runs);
+  int32_t n = mean_both_runs;
+  chprintf(chp, "Steer offset set to (as integer): %d\r\n", n);
+  setSteerOffset(n);
 }
 
 void YawRateController::homeFork(BaseSequentialStream * chp)
@@ -111,18 +140,11 @@ void YawRateController::homeFork(BaseSequentialStream * chp)
 // be obtained from STM32_TIM3->CNT and STM32_TIM3->CR1[4]  (DIR bit)
 CH_IRQ_HANDLER(YawRateController::CalibrationISR_)
 {
-  CH_IRQ_PROLOGUE();
-  YawRateController::Instance().CalibrationISR();
-  CH_IRQ_EPILOGUE();
-}
-
-void YawRateController::CalibrationISR()
-{
-  if (i_ < 10) {
+  EXTI->PR = (1 << 11);   // clear the pending bit.
+  if (i_ < EDGES) {
     counts_[i_] = STM32_TIM3->CNT;
-    dir_[i_] = (STM32_TIM3->SR & (1 << 4)) ? 1 : 0;
     ++i_;
   } else {
-    nvicDisableVector(EXTI15_10_IRQn);
+    EXTI->IMR = 0;
   }
 }

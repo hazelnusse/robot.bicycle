@@ -12,7 +12,7 @@ void YawRateController::shellcmd_(BaseSequentialStream *chp, int argc, char *arg
 }
 
 inline
-void YawRateController::calibrateSteerEncoder(BaseSequentialStream *chp, int  __attribute__((unused)) argc, __attribute__((unused)) char *argv[])
+void YawRateController::calibrateSteerEncoder_(BaseSequentialStream *chp, int  __attribute__((unused)) argc, __attribute__((unused)) char *argv[])
 {
   YawRateController::Instance().calibrateSteerEncoder(chp);
 }
@@ -109,6 +109,12 @@ inline
 uint32_t YawRateController::RotationDir() const
 {
   return (MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(STM32_TIM3->SR)), (1 << 4)))) ? Sample::SteerEncoderDir : 0;
+}
+
+inline
+void YawRateController::setSteerOffset(int32_t N)
+{
+  offset_ = N;
 }
 
 #endif
