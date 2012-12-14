@@ -8,7 +8,7 @@
 #include "YawRateController.h"
 
 SampleAndControl::SampleAndControl()
-  : tp_control(0), tp_write(0)
+  : tp_control(0), tp_write(0), state_(0)
 {
 }
 
@@ -23,8 +23,7 @@ void SampleAndControl::controlThread()
     chSysHalt(); while (1) {}   // couldn't properly open the file!
   }
 
-  uint32_t i = 0;
-  for (; i < NUMBER_OF_SAMPLES; ++i)
+  for (uint32_t i = 0; i < NUMBER_OF_SAMPLES; ++i)
     clearSample(samples[i]);
 
   MPU6050 & imu = MPU6050::Instance();
@@ -45,7 +44,8 @@ void SampleAndControl::controlThread()
   //uint32_t steer_fault_count = 0;
 
   systime_t time = chTimeNow();     // Initial time
-  for (uint32_t i = 0; !chThdShouldTerminate(); ++i) {
+  uint32_t i;
+  for (i = 0; !chThdShouldTerminate(); ++i) {
     time += MS2ST(con::T_ms);       // Next deadline
 
     // Get a sample to populate
@@ -121,7 +121,7 @@ void SampleAndControl::controlThread()
     if (j > (NUMBER_OF_SAMPLES/2 - 1)) {  // j \in [NUMBER_OF_SAMPLES/2, NUMBER_OF_SAMPLES)
       b = reinterpret_cast<uint8_t *>(samples + NUMBER_OF_SAMPLES/2);
       j %= NUMBER_OF_SAMPLES/2;
-    } else {
+    } else {                              // j \in [0, NUMBER_OF_SAMPLES/2)
       b = reinterpret_cast<uint8_t *>(samples);
     }
     if (j) { // there are samples to write
