@@ -122,6 +122,7 @@ static const ShellCommand commands[] = {
   {"rw", RearWheel::shellcmd_},             // select rear wheel rate set point
   {"yr", YawRateController::shellcmd_},     // select yaw rate set point
   {"calibrate", YawRateController::calibrateSteerEncoder_},     // select yaw rate set point
+  {"homefork", YawRateController::homeFork_},     // select yaw rate set point
   {"collect", SampleAndControl::shellcmd_}, // enable/disable data collection and control
   {"disable", SystemCommands::disablemotors},
   {"reset", SystemCommands::reset},

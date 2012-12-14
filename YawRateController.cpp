@@ -127,12 +127,34 @@ void YawRateController::calibrateSteerEncoder(BaseSequentialStream * chp)
   chprintf(chp, "Mean: %f\r\n", mean_both_runs);
   int32_t n = mean_both_runs;
   chprintf(chp, "Steer offset set to (as integer): %d\r\n", n);
-  setSteerOffset(n);
+  SteerOffset(n);
 }
 
 void YawRateController::homeFork(BaseSequentialStream * chp)
 {
   chprintf(chp, "Move fork past index position.\r\n");
+  VectorTable v;
+  irq_vector_t vec40 = v.GetISR(EXTI15_10_IRQn);
+  v.SetISR(EXTI15_10_IRQn, homeISR_);
+  uint16_t tmp = SYSCFG->EXTICR[2];
+  SYSCFG->EXTICR[2] = SYSCFG_EXTICR3_EXTI11_PF;
+  nvicEnableVector(EXTI15_10_IRQn, CORTEX_PRIORITY_MASK(7));
+  EXTI->IMR = (1 << 11);
+  EXTI->RTSR = (1 << 11);
+  EXTI->FTSR = (1 << 11);
+
+  i_ = 1;
+  while (i_) { } // sit and spin until homeISR sets i_ to zero
+
+  EXTI->IMR = 0;
+  EXTI->RTSR = 0;
+  EXTI->FTSR = 0;
+  SYSCFG->EXTICR[2] = tmp;
+  nvicDisableVector(EXTI15_10_IRQn);
+  v.SetISR(EXTI15_10_IRQn, vec40);
+  
+  homed_ = true;
+  chprintf(chp, "Fork has been successfully homed.\r\n");
 }
 
 // CalibrationISR is called on a rising/falling edge of the steer index
@@ -147,4 +169,11 @@ CH_IRQ_HANDLER(YawRateController::CalibrationISR_)
   } else {
     EXTI->IMR = 0;
   }
+}
+
+CH_IRQ_HANDLER(YawRateController::homeISR_)
+{
+  STM32_TIM3->CNT = YawRateController::Instance().SteerOffset();
+  EXTI->PR = (1 << 11);   // clear the pending bit.
+  i_ = 0;
 }

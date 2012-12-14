@@ -21,6 +21,7 @@ class YawRateController : public Singleton<YawRateController> {
 
   uint32_t RotationDir() const;
   uint32_t CurrentDir() const;
+  int32_t SteerOffset() const;
 
   bool hasFault();
   
@@ -31,7 +32,7 @@ class YawRateController : public Singleton<YawRateController> {
   static void shellcmd_(BaseSequentialStream *chp, int argc, char *argv[]);
   static void calibrateSteerEncoder_(BaseSequentialStream * chp,
                                     int argc, char * argv[]);
-  static void homeFork(BaseSequentialStream * chp, int argc, char * argv[]);
+  static void homeFork_(BaseSequentialStream * chp, int argc, char * argv[]);
 
  private:
   YawRateController();
@@ -48,9 +49,10 @@ class YawRateController : public Singleton<YawRateController> {
   void calibrateSteerEncoder(BaseSequentialStream * chp);
   void homeFork(BaseSequentialStream * chp);
 
-  void setSteerOffset(int32_t N);
+  void SteerOffset(int32_t N);
 
   static CH_IRQ_HANDLER(CalibrationISR_);
+  static CH_IRQ_HANDLER(homeISR_);
 
   int32_t offset_; /*! Calibration constant */
   bool homed_;     /*! Whether the fork has been homed */

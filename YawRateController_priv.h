@@ -18,7 +18,7 @@ void YawRateController::calibrateSteerEncoder_(BaseSequentialStream *chp, int  _
 }
 
 inline
-void YawRateController::homeFork(BaseSequentialStream * chp, int __attribute__((unused)) argc, char __attribute__((unused)) * argv[])
+void YawRateController::homeFork_(BaseSequentialStream * chp, int __attribute__((unused)) argc, char __attribute__((unused)) * argv[])
 {
   YawRateController::Instance().homeFork(chp);
 }
@@ -112,9 +112,15 @@ uint32_t YawRateController::RotationDir() const
 }
 
 inline
-void YawRateController::setSteerOffset(int32_t N)
+void YawRateController::SteerOffset(int32_t N)
 {
   offset_ = N;
+}
+
+inline
+int32_t YawRateController::SteerOffset() const
+{
+  return offset_;
 }
 
 #endif
