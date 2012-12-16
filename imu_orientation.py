@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from sympy.physics.mechanics import ReferenceFrame
 from sympy import symbols, pi, lambdify
 import sampletypes as st
@@ -18,28 +19,42 @@ def compute_orientation(datafiles):
     D = C.orientnew('D', 'Axis', [pi, C.z])    # Sensor intermediate frame
     E = D.orientnew('E', 'Axis', [pi/2, D.x])  # Sensor frame
 
+    print("Gravity vector expressed in sensor frame:")
     print([-g*A.z & ei for ei in [E.x, E.y, E.z]])
     # Function that maps lean, pitch, and gravitational constant to idealized
     # accelerometer measurements
-    f = lambdify((phi, theta, g), [-g*A.z & ei for ei in [E.x, E.y, E.z]])
+    f_estimate_g = lambdify((phi, theta, g), [-g*A.z & ei for ei in [E.x, E.y, E.z]])
+    f = lambdify((phi, theta), [-9.81*A.z & ei for ei in [E.x, E.y, E.z]])
 
     for datafile in datafiles:
         data = np.fromfile(datafile, dtype=st.sample_t)
         data_mean = np.array([data['accx'], data['accy'], data['accz']]).mean(axis=1).T
+        data_std = np.array([data['accx'], data['accy'], data['accz']]).std(axis=1).T
 
-        print("Mean of collected data:\n{0}".format(data_mean))
+        print("Mean of xyz accelerometer signals:\n{0}".format(data_mean))
+        print("Standard deviation of xyz accelerometer signals:\n{0}".format(data_std))
+        print("Magnitude of mean accelerometer " +
+              "signals:\n{0}".format(np.sqrt(data_mean.dot(data_mean))))
 
+        def residual_estimate_g(beta, y):
+            return f_estimate_g(beta[0], beta[1], beta[2]) - y
+        
         def residual(beta, y):
-            return f(beta[0], beta[1], beta[2]) - y
+            return f(beta[0], beta[1]) - y
 
         # Initial guess for lean, pitch, and gravity
         x0 = [0.0, np.pi/4.0, 9.81]
 
-        x, cov_x, infodict, mesg, ier= so.leastsq(residual, x0, args=data_mean,
+        x, cov_x, infodict, mesg, ier= so.leastsq(residual_estimate_g,
+                x0, args=data_mean,
                                                   maxfev=10000, full_output=True)
         print("phi, theta, g = {0} deg, {1} deg, {2} m/s^2".format(x[0]*180/np.pi,
                                                                    x[1]*180/np.pi,
                                                                    x[2]))
+        x, cov_x, infodict, mesg, ier= so.leastsq(residual, x0[:2], args=data_mean,
+                                                  maxfev=10000, full_output=True)
+        print("phi, theta = {0} deg, {1} deg".format(x[0]*180/np.pi,
+                                                     x[1]*180/np.pi))
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
