@@ -36,7 +36,7 @@ void SampleAndControl::sampleTimers(Sample & s)
 {
   s.SystemTime = STM32_TIM5->CNT;
   s.RearWheelAngle = STM32_TIM8->CNT;
-  s.SteerAngle = STM32_TIM3->CNT;
+  s.SteerAngle = static_cast<int16_t>(STM32_TIM3->CNT);
   s.FrontWheelAngle = STM32_TIM4->CNT;
   s.CCR_rw = STM32_TIM1->CCR[0];      // RW PWM duty cycle
   s.CCR_steer = STM32_TIM1->CCR[1];    // Steer PWM duty cycle
