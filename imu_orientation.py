@@ -6,10 +6,10 @@ import numpy as np
 import scipy.optimize as so
 import sys
 
-def compute_orientation(datafiles):
+def compute_orientation(datafile):
     phi, theta, g = symbols('phi theta g')
-    # Invensense MPU-6050 accelerometer/gyroscope sensor is fixed to bicycle frame
-    # in the following orientation:
+    # Invensense MPU-6050 accelerometer/gyroscope sensor is fixed to bicycle
+    # frame in roughly the following orientation:
     # x - axis -- parallel to down tube, positive direction towards downtube
     # y - axis -- perpendicular to down tube, positive towards ground
     # z - axis -- perpendicular to frame plane, positive to right
@@ -19,46 +19,65 @@ def compute_orientation(datafiles):
     D = C.orientnew('D', 'Axis', [pi, C.z])    # Sensor intermediate frame
     E = D.orientnew('E', 'Axis', [pi/2, D.x])  # Sensor frame
 
-    print("Gravity vector expressed in sensor frame:")
-    print([-g*A.z & ei for ei in [E.x, E.y, E.z]])
     # Function that maps lean, pitch, and gravitational constant to idealized
     # accelerometer measurements
-    f_estimate_g = lambdify((phi, theta, g), [-g*A.z & ei for ei in [E.x, E.y, E.z]])
-    f = lambdify((phi, theta), [-9.81*A.z & ei for ei in [E.x, E.y, E.z]])
+    f_estimate_g = lambdify((phi, theta, g),
+                            [-g*A.z & ei for ei in [E.x, E.y, E.z]])
 
-    for datafile in datafiles:
-        data = np.fromfile(datafile, dtype=st.sample_t)
-        data_mean = np.array([data['accx'], data['accy'], data['accz']]).mean(axis=1).T
-        data_std = np.array([data['accx'], data['accy'], data['accz']]).std(axis=1).T
+    d = np.fromfile(datafile, dtype=st.sample_t)
+    acc_mean = np.array([d['accx'], d['accy'], d['accz']]).mean(axis=1).T
+    acc_std = np.array([d['accx'], d['accy'], d['accz']]).std(axis=1).T
 
-        print("Mean of xyz accelerometer signals:\n{0}".format(data_mean))
-        print("Standard deviation of xyz accelerometer signals:\n{0}".format(data_std))
-        print("Magnitude of mean accelerometer " +
-              "signals:\n{0}".format(np.sqrt(data_mean.dot(data_mean))))
+    def residual_estimate_g(beta, y):
+        return f_estimate_g(beta[0], beta[1], beta[2]) - y
 
-        def residual_estimate_g(beta, y):
-            return f_estimate_g(beta[0], beta[1], beta[2]) - y
-        
-        def residual(beta, y):
-            return f(beta[0], beta[1]) - y
+    # Initial guess for lean, pitch, and gravity
+    x0 = [0.0, np.pi/4.0, 9.81]
 
-        # Initial guess for lean, pitch, and gravity
-        x0 = [0.0, np.pi/4.0, 9.81]
+    x, cov_x, infodict, mesg, ier = so.leastsq(residual_estimate_g,
+                                               x0,
+                                               args=acc_mean,
+                                               maxfev=10000,
+                                               full_output=True)
+    print("Orientation computed:")
+    print("phi = {0}\ntheta = {1} deg\ng = {2} m/s^2".format(x[0]*180/np.pi,
+                                                             x[1]*180/np.pi,
+                                                             x[2]))
+    return x
 
-        x, cov_x, infodict, mesg, ier= so.leastsq(residual_estimate_g,
-                x0, args=data_mean,
-                                                  maxfev=10000, full_output=True)
-        print("phi, theta, g = {0} deg, {1} deg, {2} m/s^2".format(x[0]*180/np.pi,
-                                                                   x[1]*180/np.pi,
-                                                                   x[2]))
-        x, cov_x, infodict, mesg, ier= so.leastsq(residual, x0[:2], args=data_mean,
-                                                  maxfev=10000, full_output=True)
-        print("phi, theta = {0} deg, {1} deg".format(x[0]*180/np.pi,
-                                                     x[1]*180/np.pi))
+def compute_offsets(datafile):
+    d = np.fromfile(datafile, dtype=st.sample_t)
+    gyro_mean = np.array([d['gyrox'], d['gyroy'], d['gyroz']]).mean(axis=1).T
+    gyro_std = np.array([d['gyrox'], d['gyroy'], d['gyroz']]).std(axis=1).T
+    print("Gyroscope offsets:")
+    print("w_x = {0} +/- {1}".format(gyro_mean[0], gyro_std[0]))
+    print("w_y = {0} +/- {1}".format(gyro_mean[1], gyro_std[1]))
+    print("w_z = {0} +/- {1}".format(gyro_mean[2], gyro_std[2]))
+    return gyro_mean
+
+def generate_header(gyro_offsets):
+    s = ("#ifndef GYROSCOPE_OFFSETS_H\n" +
+         "#define GYROSCOPE_OFFSETS_H\n" +
+         "class gyro_offsets {\n" +
+         " public:\n" +
+         "  static constexpr float x = {0}f;\n".format(gyro_offsets[0]) +
+         "  static constexpr float y = {0}f;\n".format(gyro_offsets[1]) +
+         "  static constexpr float z = {0}f;\n".format(gyro_offsets[2]) +
+         "};\n" +
+         "#endif")
+    f = open("gyroscope_offsets.h", 'w')
+    f.write(s)
+    f.close()
+
+def main(filename):
+    phi, theta, g = compute_orientation(filename)
+    gyro_offsets = compute_offsets(filename)
+    # Generate header file with appropriately defined gyroscope offsets.
+    generate_header(gyro_offsets)
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Must supply a filename or filenames")
+    if len(sys.argv) != 2:
+        print("Must supply a single filename")
         exit()
     else:
-        compute_orientation(sys.argv[1:])
+        main(sys.argv[1])
