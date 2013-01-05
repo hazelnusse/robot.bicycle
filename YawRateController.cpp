@@ -12,8 +12,8 @@
 #include "Constants.h"
 #include "textutilities.h"
 #include "VectorTable.h"
+#include "imu_calibration.h"
   
-
 #define EDGES 16
 int16_t counts_[EDGES];
 volatile uint8_t i_;
@@ -69,7 +69,12 @@ void YawRateController::shellcmd(BaseSequentialStream *chp, int argc, char *argv
 void YawRateController::Update(const Sample & s)
 {
   (void) s;
-
+  float wx = s.MPU6050[4]*cd::Gyroscope_sensitivity - imu_calibration::wx;
+  float wy = s.MPU6050[5]*cd::Gyroscope_sensitivity - imu_calibration::wy;
+  float wz = s.MPU6050[6]*cd::Gyroscope_sensitivity - imu_calibration::wz;
+  float phi_dot = imu_calibration::dcm[0] * wx +
+                  imu_calibration::dcm[3] * wy +
+                  imu_calibration::dcm[5] * wz;
 } // Update
 
 
