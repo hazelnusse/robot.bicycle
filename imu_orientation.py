@@ -6,23 +6,37 @@ import numpy as np
 import scipy.optimize as so
 import sys
 
-phi, theta, g = symbols('phi theta g')
+# Rotation angles and gravitational constant
+psi, phi, theta = symbols('psi phi theta')
+psi_s, phi_s, theta_s = symbols('psi_s phi_s theta_s')
+g = symbols('g')
+
+N = ReferenceFrame('N')                              # Inertial frame, z is downward
+# Rear frame of bicycle reference frames
+A = N.orientnew('A', 'Axis', [psi, N.z])        # Bicycle yaw frame
+B = A.orientnew('B', 'Axis', [phi, A.x])        # Bicycle roll frame
+C = B.orientnew('C', 'Axis', [theta, B.y])      # Bicycle pitch frame
+
 # Invensense MPU-6050 accelerometer/gyroscope sensor is fixed to bicycle
 # frame in roughly the following orientation:
 # x - axis -- parallel to down tube, positive direction towards downtube
 # y - axis -- perpendicular to down tube, positive towards ground
 # z - axis -- perpendicular to frame plane, positive to right
-A = ReferenceFrame('A')                    # Inertial frame, z is downward
-B = A.orientnew('B', 'Axis', [phi, A.x])   # Lean frame
-C = B.orientnew('C', 'Axis', [theta, B.y]) # Pitch frame
-D = C.orientnew('D', 'Axis', [pi, C.z])    # Sensor intermediate frame
-E = D.orientnew('E', 'Axis', [pi/2, D.x])  # Sensor frame
+# Begin with the sensor axes aligned with an instantaneous yaw frame
+A_s = A.orientnew('A_s', 'Axis', [psi_s, A.z])  # Sensor yaw frame
+B_s = A_s.orientnew('B_s', 'Axis', [phi_s, A_s.x])   # Sensor roll frame
+C_s = B_s.orientnew('C_s', 'Axis', [theta_s, B_s.y]) # Sensor pitch frame
+D_s = C_s.orientnew('D_s', 'Axis', [pi, C_s.z])      # Sensor intermediate frame
+S = D_s.orientnew('S', 'Axis', [pi/2, D_s.x])    # Sensor frame
+# The last two frames are purely for convenience so that roll and pitch of
+# the sensor have the same meaning as roll and pitch of the bicycle frame
+
 
 def compute_orientation(datafile):
-    # Function that maps lean, pitch, and gravitational constant to idealized
-    # accelerometer measurements
-    f_estimate_g = lambdify((phi, theta, g),
-                            [-g*A.z & ei for ei in [E.x, E.y, E.z]])
+    # Function that maps sensor roll, sensor pitch, and gravitational constant
+    # to idealized accelerometer measurements
+    f_estimate_g = lambdify((phi_s, theta_s, g),
+                            [-g*N.z & ei for ei in [S.x, S.y, S.z]])
 
     d = np.fromfile(datafile, dtype=st.sample_t)
     acc_mean = np.array([d['accx'], d['accy'], d['accz']]).mean(axis=1).T
@@ -31,7 +45,7 @@ def compute_orientation(datafile):
     def residual_estimate_g(beta, y):
         return f_estimate_g(beta[0], beta[1], beta[2]) - y
 
-    # Initial guess for lean, pitch, and gravity
+    # Initial guess for roll, pitch, and gravity
     x0 = [0.0, np.pi/4.0, 9.81]
 
     x, cov_x, infodict, mesg, ier = so.leastsq(residual_estimate_g,
@@ -40,10 +54,10 @@ def compute_orientation(datafile):
                                                maxfev=10000,
                                                full_output=True)
     print("Orientation computed:")
-    print("phi = {0}\ntheta = {1} deg\ng = {2} m/s^2".format(x[0]*180/np.pi,
+    print("phi_s = {0}\ntheta_s = {1} deg\ng = {2} m/s^2".format(x[0]*180/np.pi,
                                                              x[1]*180/np.pi,
                                                              x[2]))
-    dcm = A.dcm(E).subs({phi:x[0], theta:x[1]})
+    dcm = A.dcm(S).subs({phi_s:x[0], theta_s:x[1]})
     return x, dcm
 
 def compute_offsets(datafile):
@@ -77,7 +91,7 @@ def generate_header(dcm, gyro_offsets):
     f.close()
 
 def main(filename):
-    (phi, theta, g), dcm = compute_orientation(filename)
+    (phi_s, theta_s, g), dcm = compute_orientation(filename)
     print(dcm)
     gyro_offsets = compute_offsets(filename)
     # Generate header file with appropriately defined gyroscope offsets.
