@@ -18,6 +18,24 @@ sample_t = np.dtype([('T', np.float64),
                      ('I_steer', np.float64),
                      ('SystemState', np.uint32)])
 
+sample_raw_t = np.dtype([('SystemTime', np.uint32),
+                         ('ComputationTime', np.uint32),
+                         ('RearWheelAngle', np.uint32),
+                         ('SteerAngle', np.int32),
+                         ('FrontWheelAngle', np.uint32),
+                         ('SystemState', np.uint32),
+                         ('RearWheelRate_sp', np.float32),
+                         ('YawRate_sp', np.float32),
+                         ('CCR_rw', np.uint16),
+                         ('CCR_steer', np.uint16),
+                         ('accx', np.int16),
+                         ('accy', np.int16),
+                         ('accz', np.int16),
+                         ('temp', np.int16),
+                         ('gyrox', np.int16),
+                         ('gyroy', np.int16),
+                         ('gyroz', np.int16)])
+
 
 SpeedControl = np.uint32(0x0001)
 YawRateControl = np.uint32(0x0002)
