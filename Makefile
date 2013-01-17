@@ -10,7 +10,7 @@ endif
 
 # C specific options here (added to USE_OPT).
 ifeq ($(USE_COPT),)
-  USE_COPT = 
+  USE_COPT =
 endif
 
 # C++ specific options here (added to USE_OPT).
@@ -43,8 +43,7 @@ endif
 
 # Enables the use of FPU on Cortex-M4.
 ifeq ($(USE_FPU),)
-  USE_FPU = yes
-  #USE_FPU = no
+  USE_FPU = no
 endif
 
 # Enable this if you really want to use the STM FWLib.
@@ -147,8 +146,7 @@ INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
 #
 
 MCU  = cortex-m4
-TOOLCHAINDIR = $(HOME)/toolchain
-TRGT = $(TOOLCHAINDIR)/bin/arm-none-eabi-
+TRGT = arm-none-eabi-
 CC   = $(TRGT)gcc
 CPPC = $(TRGT)g++
 # Enable loading with g++ only if you need C++ runtime support.
@@ -189,7 +187,7 @@ DDEFS =
 DADEFS =
 
 # List all default directories to look for include files here
-DINCDIR = $(TOOLCHAINDIR)/arm-none-eabi/include Singleton
+DINCDIR = Singleton
 
 # List the default directory to look for the libraries here
 DLIBDIR =
