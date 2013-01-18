@@ -1,0 +1,15 @@
+This directory contains all collected data from measurement of robot bicycle
+physical parameters.
+
+To compute the physical parameters used in the model, run
+
+  $ build_postgres_database.sh
+
+This creates the database, creates the tables, populates the tables with all
+quantities that were measured that were not time series (distances, etc.), and
+finally adds all the time series measurements to the database.
+
+Once the postgres database is successfully built, the model parameters can be
+computed by running:
+
+  $ python compute_model_parameters.py
