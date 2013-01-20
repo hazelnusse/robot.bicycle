@@ -8,6 +8,26 @@ import sampletypes as st
 def denormalize(x):
     return x * 16384.0 / 9.81
 
+def generate_header(dcm, gyro_offsets):
+    s = ("#ifndef IMU_CALIBRATION_H\n" +
+         "#define IMU_CALIBRATION_H\n" +
+         "class imu_calibration {\n" +
+         " public:\n" +
+         "  static constexpr float wx = {0}f;\n".format(gyro_offsets[0])  +
+         "  static constexpr float wy = {0}f;\n".format(gyro_offsets[1])  +
+         "  static constexpr float wz = {0}f;\n".format(gyro_offsets[2])  +
+         "  static constexpr float dcm[6] = {" + "{0}f,\n".format(dcm[0, 0]) +
+         "                                    {0}f,\n".format(dcm[1, 1]) +
+         "                                    {0}f,\n".format(dcm[2, 2]) +
+         "                                    {0}f,\n".format(dcm[0, 1]) +
+         "                                    {0}f,\n".format(dcm[1, 2]) +
+         "                                    {0}f".format(dcm[0, 2]) + "};\n" +
+         "};\n" +
+         "#endif")
+    f = open("imu_calibration.h", 'w')
+    f.write(s)
+    f.close()
+
 # Rotation angles and gravitational constant
 psi, phi, theta = symbols('psi phi theta')
 psi_s, phi_s, theta_s = symbols('psi_s phi_s, theta_s')
@@ -123,4 +143,7 @@ print("Biases, m/s^2:\n", x[9:])
 print("Residuals, m/s^2:\n", infodict['fvec'])
 
 sensor_orienation_angles = {phi_s : x[0], theta_s : x[1], psi_s : x[2]}
-print("Direction cosine matrix (S to C):\n", C.dcm(S).subs(sensor_orienation_angles))
+dcm = C.dcm(S).subs(sensor_orienation_angles)
+print("Direction cosine matrix (S to C):\n", dcm)
+
+generate_header(dcm, w_mean.mean(axis=0))
