@@ -24,7 +24,7 @@ class constants {
   static constexpr T Accelerometer_sensitivity = g / 16384.0;
 
   // Steer angle
-  static constexpr int Steer_CPR = 4000;
+  static constexpr int Steer_CPR = 5000;
   static constexpr int Steer_halfquad_CPR = 2 * Steer_CPR;
   static constexpr int Steer_quad_CPR = 4 * Steer_CPR;
   static constexpr T Steer_rad_per_count = two_pi / Steer_CPR;
