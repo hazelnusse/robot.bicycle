@@ -12,6 +12,12 @@ void YawRateController::shellcmd_(BaseSequentialStream *chp, int argc, char *arg
 }
 
 inline
+void YawRateController::ShellCmdDisturb_(BaseSequentialStream *chp, int argc, char *argv[])
+{
+  YawRateController::Instance().ShellCmdDisturb(chp, argc, argv);
+}
+
+inline
 void YawRateController::calibrateSteerEncoder_(BaseSequentialStream *chp, int  __attribute__((unused)) argc, __attribute__((unused)) char *argv[])
 {
   YawRateController::Instance().calibrateSteerEncoder(chp);
@@ -38,6 +44,18 @@ void YawRateController::turnOff()
 }
 
 inline
+void YawRateController::set_disturb_enabled(bool enable)
+{
+  disturb_enabled_ = enable;
+}
+
+inline
+bool YawRateController::disturb_enabled() const
+{
+  return disturb_enabled_;
+}
+
+inline
 void YawRateController::Reset()
 {
   x_[0] = x_[1] = x_[2] = x_[3] = x_[4] = 0.0f;
@@ -61,6 +79,30 @@ inline
 float YawRateController::RateCommanded() const
 {
   return r_;
+}
+
+inline
+void YawRateController::set_disturb_amp(float amp)
+{
+  disturb_amp_ = amp;
+}
+
+inline
+float YawRateController::disturb_amp() const
+{
+  return disturb_amp_;
+}
+
+inline
+void YawRateController::set_disturb_freq(float freq)
+{
+  disturb_freq_ = freq;
+}
+
+inline
+float YawRateController::disturb_freq() const
+{
+  return disturb_freq_;
 }
 
 inline

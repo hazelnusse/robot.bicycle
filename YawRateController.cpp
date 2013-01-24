@@ -20,13 +20,17 @@ volatile uint8_t i_;
 
 YawRateController::YawRateController()
   : offset_(608), homed_(false), u_(0.0f), r_(0.0f),
-    x_{0.0f, 0.0f, 0.0f, 0.0f, 0.0f}
+    x_{0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+    disturb_enabled_(false), disturb_amp_(0.0f),
+    disturb_freq_(0.0f)
 {
   turnOff();
 }
 
 void YawRateController::setCurrent(float current)
 {
+  if (disturb_enabled()) // TODO: incorporate disturbance
+
   // Saturate current
   if (current > cf::Current_max_steer) {
     current = cf::Current_max_steer;
@@ -61,6 +65,25 @@ void YawRateController::shellcmd(BaseSequentialStream *chp, int argc, char *argv
   } else if (argc == 1) { // change set point
     RateCommanded(tofloat(argv[0]));
     chprintf(chp, "Yaw rate set point changed.\r\n");
+  } else { // invalid
+    chprintf(chp, "Invalid usage.\r\n");
+  }
+}
+
+void YawRateController::ShellCmdDisturb(BaseSequentialStream *chp, int argc, char *argv[])
+{
+  if (argc == 0) {
+    if(disturb_enabled()) {
+      set_disturb_enabled(false);
+      chprintf(chp, "Disturbance disabled.\r\n");
+    } else {
+      set_disturb_enabled(true);
+      chprintf(chp, "Disturbance enabled.\r\n");
+    }
+  } else if (argc == 2) { // change amplitude and frequency
+    set_disturb_amp(tofloat(argv[0]));
+    set_disturb_freq(tofloat(argv[1]));
+    chprintf(chp, "Disturbance Amplitude and Frequency changed.\r\n");
   } else { // invalid
     chprintf(chp, "Invalid usage.\r\n");
   }
