@@ -24,19 +24,20 @@ The following is a list of the electrical hardware used on the bicycle:
 
 ## Wiring Notes
 All connections between various components of the robot bicycle are documented
-in a [Google Drive spreadsheet](https://docs.google.com/spreadsheet/ccc?key=0Asn6BMg-bB_EdHdMVVBqRTA4Q3IteWdEN1VJOXBDZHc)
+in a [Google Drive spreadsheet](https://docs.google.com/spreadsheet/ccc?key=0Asn6BMg-bB_EdHdMVVBqRTA4Q3IteWdEN1VJOXBDZHc).
 
 ## Resources
 - Debugging and flashing software [OpenOCD](http://openocd.berlios.de/web/)
 - Real time operating system [ChibiOS/RT](http://www.chibios.org/)
 
 ## GNU Toolchain
-I've been using two GCC Arm toolchains to build the firmware.  One is the [GNU
-Tools for ARM Embedded Processors](https://launchpad.net/gcc-arm-embedded),
-which is maintained by ARM.  The other is the Linaro toolchain, which is
-updated more frequently but not necessarily customized for embedded chips.  I
-maintain a [simple script](https://github.com/hazelnusse/arm-toolchain) to
-download and build the tools in the Linaro toolchain and it seems to work well.
+To compile the code that runs on the microcontroller, I've been using two GCC
+Arm toolchains to build the firmware.  One is the [GNU Tools for ARM Embedded
+Processors](https://launchpad.net/gcc-arm-embedded), which is maintained by
+ARM.  The other is the Linaro toolchain, which is updated more frequently but
+not necessarily customized for embedded chips.  I maintain a [simple
+script](https://github.com/hazelnusse/arm-toolchain) to download and build the
+tools in the Linaro toolchain and it seems to work well.
 
 ## Build System
 To compile the firmware which runs on the bicycle, type:
