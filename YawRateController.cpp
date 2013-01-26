@@ -19,7 +19,7 @@ int16_t counts_[EDGES];
 volatile uint8_t i_;
 
 YawRateController::YawRateController()
-  : offset_(608), homed_(false), u_(0.0f), r_(0.0f),
+  : offset_(-395), homed_(false), u_(0.0f), r_(0.0f),
     x_{0.0f, 0.0f, 0.0f, 0.0f, 0.0f}
 {
   turnOff();
@@ -69,12 +69,33 @@ void YawRateController::shellcmd(BaseSequentialStream *chp, int argc, char *argv
 void YawRateController::Update(const Sample & s)
 {
   (void) s;
-  float wx = s.MPU6050[4]*cd::Gyroscope_sensitivity - imu_calibration::wx;
-  float wy = s.MPU6050[5]*cd::Gyroscope_sensitivity - imu_calibration::wy;
-  float wz = s.MPU6050[6]*cd::Gyroscope_sensitivity - imu_calibration::wz;
+  float wx = s.MPU6050[4]*cf::Gyroscope_sensitivity - imu_calibration::wx;
+  float wy = s.MPU6050[5]*cf::Gyroscope_sensitivity - imu_calibration::wy;
+  float wz = s.MPU6050[6]*cf::Gyroscope_sensitivity - imu_calibration::wz;
   float phi_dot = imu_calibration::dcm[0] * wx +
                   imu_calibration::dcm[3] * wy +
                   imu_calibration::dcm[5] * wz;
+  float delta = s.SteerAngle * cf::Steer_rad_per_count;
+  // 
+  // compute u = -K * x_{n}
+  //
+  // add system identification disturbance (if it exists) to form the
+  // unsaturated torque command
+  //
+  // saturate the torque command and save to u_
+  //
+  // convert u_ to current by multiplying by 
+  //
+  // Form the sum of:
+  //   F_controller * reference yaw rate
+  //   L_tilde * [delta; phi_dot]
+  //   A_tilde * x_n
+  //   B_tilde * u
+  //
+  //   compute x_{n+1} = sum 
+  //
+  //
+
 } // Update
 
 
@@ -130,7 +151,7 @@ void YawRateController::calibrateSteerEncoder(BaseSequentialStream * chp)
   }
   float mean_both_runs = (mean[0] + mean[1])/2.0f;
   chprintf(chp, "Mean: %f\r\n", mean_both_runs);
-  int32_t n = mean_both_runs;
+  int32_t n = round(mean_both_runs);
   chprintf(chp, "Steer offset set to (as integer): %d\r\n", n);
   SteerOffset(n);
 }
