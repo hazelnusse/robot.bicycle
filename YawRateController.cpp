@@ -19,7 +19,7 @@ int16_t counts_[EDGES];
 volatile uint8_t i_;
 
 YawRateController::YawRateController()
-  : offset_(-395), homed_(false), u_(0.0f), r_(0.0f),
+  : offset_(-402), homed_(false), u_(0.0f), r_(0.0f),
     x_{0.0f, 0.0f, 0.0f, 0.0f, 0.0f}
 {
   turnOff();
