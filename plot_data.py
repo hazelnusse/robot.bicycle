@@ -12,17 +12,17 @@ import sampleplotter as sp
 def plot(args):
     samples = sp.Samples(args.datafile)
     if (args.wheel):
-        samples.plotRearWheel()
+        samples.rearwheel.plot_data()
     if (args.time):
-        samples.plotTime()
+        samples.time.plot_data()
     if (args.accel):
-        samples.plotAccelerometer()
+        samples.accelerometer.plot_data()
     if (args.gyro):
-        samples.plotGyroscope()
+        samples.gyroscope.plot_data()
     if (args.temp):
-        samples.plotTemperature()
+        samples.temperature.plot_data()
 #    if (args.state):
-#        samples.plotState()
+#        samples.state.plot_data()
     plt.show()
 
 def interpret_args(args):
