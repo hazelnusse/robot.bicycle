@@ -96,18 +96,14 @@ CPPSRC = main.cpp \
 				 MPU6050.cpp \
 				 PeripheralInit.cpp \
 				 RearWheel.cpp \
-				 Sample.cpp \
 				 SampleAndControl.cpp \
 				 YawRateController.cpp \
-				 testcxxstuff.cpp \
-				 foo.cpp \
 				 stubs.cpp \
 				 SystemCommands.cpp \
 				 textutilities.cpp \
 				 VectorTable.cpp \
 				 Interrupts.cpp
 
-# 				 SampleBuffer.cpp \
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -170,7 +166,7 @@ TOPT = -mthumb -DTHUMB
 CWARN = -Wall -Wextra -Wstrict-prototypes
 
 # Define C++ warning options here
-CPPWARN = -Wall -Wextra -Weffc++
+CPPWARN = -Wall -Wextra
 
 #
 # Compiler settings

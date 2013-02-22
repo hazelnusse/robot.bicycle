@@ -24,7 +24,8 @@ void SampleAndControl::controlThread()
   }
 
   for (uint32_t i = 0; i < NUMBER_OF_SAMPLES; ++i)
-    clearSample(samples[i]);
+    samples[i].clear();
+//    clearSample(samples[i]);
 
   MPU6050 & imu = MPU6050::Instance();
   imu.Initialize(&I2CD2);

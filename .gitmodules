@@ -1,6 +1,6 @@
 [submodule "Singleton"]
-	path = Singleton
+	path = firmware/Singleton
 	url = git://github.com/hazelnusse/Singleton.git
 [submodule "ChibiOS-RT"]
-	path = ChibiOS-RT
+	path = firmware/ChibiOS-RT
 	url = git://github.com/ChibiOS-Upstream/ChibiOS-RT.git

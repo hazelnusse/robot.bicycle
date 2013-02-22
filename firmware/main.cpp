@@ -6,10 +6,6 @@
 
 #include "ff.h"
 
-#if(TESTCXXSTUFF==1)
-#include "testcxxstuff.h"
-#endif
-
 #include "RearWheel.h"
 #include "SampleAndControl.h"
 #include "SystemCommands.h"
@@ -191,10 +187,6 @@ int main()
   halInit();
   chSysInit();
   chRegSetThreadName("main");
-
-#if(TESTCXXSTUFF==1)
-  testcxxstuff();
-#endif
 
   shellInit();            // Shell manager initialization
 

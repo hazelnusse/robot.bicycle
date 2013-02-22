@@ -1,5 +1,5 @@
 dataprocessing-build
-build
+build*
 .dep
 .*.cpp.sw?
 .*.h.sw?

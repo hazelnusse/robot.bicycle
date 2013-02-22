@@ -2,9 +2,12 @@
 #define SAMPLE_H
 
 #include <cstdint>
+#include <cstring>
 
 class Sample {
  public:
+  void clear() { memset(this, 0, sizeof(*this)); }
+
   // System Time
   uint32_t SystemTime;
   // Control loop computation time
@@ -35,5 +38,5 @@ class Sample {
                    CollectionEnabled            = 0x8000};// used primarily for GUI
 };
 
-void clearSample(Sample & s);
 #endif
+
