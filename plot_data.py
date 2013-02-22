@@ -21,6 +21,8 @@ def plot(args):
         samples.gyroscope.plot_data()
     if (args.temp):
         samples.temperature.plot_data()
+    if (args.steer):
+        samples.steer.plot_data()
 #    if (args.state):
 #        samples.state.plot_data()
     plt.show()
@@ -33,6 +35,7 @@ def interpret_args(args):
         args.accel = True
         args.gyro = True
         args.temp = True
+        args.steer = True
         args.state = True
     return args
 
@@ -58,7 +61,9 @@ if __name__ == "__main__":
                         help="Plot Gyroscope")
     parser.add_argument("-T", "--temp", action="store_true",
                         help="Plot Temperature")
-    parser.add_argument("-s", "--state", action="store_true",
+    parser.add_argument("-s", "--steer", action="store_true",
+                        help="Plot Steer Angle")
+    parser.add_argument("-S", "--state", action="store_true",
                         help="Plot State")
     args = parser.parse_args()
     plot(interpret_args(args))
