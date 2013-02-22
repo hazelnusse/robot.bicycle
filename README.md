@@ -32,25 +32,27 @@ in a [Google Drive spreadsheet](https://docs.google.com/spreadsheet/ccc?key=0Asn
 
 ## GNU Toolchain
 To compile the code that runs on the microcontroller, I've been using two GCC
-Arm toolchains to build the firmware.  One is the [GNU Tools for ARM Embedded
+Arm toolchains to build the firmware. One is the [GNU Tools for ARM Embedded
 Processors](https://launchpad.net/gcc-arm-embedded), which is maintained by
-ARM.  The other is the Linaro toolchain, which is updated more frequently but
-not necessarily customized for embedded chips.  I maintain a [simple
+ARM. The other is the Linaro toolchain, which is updated more frequently but
+not necessarily customized for embedded chips. I maintain a [simple
 script](https://github.com/hazelnusse/arm-toolchain) to download and build the
 tools in the Linaro toolchain and it seems to work well.
 
 ## Build System
 To compile the firmware which runs on the bicycle, type:
 
+    $ cd firmware
     $ ./build_firmware.sh
 
 This shell script simply calls the ChibiOS provided Makefile with some
-options that affect the code compilation.  You will need to modify this to
+options that affect the code compilation. You will need to modify this to
 point to your toolchain path.
 
 To build the dataprocessing code, ensure you have CMake installed, then type:
 
-    $ mkdir build && cd build
+    $ mkdir build
+    $ cd build
     $ cmake ..
     $ make
 
