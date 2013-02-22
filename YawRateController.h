@@ -56,8 +56,8 @@ class YawRateController : public Singleton<YawRateController> {
 
   int32_t offset_; /*! Calibration constant */
   bool homed_;     /*! Whether the fork has been homed */
-  float u_,        /*! Applied current */
-        r_,        /*! Commanded yaw rate */
+  float u_,        /*! Applied torque (output) */
+        r_,        /*! Commanded yaw rate (input) */
         x_[5];     /*! Controller state */
 };
 
