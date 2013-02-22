@@ -4,7 +4,11 @@ build*
 .*.cpp.sw?
 .*.h.sw?
 datasheets
-collected_data*
+*_converted.dat
+*.tar.*
+*.jpg
+data/collected_data*
 images
 __pycache__
 CopleyConfiguration/
+data/physicalparameters/RawData/Images/
