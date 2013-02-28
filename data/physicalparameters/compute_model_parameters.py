@@ -3,6 +3,7 @@ import scipy.optimize
 import matplotlib.pyplot as plt
 import psycopg2
 from dataprocessing import *
+from bicycle import WheelAssemblyGyrostat
 
 # Error tolerance used for curve_fit
 ftol = 1e-12
@@ -325,33 +326,47 @@ cur.execute("select * from parametermeasurements.axleoffsetmeasurements;")
 results = cur.fetchall()[0]
 id, lr, lf, ls = results
 
-
+# Rear gyrostat caclulations
 frame_com = [frame_d, 0.0, frame_f]
 I_Frame = [IRxx, IRyy, IRzz, 0.0, 0.0, IRxz]
 I_RW = [IRWxx, IRWyy, IRWxx, 0.0, 0.0, 0.0]
 mr, r_RWO_RO, I_R_RO = GyrostatParameters(m_frame, m_rw, frame_com, I_Frame, I_RW)
-print("Rear Gyrostat:")
-print("Inertia = {0}".format(I_R_RO))
-print("J = {0}".format(IRWyy))
-print("r_RWO_RO = {0}".format(r_RWO_RO))
-print("m_total = {0}".format(mr))
-print("a = {0}".format(radius_rear))
-print("g = {0}".format(lr))
 
+rear = WheelAssemblyGyrostat()
+rear.Ixx = I_R_RO[0]
+rear.Iyy = I_R_RO[1]
+rear.Izz = I_R_RO[2]
+rear.Ixz = I_R_RO[5]
+rear.J = IRWyy
+rear.m = mr
+rear.R = radius_rear
+rear.a = r_RWO_RO[0]
+rear.b = r_RWO_RO[2]
+rear.c = lr
+print("Rear Gyrostat:")
+print(rear)
+
+# Front Gyrostat calculations
 fork_com = [fork_d, 0.0, fork_f]
 I_Fork = [IFxx, IFyy, IFzz, 0.0, 0.0, IFxz]
 I_FW = [IFWxx, IFWyy, IFWxx, 0.0, 0.0, 0.0]
 mf, r_FWO_FO, I_F_FO = GyrostatParameters(m_fork, m_fw, fork_com, I_Fork, I_FW)
-print("Front Gyrostat:")
-print("Inertia = {0}".format(I_F_FO))
-print("J = {0}".format(IFWyy))
-print("r_FWO_FO = {0}".format(r_FWO_FO))
-print("m_total = {0}".format(mf))
-print("a = {0}".format(radius_front))
-print("g = {0}".format(-lf))
+
+front = WheelAssemblyGyrostat()
+front.Ixx = I_F_FO[0]
+front.Iyy = I_F_FO[1]
+front.Izz = I_F_FO[2]
+front.Ixz = I_F_FO[5]
+front.J = IFWyy
+front.m = mf
+front.R = radius_front
+front.a = r_FWO_FO[0]
+front.b = r_FWO_FO[2]
+front.c = lf
+print("Front gyrostat parameters:")
+print(front)
 
 print("ls = {0}".format(ls))
-
 
 #plt.show()
 cur.close()

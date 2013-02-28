@@ -37,6 +37,26 @@ def decaying_sinusoid(t, a, zeta, T, d, e):
     return a*np.exp(-2.0*np.pi/T*zeta*t)*np.sin(2.0*np.pi/T*np.sqrt(1-zeta**2.0)*t + d) + e
 
 def GyrostatParameters(mA, mB, r_BO_AO, I_A_AO, I_B_BO):
+    """Calculate gyrostat inertial parameters from individual body parameters.
+
+    Parameters
+    ==========
+
+    mA : Mass of carrier (frame or fork)
+    mB : Mass of rotor   (wheel)
+    r_BO_AO : Position from wheel center to gyrostat mass center
+    I_A_AO : Carrier central inertia (moments and products)
+    I_B_BO : Rotor central inertia (moments and products)
+
+    Returns
+    =======
+
+    mT : Total mass of gyrostat
+    r_BO_GO : Position from rotor center to gyrostat mass center
+    I_G : Total inertia of gyrostat about it's mass center
+
+    """
+      
     d_, e_, f_ = r_BO_AO
     IAxx, IAyy, IAzz, IAxy, IAyz, IAxz = I_A_AO
     IBxx, IByy, IBzz, IBxy, IByz, IBxz = I_B_BO
