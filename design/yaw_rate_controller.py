@@ -9,6 +9,7 @@ from numpy import pi, dot
 import numpy.linalg as la
 np.set_printoptions(precision=4)
 import matplotlib.pyplot as plt
+from control_tools import dare
 
 data = np.load('robotic_bicycle_linear_dynamics_vs_logspeed.npz')
 radius = rear.R
@@ -30,15 +31,21 @@ def plot_evals():
     plt.plot(-theta_R_dot*radius, evals.real, 'k.')
     plt.plot(-theta_R_dot*radius, evals.imag, 'b.')
 
-def compute_gains(Q, R, dt):
+def compute_gains(Q, R, W, V, dt):
     # Allocate arrays to store discrete state space matrices
     A_w_d = np.zeros((N, 4, 4))
     B_w_d = np.zeros((N, 4, 3))
     eye4 = np.identity(4)          # Full state feedback
+    eye5 = np.identity(5)          # Full state feedback
     z41 = np.zeros((4, 1))
 
     # Allocate space for feedback control gain
-    G_w = np.zeros((N, 5))
+    F_w = np.zeros((N, 5))
+    evals_controller_w = np.zeros((N, 5), dtype=np.complex128)
+
+    # Allocate space for filter gain and filter eigenvalues
+    K_w = np.zeros((N, 2, 4))
+    evals_observer_w = np.zeros((N, 4), dtype=np.complex128)
 
     # Loop over all speeds for which we have system dynamics
     for i in range(N):
@@ -54,27 +61,16 @@ def compute_gains(Q, R, dt):
 
         Ba = np.zeros((5, 1))
         Ba[:4] = np.array([B_w_d[i, :, 2]]).T
-        
-        # Hamiltonian matrix
-        H = np.zeros((10, 10))      # From page 349 of Antsaklis
-        Aa_inv_T = la.inv(Aa).T
-        H[:5, :5] = Aa + dot(dot(Ba, Ba.T), dot(Aa_inv_T, Q)) / R
-        H[:5, 5:] = -dot(dot(Ba, Ba.T), Aa_inv_T) / R
-        H[5:, :5] = -dot(Aa_inv_T, Q)
-        H[5:, 5:] = Aa_inv_T
-        evals, evecs = la.eig(H)
-        stable_indices = []
-        for j in range(10):
-            if abs(evals[j]) < 1:       # inside unit circle
-                stable_indices.append(j)
 
-        V1 = evecs[:5, stable_indices]
-        V2 = evecs[5:, stable_indices]
+        # Get the closed loop eigenvalues and optimal gain as determined by
+        # solving the discrete time algebraic Riccati equation
+        _, evals_controller_w[i], F_w[i] = dare(Aa, Ba, eye5, Q, R)
 
-        X = dot(V2, la.inv(V1))
-        G_w[i] = dot(dot(la.inv((R + dot(dot(Ba.T, X), Ba))), Ba.T), dot(X, Aa)).real
 
-    return G_w
+        _, evals_observer_w[i], K_w[i] = dare(A_w_d[i].T, C_w[i, :2, :].T,
+                eye4, W, V)
+
+    return evals_controller_w, F_w, evals_observer_w, K_w
     
 if __name__ == "__main__":
     plot_evals()
@@ -86,18 +82,43 @@ if __name__ == "__main__":
                  (10*pi/180)**(-2)])
 
     # Control input weighting matrix R
-    R = .1
+    R = np.array([[.1]])
 
-    # Calculate gains
-    G_w = compute_gains(Q, R, dt)
+    # State error covariance
+    W = np.diag([0.0, 0.0, .01, .01])
+
+    # Measurement error covariance
+    V = np.diag([(10.0/20000*2.0*pi)**2.,
+                 (100*4000*pi/180/(2**16))**2])
+    # Calculate closed loop eigenvalues and gains
+    evals_controller_w, F_w, evals_observer_w, K_w = compute_gains(Q, R, W, V, dt)
 
     plt.figure()
-    ax = plt.plot(-theta_R_dot*radius, G_w)
+    ax = plt.plot(-theta_R_dot*radius, F_w)
     ax[0].set_label(r"$k_\phi$")
     ax[1].set_label(r"$k_\delta$")
     ax[2].set_label(r"$k_\dot{\phi}$")
     ax[3].set_label(r"$k_\dot{\delta}$")
     ax[4].set_label(r"$k_\i$")
     plt.legend(loc=0)
+    
+    plt.figure()
+    ax = plt.plot(-theta_R_dot*radius, K_w[:, 0, :])
+    ax[0].set_label(r"$k_\phi$")
+    ax[1].set_label(r"$k_\delta$")
+    ax[2].set_label(r"$k_\dot{\phi}$")
+    ax[3].set_label(r"$k_\dot{\delta}$")
+    plt.title("Observer steer angle gains")
+    plt.legend(loc=0)
+    
+    plt.figure()
+    ax = plt.plot(-theta_R_dot*radius, K_w[:, 1, :])
+    ax[0].set_label(r"$k_\phi$")
+    ax[1].set_label(r"$k_\delta$")
+    ax[2].set_label(r"$k_\dot{\phi}$")
+    ax[3].set_label(r"$k_\dot{\delta}$")
+    plt.legend(loc=0)
+    plt.title("Observer roll rate gains")
+    print(evals_observer_w)
 
     plt.show()
