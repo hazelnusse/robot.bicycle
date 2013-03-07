@@ -2,124 +2,66 @@
 
 """
 
-from scipy.linalg import solve, inv, eig, eigvals
-from numpy import dot, zeros
+from scipy.linalg import inv, schur, solve
+from numpy.matlib import empty
 
-def dare(A, B, M, Q, R):
+def dare(F, G1, G2, H):
     """Solves the discrete-time algebraic Riccati equation
+
+    0 = F ^ T * X * F
+        - X - F ^ T * X * G1 * (G2 + G1 ^ T * X * G1) ^ -1 * G1 ^ T * X * F + H
+
+    Under the assumption that X ^ -1 exists, this equation is equivalent to
+
+    0 = F ^ T * (X ^ -1 + G1 * G2 ^ -1 * G1 ^ T) ^ -1 * F - X + H
 
     Parameters
     ==========
+    Inputs are real matrices:
 
-    A : System dynamics matrix (n x n)
-    B : Input matrix           (n x m)
-    Q : State weighting matrix (n x n), symmetric, positive definite
-    R : Input weighting matrix (m x m), symmetric, positive definite
+    F : n x n
+    G1 : n x m
+    G2 : m x m, symmetric, positive definite
+    H : n x n, symmetric, positive semi-definite
+
+    Assumptions
+    ===========
+    (F, G1) is a stabilizable pair
+    (C, F) is a detectable pair (where C is full rank factorization of H, i.e.,
+        C ^ T * C = H and rank(C) = rank(H).
+    F is invertible
 
     Returns
     =======
 
-    P_c : solution to Riccati equation
-      L : closed loop eigenvalues
-      F : optimal state feedback gain u(k) = F * x(k), note sign!
+    Unique nonnegative definite solution of discrete Algrebraic Ricatti
+    equation.
 
     Notes
     =====
-
-    For the discrete time optimal control problem, we have the system
-
-      x(k + 1) = A * x(k) + B * u(k)
-          z(k) = M * x(k)
-
-    The Riccati equation is
-
-      A ^ T * (P_c - P_c * B * (R + B ^ T * P_c * B) ^ (-1) * B ^ T * P_c) * A - P_c + M ^ T * Q * M = 0
-
-    The solution to this equation, P_c, yields the linear state feedback law
-
-      u(k) = F * x(k) = -(R + B ^ T * P_c * B) ^ (-1) B ^ T * P_c * A * x(k)
-
-    which minimizes the cost function
-
-      J(u) = \sum_{k = 0}^{\infty} (z ^ T (k) * Q * z(k) + u ^ T (k) * R * u(k))
-
-    Note that the discrete time optimal control problem is dual to the discrete
-    time optimal state estimation problem:
-
-      x(k + 1) = A * x(k) + B * u(k) + G * w(k)
-          y(k) = C * x(k) + v(k)
-
-    where w and k are white, zero-mean Gaussian processes with covariances:
-
-      E[w * w ^ T] = W
-
-      E[v * v ^ T] = V
-
-    With W = W ^ T > 0, V = V ^ T > 0.
-
-    The optimal current estimator is
-
-      \bar{x} (k) = \hat{x}(k) + K_c * (y(k) - C * \hat{x}(k))
-
-    where
-
-      \hat{x} = A * \bar{x}(k - 1) + B * u(k - 1)
-
-    where \hat{x} denotes the prior estimate of the state at the time of a
-    measurement.  The state error covariance is minimized when the filter gain
-    is
-
-      K_c = P_e * C ^ T * (C * P_e * C ^ T + V) ^ (-1)
-
-    where P_e is the solution to the dual of the above Riccati equation
-    obtained by substituting:
-
-        A => A ^ T
-        B => C ^ T
-        M => G ^ T
-        R => V
-        Q => W
+    This is an implementation of the Schur method for solving algebraic Riccati
+    eqautions as described in dx.doi.org/10.1109/TAC.1979.1102178
 
     """
+    n = F.shape[0]
+    m = G2.shape[0]
 
-    An, Am = A.shape
-    Bn, Bm = B.shape
-    Qn, Qm = Q.shape
-    Rn, Rm = R.shape
-    assert(An == Am == Bn == Qn == Qm)
-    assert(Bm == Rn == Rm)
+    G = G1*inv(G2)*G1.T
+    Finv = inv(F)
+    Finvt = Finv.T
 
-    n = An
-    m = Bm
+    # Form symplectic matrix
+    Z = empty((2*n, 2*n))
+    Z[:n, :n] = F + G*Finvt*H
+    Z[:n, n:] = -G*Finvt
+    Z[n:, :n] = -Finvt*H
+    Z[n:, n:] = Finvt
 
-    # Allocate the Hamiltonian matrix
-    H = zeros((2*n, 2*n))
+    S, U, sdim = schur(Z, sort='iuc')
 
-    # Solve for B * R ^ -1
-    B_R_inv = solve(R.T, B.T).T
+    # Verify that the n eigenvalues of the upper left block stable
+    assert(sdim == n)
 
-    # Solve for  A ^ -T * M ^ T * Q * M
-    A_nT_M_T_Q_M = solve(A.T, dot(M.T, dot(Q, M)))
-
-    # Solve for B ^ T * A ^ -T
-    B_T_A_nT = solve(A, B).T
-
-    H[:n, :n] = A + dot(dot(B_R_inv, B.T), A_nT_M_T_Q_M)
-    H[:n, n:] = -dot(B_R_inv, B_T_A_nT)
-    H[n:, :n] = -A_nT_M_T_Q_M
-    H[n:, n:] = inv(A).T
-
-    evals, evecs = eig(H)
-    stable_indices = []
-    num_stable = 0
-    for j in range(2*n):
-        if abs(evals[j]) < 1:       # inside unit circle
-            stable_indices.append(j)
-            num_stable += 1
-    assert(num_stable == n)         # Verify construction of Hamiltonian
-
-    P_c = solve(evecs[:n, stable_indices].T, evecs[n:, stable_indices].T)
-    F = -solve(R + dot(B.T, dot(P_c, B)), dot(B.T, dot(P_c, A))).real
-
-    return P_c, eigvals(A + dot(B, F)), F
-
+    U11 = U[:n, :n]
+    U21 = U[n:, :n]
+    return solve(U[:n, :n].T, U[n:, :n].T).T
