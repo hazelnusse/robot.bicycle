@@ -127,4 +127,10 @@ uint32_t RearWheel::CurrentToCCR(float current)
 {
   return static_cast<uint32_t>((((reg::PWM_ARR + 1) / cf::Current_max_rw)) * current);
 }
+
+inline
+float RearWheel::RateEstimate() const
+{
+  return z_;
+}
 #endif

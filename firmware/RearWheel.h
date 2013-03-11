@@ -16,6 +16,8 @@ class RearWheel : public Singleton<RearWheel> {
   float RateCommanded() const;
   void RateCommanded(float rate);
 
+  float RateEstimate() const;
+
   uint32_t RotationDir() const;
   uint32_t CurrentDir() const;
 
@@ -52,7 +54,8 @@ class RearWheel : public Singleton<RearWheel> {
         Kp_,    /*! Proportional gain */
         Ki_,    /*! Integral gain */
         Kd_,    /*! Derivative gain */
-        e_int_; /*! Integral of error */
+        e_int_, /*! Integral of error */
+        z_;     /*! Most recent speed estimate */
 
   uint32_t N_,  /*! System timer counts at most recent update */
            cnt_;/*! Wheel quadrature counts at most recent update */

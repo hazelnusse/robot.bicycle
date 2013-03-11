@@ -50,7 +50,6 @@ controller_t = dtype([
     ('wn_ce', '(5,)f8'),    # Natural frequency of controller eigenvalues
     ('zeta_ce', '(5,)f8'),  # Damping ratio of controller eigenvalues
     ('tau_ce', '(5,)f8'),   # Time constant of controller eigenvalues
-
     # Closed loop system
     # States: four bicycle states, four bicycle state estimates, integral of
     #         yaw rate error

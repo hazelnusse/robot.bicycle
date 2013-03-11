@@ -102,7 +102,8 @@ CPPSRC = main.cpp \
 				 SystemCommands.cpp \
 				 textutilities.cpp \
 				 VectorTable.cpp \
-				 Interrupts.cpp
+				 Interrupts.cpp \
+				 cgains.cpp
 
 
 # C sources to be compiled in ARM mode regardless of the global setting.

@@ -59,6 +59,7 @@ class constants {
   static constexpr T J = rr*rr*mT + Jr + (rr*rr/rf/rf)*Jf;
   static constexpr T c_rw = 0.01;
   static constexpr T kT_rw = .3;
+  static constexpr T kT_steer = 1.0;
 };
 
 class reg {

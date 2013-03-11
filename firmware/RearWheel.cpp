@@ -62,8 +62,8 @@ void RearWheel::Update(uint32_t N, uint32_t cnt)
   float dt = (N - N_) * cf::Rate_Timer_sec_per_count;
   // TODO: try better approximations of derivative, maybe second order
   // derivative filter to get high frequency roll-off
-  float z = dtheta / dt;
-  float e = RateCommanded() - z;
+  z_ = dtheta / dt;
+  float e = RateCommanded() - z_;
   float e_int_update = e_int_ + e * dt;
   float I = Kp_ * e + Ki_ * e_int_update;
 

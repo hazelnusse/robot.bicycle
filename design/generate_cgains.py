@@ -1,36 +1,32 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# 
+#
 # Output controller gains to .cc and .h files.
 #
 # To run: ./generate_cgains.py
 #
- 
+
 import os
 import sys
 import jinja2
-#import yaw_rate_controller as yrc
-
-#imports for testing
-import random
-import numpy as np
+import yaw_rate_controller as yrc
 
 def generate(ccinfile, hinfile):
-    render_dict = {'NUMGAINS' : 10,
+    c_data = yrc.design_controller()
+    render_dict = {'NUMGAINS' : len(c_data),
                    'AROWS' : 5,
                    'ACOLS' : 5,
                    'BROWS' : 5,
-                   'BCOLS' : 2,
+                   'BCOLS' : 3,
                    'CROWS' : 1,
                    'CCOLS' : 5}
-#    GAINS = yrc.somefunc()
     GAINS = []
     SPEED = []
-    for r in range(render_dict['NUMGAINS']):
-        SPEED.append(r + random.random()) # assume speed in increasing order
-        A = np.random.rand(render_dict['AROWS'], render_dict['ACOLS'])
-        B = np.random.rand(render_dict['BROWS'], render_dict['BCOLS'])
-        C = np.random.rand(render_dict['CROWS'], render_dict['CCOLS'])
+    for i in range(render_dict['NUMGAINS']):
+        SPEED.append(c_data[i]['theta_R_dot'])
+        A = c_data[i]['A_ce']
+        B = c_data[i]['B_ce']
+        C = c_data[i]['F']
         GAINS.append({'A_c' : A, 'B_c' : B, 'C_c' : C})
     render_dict['GAINS'] = GAINS
     render_dict['SPEED'] = SPEED
@@ -40,7 +36,7 @@ def generate(ccinfile, hinfile):
 
 def generate_cc(filename, render_dict):
     template = template_setup(filename)
-    outfile = name_outfile(filename, '.cc')
+    outfile = name_outfile(filename, '.cpp')
     with open(outfile, 'w') as f:
         f.write(template.render(render_dict))
 
@@ -69,5 +65,5 @@ def name_outfile(infile, ext):
 
 
 if __name__ == '__main__':
-    generate('cgains.cc.in', 'cgains.h.in');
+    generate('cgains.cpp.in', 'cgains.h.in');
     sys.exit(0)
