@@ -14,6 +14,7 @@ controller_t = dtype([
     ('B', '(4,3)f8'),
     ('C', '(3,4)f8'),
     ('plant_evals', '(4,)c16'),
+    ('plant_evals_c', '(4,)c16'),
     ('wn_p', '(4,)f8'),
     ('zeta_p', '(4,)f8'),
     ('tau_p', '(4,)f8'),
@@ -27,6 +28,7 @@ controller_t = dtype([
     ('C_c', '(1,5)f8'),
     ('F', '(1,5)f8'),      # Optimal state feedback gain (LQR controller output matrix)
     ('controller_evals', '(5,)c16'),
+    ('controller_evals_c', '(5,)c16'),
     ('wn_c', '(5,)f8'),    # Natural frequency of controller eigenvalues
     ('zeta_c', '(5,)f8'),  # Damping ratio of controller eigenvalues
     ('tau_c', '(5,)f8'),   # Time constant of controller eigenvalues
@@ -37,6 +39,7 @@ controller_t = dtype([
     ('A_e', '(4,4)f8'),    # (I - K_c * C) * A, also error dynamics matrix
     ('B_e', '(4,3)f8'),    # [I - K_c * C) * B_delta, K_c]
     ('estimator_evals', '(4,)c16'),
+    ('estimator_evals_c', '(4,)c16'),
     ('wn_e', '(4,)f8'),    # Natural frequency of estimator eigenvalues
     ('zeta_e', '(4,)f8'),  # Damping ratio of estimator eigenvalues
     ('tau_e', '(4,)f8'),   # Time constant of estimator eigenvalues
@@ -47,6 +50,7 @@ controller_t = dtype([
     ('A_ce', '(5,5)f8'),    # LQR/Kalman controller dynamics matrix
     ('B_ce', '(5,3)f8'),    # LQR/Kalman controller input matrix
     ('controller_estimator_evals', '(5,)c16'),
+    ('controller_estimator_evals_c', '(5,)c16'),
     ('wn_ce', '(5,)f8'),    # Natural frequency of controller eigenvalues
     ('zeta_ce', '(5,)f8'),  # Damping ratio of controller eigenvalues
     ('tau_ce', '(5,)f8'),   # Time constant of controller eigenvalues
@@ -59,11 +63,12 @@ controller_t = dtype([
     ('B_cl', '(9,9)f8'),   # Closed loop B matrix
     ('C_cl', '(1,9)f8'),   # Closed loop output (yaw rate)
     ('closed_loop_evals', '(9,)c16'),
+    ('closed_loop_evals_c', '(9,)c16'),
     ('wn_cl', '(9,)f8'),   # Natural frequency of closed loop eigenvalues
     ('zeta_cl', '(9,)f8'), # Damping ratio of closed loop eigenvalues
     ('tau_cl', '(9,)f8'),  # Time constant of closed loop eigenvalues
-    ('w', '(100,)f8'),     # Frequencies (Hz)
-    ('mag_cl', '(100,)f8'),   # Magnitude (dB)
-    ('phase_cl', '(100,)f8')  # Phase (deg)
+    ('w', '(512,)f8'),     # Frequencies (Hz)
+    ('mag_cl', '(512,)f8'),   # Magnitude (dB)
+    ('phase_cl', '(512,)f8')  # Phase (deg)
     ])
 

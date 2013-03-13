@@ -3,7 +3,7 @@
 """
 from parameters import rear, w
 import scipy.io as sio
-from scipy.signal import cont2discrete, bode, lti, ss2tf, dstep
+from scipy.signal import cont2discrete, bode, lti, ss2tf, dstep, freqz
 import numpy as np
 from numpy import pi, dot, outer
 from numpy.matlib import zeros, empty, eye, asmatrix, diag
@@ -19,11 +19,10 @@ radius = rear.R
 #data = np.load('benchmark_bicycle_linear_dynamics_vs_logspeed.npz')
 #radius = w.rR
 
-skip = 20
-theta_R_dot = data['theta_R_dot'][::skip]
-A_w = data['A_w'][::skip]
-B_w = data['B_w'][::skip]
-C_w = data['C_w'][::skip]   # steer, roll rate, yaw rate measurements
+theta_R_dot = data['theta_R_dot']
+A_w = data['A_w']
+B_w = data['B_w']
+C_w = data['C_w']   # steer, roll rate, yaw rate measurements
 N = len(theta_R_dot)
 
 def plot_evals():
@@ -36,6 +35,8 @@ def plot_evals():
     plt.plot(-theta_R_dot*radius, evals.imag, 'b.')
 
 def compute_gains(Q, R, W, V, dt):
+    """Given LQR Q and R matrices, and Kalman W and V matrices, and sample
+    time, compute optimal feedback gain and optimal filter gains."""
 
     c_data = np.empty((N,), dtype=controller_t)
 
@@ -96,7 +97,7 @@ def compute_gains(Q, R, W, V, dt):
         # Note that controller estimator dynamics may be unstable.
         # Once connected to plant however, the closed loop must be stable.
         c_data['controller_estimator_evals'][i] = la.eigvals(A_ce)
-        
+
         # Form closed loop state matrices
         A_cl_ul = c_data['A'][i]
         A_cl_ur = outer(B_delta, c_data['F'][i])
@@ -116,25 +117,39 @@ def compute_gains(Q, R, W, V, dt):
 
         B_cl_r = asmatrix(B_cl[:, 5]).T
         num, den = ss2tf(A_cl, B_cl_r, c_data['C_cl'][i], 0)
-        c_data['w'][i], c_data['mag_cl'][i], c_data['phase_cl'][i] = bode((num, den))
+        c_data['w'][i], y = freqz(num[0], den)
+        c_data['w'][i] /= (dt * 2.0 * np.pi)
+        c_data['mag_cl'][i] = 20.0 * np.log10(abs(y))
+        c_data['phase_cl'][i] = np.unwrap(np.angle(y)) * 180.0 / np.pi
+
 
     # Some operations can be vectorized instead of being doing inside main loop
     # Plant natural frequency, damping ratio, time constant
+    c_data['plant_evals_c'] = np.log(c_data['plant_evals']) / dt
     c_data['wn_p'] = np.abs(np.log(c_data['plant_evals'])) / dt
     c_data['zeta_p'] = -np.cos(np.angle(np.log(c_data['plant_evals'])))
     c_data['tau_p'] = 1.0/(c_data['wn_p']*c_data['zeta_p'])
 
     # Controller natural frequency, damping ratio, time constant
+    c_data['controller_evals_c'] = np.log(c_data['controller_evals']) / dt
     c_data['wn_c'] = np.abs(np.log(c_data['controller_evals'])) / dt
     c_data['zeta_c'] = -np.cos(np.angle(np.log(c_data['controller_evals'])))
     c_data['tau_c'] = 1.0/(c_data['wn_c']*c_data['zeta_c'])
 
     # Estimator natural frequency, damping ratio, time constant
+    c_data['estimator_evals_c'] = np.log(c_data['estimator_evals']) / dt
     c_data['wn_e'] = np.abs(np.log(c_data['estimator_evals'])) / dt
     c_data['zeta_e'] = -np.cos(np.angle(np.log(c_data['estimator_evals'])))
     c_data['tau_e'] = 1.0/(c_data['wn_e']*c_data['zeta_e'])
 
+    # Combined controller & estimator
+    c_data['controller_estimator_evals_c'] = np.log(c_data['controller_estimator_evals']) / dt
+    c_data['wn_ce'] = np.abs(np.log(c_data['controller_estimator_evals'])) / dt
+    c_data['zeta_ce'] = -np.cos(np.angle(np.log(c_data['controller_estimator_evals'])))
+    c_data['tau_ce'] = 1.0/(c_data['wn_ce']*c_data['zeta_ce'])
+
     # Closed loop natural frequency, damping ratio, time constant
+    c_data['closed_loop_evals_c'] = np.log(c_data['closed_loop_evals']) / dt
     c_data['wn_cl'] = np.abs(np.log(c_data['closed_loop_evals'])) / dt
     c_data['zeta_cl'] = -np.cos(np.angle(np.log(c_data['closed_loop_evals'])))
     c_data['tau_cl'] = 1.0/(c_data['wn_cl']*c_data['zeta_cl'])
@@ -161,77 +176,12 @@ def design_controller():
     # Calculate closed loop eigenvalues and gains
     return compute_gains(Q, R, W, V, dt)
 
+
 def main():
-    #plot_evals()
-
     c_data = design_controller()
+    np.savez("controller_data.npz", c_data)
 
-    # State feedback gains versus speed
-    plt.figure()
-    ax = plt.plot(-theta_R_dot*radius, c_data['F'][:,:,:].reshape((N, 5)))
-    ax[0].set_label(r"$k_\phi$")
-    ax[1].set_label(r"$k_\delta$")
-    ax[2].set_label(r"$k_\dot{\phi}$")
-    ax[3].set_label(r"$k_\dot{\delta}$")
-    ax[4].set_label(r"$k_\i$")
-    plt.legend(loc=0)
-    plt.title('Feedback gains vs. speed')
-    plt.xlabel('Speed [m / s]')
-    plt.ylabel('Gain')
-
-    plt.figure()
-    ax = plt.plot(c_data['controller_evals'][:].real,
-                  c_data['controller_evals'][:].imag, 'k.')
-    plt.title('Closed loop controller eigenvalues')
-    plt.xlabel('Imaginary')
-    plt.ylabel('Real')
-    plt.axis((-1, 1, -1, 1))
-
-    # Estimator gains versus speed (first column, associated with steer angle
-    # measurement)
-    plt.figure()
-    ax = plt.plot(-theta_R_dot*radius, c_data['K_c'][:, :, 0])
-    ax[0].set_label(r"$k_\phi$")
-    ax[1].set_label(r"$k_\delta$")
-    ax[2].set_label(r"$k_\dot{\phi}$")
-    ax[3].set_label(r"$k_\dot{\delta}$")
-    plt.title("Observer steer angle gains")
-    plt.legend(loc=0)
-
-    # Estimator gains versus speed (second column, associated with roll rate
-    # measurement)
-    plt.figure()
-    ax = plt.plot(-theta_R_dot*radius, c_data['K_c'][:, :, 1])
-    ax[0].set_label(r"$k_\phi$")
-    ax[1].set_label(r"$k_\delta$")
-    ax[2].set_label(r"$k_\dot{\phi}$")
-    ax[3].set_label(r"$k_\dot{\delta}$")
-    plt.legend(loc=0)
-    plt.title("Observer roll rate gains")
-
-    # Estimator gains versus speed (third column, associated with yaw rate
-
-    plt.figure()
-    ax = plt.plot(c_data['estimator_evals'][:].real,
-                  c_data['estimator_evals'][:].imag, 'k.')
-    plt.title('Closed loop estimator eigenvalues')
-    plt.xlabel('Imaginary')
-    plt.ylabel('Real')
-    plt.axis((-1, 1, -1, 1))
-
-    # Closed loop bode plots
-    for i in range(N):
-        f, axarr = plt.subplots(2, 1, sharex=True)
-        axarr[0].semilogx(c_data['w'][i], c_data['mag_cl'][i])
-        axarr[0].set_title('Closed loop tf, v = {0}'.format(c_data['theta_R_dot'][i]))
-        axarr[1].semilogx(c_data['w'][i], c_data['phase_cl'][i])
-        t, x = dstep((c_data['A_cl'][i], asmatrix(c_data['B_cl'][i, :, 6]).T,
-                      c_data['C_cl'][i], np.zeros((1, 1)), 0.005),
-                      t=np.linspace(0, 20, 100))
-        plt.figure()
-        plt.plot(t, x[0])
-
-    plt.show()
 
 if __name__ == "__main__":
     main()
+

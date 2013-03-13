@@ -6,7 +6,7 @@
 #include <utility>
 
 namespace cg {
-	const uint32_t num_gains = 6;
+	const uint32_t num_gains = 101;
 	const int32_t a_rows = 5;
 	const int32_t a_cols = 5;
 	const int32_t b_rows = 5;
