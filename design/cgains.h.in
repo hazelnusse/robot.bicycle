@@ -24,7 +24,7 @@ namespace cg {
 	class CGArray {
 		public:
 			std::array<ControllerGains, num_gains> cg_array;
-			ControllerGains* operator[](float x) const;
+			std::pair<ControllerGains*, ControllerGains*> lu_bounds(float x) const;
 		private:
 			it_t upper_bound(const_it_t first,
 							 const_it_t last, float value) const;
