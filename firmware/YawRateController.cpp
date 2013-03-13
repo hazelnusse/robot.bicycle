@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cmath>
+#include <algorithm>
 
 #include "ch.h"
 #include "chprintf.h"
@@ -78,6 +79,13 @@ void YawRateController::Update(const Sample & s)
                   imu_calibration::dcm[3] * wy +
                   imu_calibration::dcm[5] * wz;
   cg::ControllerGains * gains = cg::gains[RearWheel::Instance().RateEstimate()];
+//  auto gains = cg::gains.lu_bounds(RearWheel::Instance().RateEstimate());
+//
+//  if (!gains.first || !gains.second) { // outside speed range for which gains have been scheduled
+//    setCurrent(0.0f);
+//    return;
+//  }
+
 
   // controller inputs are:
   //   - yaw rate reference,
@@ -93,15 +101,17 @@ void YawRateController::Update(const Sample & s)
   setCurrent(torque * cf::kT_steer);
 
   // Compute state update
-  for (int i = 0; i < 5; ++i) {   // rows of state equations
-    x_[i] = 0.0f;
-    for (int j = 0; j < 5; ++j) {    // columns of A * rows of x
-      x_[i] += gains->A[5*i + j] * x_[j];
+  float x_new[cg::a_rows];
+  for (int i = 0; i < cg::a_rows; ++i) {   // rows of state equations
+    x_new[i] = 0.0f;
+    for (int j = 0; j < cg::a_cols; ++j) {    // columns of A * rows of x
+      x_new[i] += gains->A[cg::a_cols*i + j] * x_[j];
     }
-    for (int j = 0; j < 3; ++j) {    // columns of B * rows of controller input
-      x_[i] += gains->B[3*i + j] * yrc_input[j];
+    for (int j = 0; j < cg::b_cols; ++j) {    // columns of B * rows of controller input
+      x_new[i] += gains->B[cg::b_cols*i + j] * yrc_input[j];
     }
   }
+  std::copy(x_new, x_new + 5, x_);
 } // Update
 
 
