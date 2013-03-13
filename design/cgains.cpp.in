@@ -20,13 +20,13 @@ namespace cg {
 		}
 		return front;
 	}
-	std::pair<ControllerGains*, ControllerGains*> lu_bounds(float x) const;
+	std::pair<ControllerGains*, ControllerGains*> CGArray::lu_bounds(float x) const {
 		auto upper = upper_bound(cg_array.begin(), cg_array.end(), x);
 		if (upper == cg_array.begin())
-			return std::make_pair(0, upper);
+			return std::make_pair(nullptr, upper);
 		auto lower = upper - 1;
 		if (upper == cg_array.end())
-			return std::make_pair(lower, 0);
+			return std::make_pair(lower, nullptr);
 		return std::make_pair(lower, upper);
 	}
 	CGArray gains {{ "{{{" }}

@@ -78,38 +78,46 @@ void YawRateController::Update(const Sample & s)
   float phi_dot = imu_calibration::dcm[0] * wx +
                   imu_calibration::dcm[3] * wy +
                   imu_calibration::dcm[5] * wz;
-  cg::ControllerGains * gains = cg::gains[RearWheel::Instance().RateEstimate()];
-//  auto gains = cg::gains.lu_bounds(RearWheel::Instance().RateEstimate());
-//
-//  if (!gains.first || !gains.second) { // outside speed range for which gains have been scheduled
-//    setCurrent(0.0f);
-//    return;
-//  }
+//  cg::ControllerGains * gains = cg::gains[RearWheel::Instance().RateEstimate()];
+  auto gains = cg::gains.lu_bounds(RearWheel::Instance().RateEstimate());
 
+  if (!gains.first || !gains.second) { // outside speed range for which gains have been scheduled
+    setCurrent(0.0f);
+    return;
+  }
+
+  cg::ControllerGains * ar[2] = {gains.first, gains.second};
 
   // controller inputs are:
   //   - yaw rate reference,
   //   - steer angle measurement
   //   - roll rate measurement
   float yrc_input[3] = {r_, delta, phi_dot};
-  
+ 
   // Compute output control signal
   float torque = 0.0f;
-  for (int i = 0; i < 5; ++i) {
-    torque += gains->C[i] * x_[i];
-  }
-  setCurrent(torque * cf::kT_steer);
+  for (int k = 0; k < 2; ++k) {
+    for (int i = 0; i < 5; ++i) {
+      torque += ar[k]->C[i] * x_[i];
+    }
+  } // for k
+  setCurrent(torque * cf::kT_steer / 2.0f);
 
   // Compute state update
-  float x_new[cg::a_rows];
-  for (int i = 0; i < cg::a_rows; ++i) {   // rows of state equations
-    x_new[i] = 0.0f;
-    for (int j = 0; j < cg::a_cols; ++j) {    // columns of A * rows of x
-      x_new[i] += gains->A[cg::a_cols*i + j] * x_[j];
-    }
-    for (int j = 0; j < cg::b_cols; ++j) {    // columns of B * rows of controller input
-      x_new[i] += gains->B[cg::b_cols*i + j] * yrc_input[j];
-    }
+  float x_new[cg::a_rows] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+  for (int k = 0; k < 2; ++k) {
+    for (int i = 0; i < cg::a_rows; ++i) {   // rows of state equations
+      for (int j = 0; j < cg::a_cols; ++j) {    // columns of A * rows of x
+        x_new[i] += ar[k]->A[cg::a_cols*i + j] * x_[j];
+      } // for j
+      for (int j = 0; j < cg::b_cols; ++j) {    // columns of B * rows of controller input
+        x_new[i] += ar[k]->B[cg::b_cols*i + j] * yrc_input[j];
+      } // for j
+    } // for i
+  } // for k
+  // Average of the two gains
+  for (int i = 0; i < 5; ++i) {
+    x_new[i] /= 2.0f;
   }
   std::copy(x_new, x_new + 5, x_);
 } // Update
