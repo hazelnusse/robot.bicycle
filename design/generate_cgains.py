@@ -30,19 +30,13 @@ def generate(ccinfile, hinfile):
         GAINS.append({'A_c' : A, 'B_c' : B, 'C_c' : C})
     render_dict['GAINS'] = GAINS
     render_dict['SPEED'] = SPEED
-    generate_cc(ccinfile, render_dict)
-    generate_h(hinfile, render_dict)
+    generate_file(ccinfile, render_dict, '.cpp')
+    generate_file(hinfile, render_dict, '.h')
 
 
-def generate_cc(filename, render_dict):
+def generate_file(filename, render_dict, extension):
     template = template_setup(filename)
-    outfile = name_outfile(filename, '.cpp')
-    with open(outfile, 'w') as f:
-        f.write(template.render(render_dict))
-
-def generate_h(filename, render_dict):
-    template = template_setup(filename)
-    outfile = name_outfile(filename, '.h')
+    outfile = name_outfile(filename, extension)
     with open(outfile, 'w') as f:
         f.write(template.render(render_dict))
 
