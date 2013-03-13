@@ -38,8 +38,8 @@ def calc_eigenvalues(theta_R_dot, bike, filename):
         A_w[i, 0, 2] = A_w[i, 1, 3] = 1
         # Populate bottom rows of A matrix with appropriate rows & cols of full
         # state matrix
-        A_w[i, 2, :] = A[rows[0], cols]       
-        A_w[i, 3, :] = A[rows[1], cols]       
+        A_w[i, 2, :] = A[rows[0], cols]
+        A_w[i, 3, :] = A[rows[1], cols]
 
         # Columns associated with lateral frame and fork disturbances, and steer torque
         bb = np.vstack((B_u, B_l))
