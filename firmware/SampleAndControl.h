@@ -18,14 +18,14 @@
 class SampleAndControl : public Singleton<SampleAndControl> {
   friend class Singleton<SampleAndControl>;
  public:
-  msg_t Start(const char * filename);  // need to implement a way to pass filename const char *);
+  msg_t Start(const char * filename);
   msg_t Stop();
 
   const char * fileName() const;
   uint32_t sampleSystemState() const;
   uint32_t systemState() const;
 
-  static void controlThread_(void * arg);
+  static void controlThread_(char *filename);
   static void shellcmd_(BaseSequentialStream *chp, int argc, char *argv[]);
 
  private:
@@ -34,9 +34,11 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   SampleAndControl & operator=(const SampleAndControl &) = delete;
 
   void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
-  void controlThread();
+  void controlThread(char* filename);
   static void writeThread_(void * arg);
   void writeThread();
+  Sample* get_buffer(uint32_t index) const;
+  FRESULT write_last_samples(uint32_t index);
 
   // Data collection related
   void sampleTimers(Sample & s);
@@ -45,7 +47,6 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   WORKING_AREA(waWriteThread, 256);
   Sample samples[NUMBER_OF_SAMPLES];
   FIL f_;
-  char filename_[24];
   Thread * tp_control;
   Thread * tp_write;
   uint32_t state_;

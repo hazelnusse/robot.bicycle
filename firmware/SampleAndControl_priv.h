@@ -18,9 +18,9 @@ msg_t SampleAndControl::Stop()
 }
 
 inline
-void SampleAndControl::controlThread_(void *)
+void SampleAndControl::controlThread_(char *filename)
 {
-  SampleAndControl::Instance().controlThread();
+  SampleAndControl::Instance().controlThread(filename);
 }
 
 inline
@@ -38,12 +38,6 @@ void SampleAndControl::sampleTimers(Sample & s)
   s.FrontWheelAngle = STM32_TIM4->CNT;
   s.CCR_rw = STM32_TIM1->CCR[0];      // RW PWM duty cycle
   s.CCR_steer = STM32_TIM1->CCR[1];    // Steer PWM duty cycle
-}
-
-inline
-const char * SampleAndControl::fileName() const
-{
-  return filename_;
 }
 
 inline

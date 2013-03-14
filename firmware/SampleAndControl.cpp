@@ -12,20 +12,19 @@ SampleAndControl::SampleAndControl()
 {
 }
 
-void SampleAndControl::controlThread()
+void SampleAndControl::controlThread(char* filename)
 {
   chRegSetThreadName("Control");
   FRESULT res;
   msg_t msg;
 
-  res = f_open(&f_, filename_, FA_CREATE_ALWAYS | FA_WRITE);
+  res = f_open(&f_, filename, FA_CREATE_ALWAYS | FA_WRITE);
   if (res != FR_OK) {
     chSysHalt(); while (1) {}   // couldn't properly open the file!
   }
 
   for (uint32_t i = 0; i < NUMBER_OF_SAMPLES; ++i)
     samples[i].clear();
-//    clearSample(samples[i]);
 
   MPU6050 & imu = MPU6050::Instance();
   imu.Initialize(&I2CD2);
@@ -70,21 +69,14 @@ void SampleAndControl::controlThread()
       yc.Update(s);
     // End control
     
-    // Begin data logging
     if (data && (i % (NUMBER_OF_SAMPLES/2) == 0)) {
-      msg_t buffer;
-      if ((i / (NUMBER_OF_SAMPLES/2)) & 1) {  // i is an odd multiple NUMBER_OF_SAMPLES/2  (64, 192, 320, ...)
-        buffer = reinterpret_cast<msg_t>(samples);   // log data in samples[0:63]
-      } else {  // i is an even multiple of NUMBER_OF_SAMPLES/2 (0, 128, 256, ...)
-        buffer = reinterpret_cast<msg_t>(samples + (NUMBER_OF_SAMPLES/2)); // log data in samples[63:127]
-      }
+      /* write data from buffer half that just completed */
+      msg_t buffer = reinterpret_cast<msg_t>(get_buffer(i + NUMBER_OF_SAMPLES / 2));
       state_ |= Sample::FileSystemWriteTriggered;
       msg = chMsgSend(tp_write, buffer);
-      if (static_cast<FRESULT>(msg) != FR_OK) {
+      if (static_cast<FRESULT>(msg) != FR_OK)
         ++write_errors;
-      }
     }
-    // End data logging 
 
     data = true;
 
@@ -104,45 +96,45 @@ void SampleAndControl::controlThread()
   // End cleanup
 
   msg = chMsgSend(tp_write, 0); // send a message to end the write thread.
-  if (static_cast<FRESULT>(msg) != FR_OK) {
+  if (static_cast<FRESULT>(msg) != FR_OK)
     ++write_errors;
-  }
 
-  while (tp_write) {
+  while (tp_write)
     chThdYield();           // yield this time slot so write thread can finish
-  }
 
   // Write remaing samples in partially filled buffer.
-  {
-    uint32_t j = i % NUMBER_OF_SAMPLES;   // j \in [0, NUMBER_OF_SAMPLES)
-    uint8_t * b;
-    UINT bytes;
-    if (j > (NUMBER_OF_SAMPLES/2 - 1)) {  // j \in [NUMBER_OF_SAMPLES/2, NUMBER_OF_SAMPLES)
-      b = reinterpret_cast<uint8_t *>(samples + NUMBER_OF_SAMPLES/2);
-      j %= NUMBER_OF_SAMPLES/2;
-    } else {                              // j \in [0, NUMBER_OF_SAMPLES/2)
-      b = reinterpret_cast<uint8_t *>(samples);
-    }
-    if (j) { // there are samples to write
-      res = f_write(&f_, b, sizeof(Sample)*j, &bytes);
-    }
-    if (res != FR_OK)
-      ++write_errors;
-  }
-
+  if (write_last_samples(i) != FR_OK)
+    ++write_errors;
   // Save system state, clearing a few bits.
   state_ &= ~(Sample::CollectionEnabled | Sample::FileSystemWriteTriggered
               | Sample::RearWheelMotorEnable | Sample::SteerMotorEnable);
-
   f_close(&f_);           // close the file
-  for (int i = 0; i < 24; ++i) // clear the filename
-    filename_[i] = 0;       // clear the filename
-
   chThdExit(write_errors);
 }
 
+Sample* SampleAndControl::get_buffer(uint32_t index) const {
+  /* If i is an odd multiple NUMBER_OF_SAMPLES/2  (64, 192, 320, ...), return
+   * the second half of the buffer. Otherwise return the first half.
+   * */
+  uint32_t offset = 0;
+  if ((index / (NUMBER_OF_SAMPLES / 2)) & 1) 
+    offset = NUMBER_OF_SAMPLES / 2;
+  return const_cast<Sample*>(samples) + offset;
+}
+
+FRESULT SampleAndControl::write_last_samples(uint32_t index) {
+  FRESULT res = FR_OK;
+  uint32_t j = index % (NUMBER_OF_SAMPLES/2);
+  if (j) {
+    uint8_t* b = reinterpret_cast<uint8_t*>(get_buffer(index));
+    UINT bytes;
+    res = f_write(&f_, b, sizeof(Sample) * j, &bytes);
+  }
+  return res;
+}
+
 // Caller: Shell thread
-void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[] __attribute__((unused)))
+void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
   if (argc == 0) {         // Start/Stop data collection, default filename
     if (tp_control) {      // Data collection enabled
@@ -173,70 +165,6 @@ void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[
   }
 }
 
-//void SampleAndControl::setFilename(const char * name)
-//{
-//  std::strcpy(Filename_, name);
-//}
-
-
-//    Sample & s = sb.CurrentSample();
-//    uint32_t state = 0;
-//    
-//    s.SystemTime = STM32_TIM5->CNT;
-
-    
-    // Get rear wheel angle and rear wheel rotation direction
-    // s.RearWheelAngle = rw.QuadratureCount();
-    // state |= rw.RotationDir() | rw.CurrentDir();
-
-
-//    s.FrontWheelAngle = STM32_TIM4->CNT;
-//    s.SteerAngle = STM32_TIM3->CNT;
-//
-//    s.RearWheelRate_sp = rw.RateCommanded();
-    // s.YawRate_sp = yc.RateCommanded();
-
-    // Compute new speed control action if controller is enabled.
-    // if (rw.isEnabled()) {
-//      state |= Sample::RearWheelMotorEnable;
-//      if (i % con::RW_N == 0) {    // only update control law every RW_N times
-//        rw.Update(s.SystemTime, s.RearWheelAngle);
-//      }
-//     }
-
-    // Compute new steer control action if yaw controller is enabled.
-    //if (yc.isEnabled()) {
-    //  state |= Sample::YawRateControl;
-    //  yc.Update(s);
-    //}
-
-//    s.CCR_rw = rw.PWM_CCR();
-    //s.CCR_steer = yc.PWM_CCR();
-
-    // Check for motor faults
-//    if (rw.hasFault()) {
-//      state |= Sample::HubMotorFault;
-//      ++rw_fault_count;
-//      if (rw_fault_count > 10)  // debounce
-//        break;
-//    } else {
-//      rw_fault_count = 0;
-//    }
-//    
-//    if (yc.hasFault()) {
-//      state |= Sample::SteerMotorFault;
-//      ++steer_fault_count;
-//      if (steer_fault_count > 10)  // debounce
-//        break;
-//    } else {
-//      steer_fault_count = 0;
-//    }
-
-//    s.SystemState = state;
-  // sb.Reset();  // Throw away the data in the partially filled front buffer
-  // rw.turnOff();
-  // yc.turnOff();
-
 void SampleAndControl::writeThread()
 {
   UINT bytes;
@@ -259,10 +187,9 @@ void SampleAndControl::writeThread()
   chThdExit(0);
 }
 
-msg_t SampleAndControl::Start(const char * filename)
+msg_t SampleAndControl::Start(const char* filename)
 {
   msg_t m = 0;
-  std::strcpy(filename_, filename);   // save the filename
   tp_write = chThdCreateStatic(SampleAndControl::waWriteThread,
                           sizeof(waWriteThread),
                           NORMALPRIO,
@@ -275,7 +202,7 @@ msg_t SampleAndControl::Start(const char * filename)
                           sizeof(waControlThread),
                           NORMALPRIO,
                           reinterpret_cast<tfunc_t>(controlThread_),
-                          0);
+                          const_cast<char*>(filename));
   if (!tp_control) {
     m |= (1 << 1);
   }
