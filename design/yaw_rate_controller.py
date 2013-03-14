@@ -19,10 +19,11 @@ radius = rear.R
 #data = np.load('benchmark_bicycle_linear_dynamics_vs_logspeed.npz')
 #radius = w.rR
 
-theta_R_dot = data['theta_R_dot']
-A_w = data['A_w']
-B_w = data['B_w']
-C_w = data['C_w']   # steer, roll rate, yaw rate measurements
+skip = 1
+theta_R_dot = data['theta_R_dot'][::skip]
+A_w = data['A_w'][::skip]
+B_w = data['B_w'][::skip]
+C_w = data['C_w'][::skip]   # steer, roll rate, yaw rate measurements
 N = len(theta_R_dot)
 
 def plot_evals():

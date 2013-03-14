@@ -4,13 +4,14 @@
 namespace cg {
 
 void lu_bounds(float theta_R_dot, const ControllerGains * ar[2]) {
-  static ControllerGains temp;  // a little wasteful of space but oh well.
+  static ControllerGains temp;
   temp.theta_R_dot = theta_R_dot;
+  // Assumption: gains are in sorted order (smallest to largest)
   auto up = std::upper_bound(gains.begin(), gains.end(), temp);
-  if (up == gains.end()) { // speed is greater than highest speed in range
+  if (up == gains.end()) { // signed rear wheel rate is greater than greatest rear wheel rate output
     ar[0] = up;
     ar[1] = nullptr;
-  } else if (up == gains.begin()) {  // speed is lower than lowest speed
+  } else if (up == gains.begin()) {  // signed rear wheel rate is lower than lowest rear wheel rate output
     ar[0] = nullptr;
     ar[1] = up;
   } else { // normal case when speed is inside range
@@ -46,3 +47,4 @@ const std::array<ControllerGains, num_gains> gains = {{ "{{" }}
 {% endfor %}
 {{ "}}" }}; /* gains */
 } /* namespace cg */
+

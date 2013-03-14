@@ -13,7 +13,8 @@ import yaw_rate_controller as yrc
 
 def generate(ccinfile, hinfile):
     c_data = yrc.design_controller()
-    render_dict = {'NUMGAINS' : len(c_data),
+    c_data_sorted = sorted(c_data, key=lambda c: c['theta_R_dot'])
+    render_dict = {'NUMGAINS' : len(c_data_sorted),
                    'AROWS' : 5,
                    'ACOLS' : 5,
                    'BROWS' : 5,
@@ -23,10 +24,10 @@ def generate(ccinfile, hinfile):
     GAINS = []
     SPEED = []
     for i in range(render_dict['NUMGAINS']):
-        SPEED.append(c_data[i]['theta_R_dot'])
-        A = c_data[i]['A_ce']
-        B = c_data[i]['B_ce']
-        C = c_data[i]['F']
+        SPEED.append(c_data_sorted[i]['theta_R_dot'])
+        A = c_data_sorted[i]['A_ce']
+        B = c_data_sorted[i]['B_ce']
+        C = c_data_sorted[i]['F']
         GAINS.append({'A_c' : A, 'B_c' : B, 'C_c' : C})
     render_dict['GAINS'] = GAINS
     render_dict['SPEED'] = SPEED
