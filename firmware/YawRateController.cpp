@@ -78,32 +78,27 @@ void YawRateController::Update(const Sample & s)
   float phi_dot = imu_calibration::dcm[0] * wx +
                   imu_calibration::dcm[3] * wy +
                   imu_calibration::dcm[5] * wz;
-//  cg::ControllerGains * gains = cg::gains[RearWheel::Instance().RateEstimate()];
-  auto gains = cg::gains.lu_bounds(RearWheel::Instance().RateEstimate());
+  
+  // Obtain references to Controller gains at speeds which bound measured speed
+  const cg::ControllerGains * ar[2];
+  lu_bounds(RearWheel::Instance().RateEstimate(), ar);
 
-  if (!gains.first || !gains.second) { // outside speed range for which gains have been scheduled
-    setCurrent(0.0f);
-    return;
+  u_ = 0.0f;
+  if (ar[0] != nullptr && ar[1] != nullptr) { // speed is inside range of allowed speeds
+    for (int k = 0; k < 2; ++k) {
+      for (int i = 0; i < 5; ++i) {
+        u_ += ar[k]->C[i] * x_[i];
+      } // for i
+    } // for k
   }
+  setCurrent(u_ * cf::kT_steer / 2.0f);
 
-  cg::ControllerGains * ar[2] = {gains.first, gains.second};
-
+  // Compute state update
   // controller inputs are:
   //   - yaw rate reference,
   //   - steer angle measurement
   //   - roll rate measurement
   float yrc_input[3] = {r_, delta, phi_dot};
- 
-  // Compute output control signal
-  float torque = 0.0f;
-  for (int k = 0; k < 2; ++k) {
-    for (int i = 0; i < 5; ++i) {
-      torque += ar[k]->C[i] * x_[i];
-    }
-  } // for k
-  setCurrent(torque * cf::kT_steer / 2.0f);
-
-  // Compute state update
   float x_new[cg::a_rows] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
   for (int k = 0; k < 2; ++k) {
     for (int i = 0; i < cg::a_rows; ++i) {   // rows of state equations

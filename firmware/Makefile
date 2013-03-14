@@ -70,7 +70,6 @@ include $(CHIBIOS)/os/hal/platforms/STM32F4xx/platform.mk
 include $(CHIBIOS)/os/hal/hal.mk
 include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F4xx/port.mk
 include $(CHIBIOS)/os/kernel/kernel.mk
-include $(CHIBIOS)/os/various/lwip_bindings/lwip.mk
 include $(CHIBIOS)/os/various/fatfs_bindings/fatfs.mk
 include $(CHIBIOS)/test/test.mk
 

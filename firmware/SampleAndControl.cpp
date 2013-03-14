@@ -63,10 +63,10 @@ void SampleAndControl::controlThread()
     // End data collection
 
     // Begin control
-    if (rw.isEnabled() & (i % con::RW_N == 0))
+    if (rw.isEnabled() && (i % con::RW_N == 0))
       rw.Update(s.SystemTime, s.RearWheelAngle);
 
-    if (yc.isEnabled() & (i % con::YC_N == 0))
+    if (yc.isEnabled() && (i % con::YC_N == 0))
       yc.Update(s);
     // End control
     

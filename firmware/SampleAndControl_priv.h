@@ -17,16 +17,14 @@ msg_t SampleAndControl::Stop()
   return m;
 }
 
-__attribute__((noreturn))
 inline
-void SampleAndControl::controlThread_(__attribute__((unused))void * arg)
+void SampleAndControl::controlThread_(void *)
 {
   SampleAndControl::Instance().controlThread();
 }
 
-__attribute__((noreturn))
 inline
-void SampleAndControl::writeThread_(__attribute__((unused)) void * arg)
+void SampleAndControl::writeThread_(void *)
 {
   SampleAndControl::Instance().writeThread();
 }
