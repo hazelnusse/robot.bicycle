@@ -3,6 +3,9 @@ from sympy.physics.mechanics import ReferenceFrame
 from sympy import symbols, pi, Matrix, zeros
 import numpy as np
 import scipy.optimize as so
+import os
+import sys
+sys.path.append(os.path.join(os.getcwd(), "..", "common"))
 import sampletypes as st
 
 def denormalize(x):
@@ -54,7 +57,7 @@ E = D.orientnew('E', 'Axis', [pi + theta_s, D.z])
 S = E.orientnew('S', 'Axis', [psi_s, E.y])
 
 # 6 static configurations to put bicycle in and collect acclerometer data
-datadir = "./imu_calibration/"
+datadir = "../data/imu_calibration/"
 configurations = [{phi : 0, theta : 0,
                    'files' : [datadir + "savup01_converted.dat",
                               datadir + "savup02_converted.dat"]},

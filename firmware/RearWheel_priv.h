@@ -63,12 +63,6 @@ void RearWheel::IntegralGain(float ki)
 }
 
 inline
-void RearWheel::DerivativeGain(float kd)
-{
-  Kd_ = kd;
-}
-
-inline
 void RearWheel::setCurrentDirPositive()
 {
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_RW_DIR)) = 0x0;

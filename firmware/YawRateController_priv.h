@@ -26,6 +26,9 @@ void YawRateController::homeFork_(BaseSequentialStream * chp, int __attribute__(
 inline
 void YawRateController::turnOn()
 {
+  if (!homed_)
+    return;
+
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_STEER_ENABLE)) = 0x0;
   Reset();
 }

@@ -102,6 +102,7 @@ CPPSRC = main.cpp \
 				 textutilities.cpp \
 				 VectorTable.cpp \
 				 Interrupts.cpp \
+				 imu_calibration.cpp \
 				 cgains.cpp
 
 

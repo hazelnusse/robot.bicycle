@@ -12,6 +12,7 @@ class constants {
   static constexpr T pi_4 = std::atan(1.0);
   static constexpr T two_pi = 2.0*pi;
   static constexpr T rad_per_degree = pi / 180.0;
+  static constexpr T degree_per_rad = 180 / pi;
   static constexpr T e = std::exp(1.0);
   static constexpr T g = 9.81;
 
@@ -58,8 +59,10 @@ class constants {
   static constexpr T mT = 37.0;
   static constexpr T J = rr*rr*mT + Jr + (rr*rr/rf/rf)*Jf;
   static constexpr T c_rw = 0.01;
-  static constexpr T kT_rw = .3;
-  static constexpr T kT_steer = 1.0;
+  static constexpr T kT_rw = 6.654987675770698;
+  static constexpr T Nm_per_ozfin = 0.00706155182175;
+  static constexpr T kT_steer = 106.459 * Nm_per_ozfin;
+  static constexpr T kT_steer_inv = 1.0 / kT_steer;
 };
 
 class reg {

@@ -53,7 +53,6 @@ class RearWheel : public Singleton<RearWheel> {
         r_,     /*! Commanded rear wheel rate */
         Kp_,    /*! Proportional gain */
         Ki_,    /*! Integral gain */
-        Kd_,    /*! Derivative gain */
         e_int_, /*! Integral of error */
         z_;     /*! Most recent speed estimate */
 
@@ -63,3 +62,4 @@ class RearWheel : public Singleton<RearWheel> {
 
 #include "RearWheel_priv.h"
 #endif
+

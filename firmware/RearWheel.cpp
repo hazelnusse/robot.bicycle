@@ -9,8 +9,7 @@
 #include "textutilities.h"
 
 RearWheel::RearWheel()
-  : u_(0.0f), r_(0.0f), Kp_(1.0f), Ki_(1.0f), Kd_(0.0f),
-    e_int_(0.0f), N_(0), cnt_(0)
+  : u_(0.0f), r_(0.0f), Kp_(1.0f), Ki_(1.0f), e_int_(0.0f), N_(0), cnt_(0)
 {
   turnOff();
 } // RearWheel()
@@ -65,12 +64,11 @@ void RearWheel::Update(uint32_t N, uint32_t cnt)
 
   setCurrent(I);
 
-  if (u_ == I) { // we haven't saturated
+  if (u_ == I)                // we haven't saturated
     e_int_ = e_int_update;    // update integral of error
-  }
 
-  N_ = N;     // save timer count
-  cnt_ = cnt; // save quadrature count
+  N_ = N;                     // save timer count
+  cnt_ = cnt;                 // save quadrature count
 }
 
 
