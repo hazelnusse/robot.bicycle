@@ -1,3 +1,5 @@
+import inspect
+import sys
 import numpy as np
 import sampletypes as st
 import matplotlib.pyplot as plt
@@ -6,31 +8,33 @@ def get_color():
     for item in ['r', 'g', 'b']:
         yield item
 
+def class_objects(prefix):
+    d = {}
+    for name, obj in inspect.getmembers(sys.modules[__name__]):
+        if inspect.isclass(obj) and name.startswith(prefix):
+            d[name] = obj
+    return d
+
 class Samples(object):
-    def __init__(self, datafile):
+    def __init__(self, datafile, args):
         self.load_file(datafile)
         self.plots = []
-        self.set_plots()
+        self.set_plots(args)
 
     def load_file(self, datafile):
         self.data = np.fromfile(datafile, dtype=st.sample_t)
 
-    def set_plots(self):
+    def set_plots(self, args):
         self.plots = []
-        self.rearwheel = PlotRearWheel(self)
-        self.accelerometer = PlotAccelerometer(self)
-        self.gyroscope = PlotGyroscope(self)
-        self.temperature = PlotTemperature(self)
-        self.time = PlotTime(self)
-        self.steer = PlotSteer(self)
-        #self.state = PlotState(self)
-        self.plots.append(self.rearwheel)
-        self.plots.append(self.accelerometer)
-        self.plots.append(self.gyroscope)
-        self.plots.append(self.temperature)
-        self.plots.append(self.time)
-        self.plots.append(self.steer)
-        #self.plots.append(self.state)
+        plot_classes = class_objects("Plot")
+        if not args:
+            args = [name for name in plot_classes.keys() if
+                    (name != 'PlotBase' and name != 'PlotState')]
+        for p in args:
+            if p in plot_classes:
+                plot = plot_classes[p](self)
+                setattr(self, p[len('Plot'):].lower(), plot)
+                self.plots.append(plot)
 
     def draw_plots(self):
         for p in self.plots:
