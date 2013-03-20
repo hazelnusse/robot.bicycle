@@ -72,15 +72,18 @@ void YawRateController::Update(const Sample & s)
                           s.SteerAngle * cf::Steer_rad_per_quad_count,
                           imu_calibration::phi_dot(s)};
 
+  float steer_torque;
+
   // Perform controller state update as long as steer isn't too big
   if ((std::fabs(input[1]) < (45.0f * cf::rad_per_degree)) &&
-      cg::state_and_output_update(theta_R_dot, input, x_, u_)) {
-      setCurrent(u_ * cf::kT_steer_inv);
+    cg::state_and_output_update(theta_R_dot, input, x_, steer_torque)) {
+    u_ = steer_torque * cf::kT_steer_inv;
   } else {
-    setCurrent(0.0f);
+    u_ = 0.0f;
   }
-} // Update
 
+  setCurrent(u_);
+} // Update
 
 void YawRateController::calibrateSteerEncoder(BaseSequentialStream * chp)
 {

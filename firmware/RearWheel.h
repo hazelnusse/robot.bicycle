@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include "Singleton.h"
+#include "Sample.h"
 
 class RearWheel : public Singleton<RearWheel> {
   friend class Singleton<RearWheel>;
@@ -25,7 +26,7 @@ class RearWheel : public Singleton<RearWheel> {
   void IntegralGain(float ki);
   void DerivativeGain(float kd);
 
-  void Update(uint32_t N, uint32_t cnt);
+  void Update(const Sample & s);
 
   bool hasFault();
 
@@ -56,8 +57,8 @@ class RearWheel : public Singleton<RearWheel> {
         e_int_, /*! Integral of error */
         z_;     /*! Most recent speed estimate */
 
-  uint32_t N_,  /*! System timer counts at most recent update */
-           cnt_;/*! Wheel quadrature counts at most recent update */
+  uint32_t SystemTime_prev_,    /*! System timer counts at previous update */
+           RearWheelAngle_prev_;/*! Wheel quadrature counts at previous update */
 };
 
 #include "RearWheel_priv.h"

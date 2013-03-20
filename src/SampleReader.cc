@@ -3,6 +3,8 @@
 #include "SampleReader.h"
 #include "Sample.h"
 #include "Constants.h"
+#include "imu_calibration.h"
+#include "cgains.h"
 
 
 SampleReader::SampleReader(const char * fname)
@@ -42,7 +44,7 @@ std::vector<SampleConverted> SampleReader::Convert()
     uint32_t t, t0 = samples_[0].SystemTime;
     std::cout << "N_t0 = " << t0 << std::endl;
     uint32_t t_prev = 0;
-    for (int i = 0; i < samples_.size(); ++i) {
+    for (unsigned int i = 0; i < samples_.size(); ++i) {
       SampleConverted sc;
       
       // Accelerometer
@@ -101,7 +103,6 @@ std::vector<SampleConverted> SampleReader::Convert()
         std::cout << "t[" << i << "] = " << t << std::endl;
       }
       sc.Time = (t - t0) * cd::Rate_Timer_sec_per_count;
-      t_prev = t;
 
       // Convert loop time
       sc.ComputationTime = samples_[i].ComputationTime * cd::Rate_Timer_sec_per_count;
@@ -109,11 +110,39 @@ std::vector<SampleConverted> SampleReader::Convert()
       // No conversion needed for Errorcodes
       sc.SystemState = samples_[i].SystemState;
 
+      sc.phi_dot = imu_calibration::phi_dot(samples_[i]);
+      if (i == 0) {
+        sc.theta_R_dot = 0.0f;
+        for (int k = 0; k < 5; ++k)
+          sc.x[k] = 0.0f;
+        sc.steer_torque = 0.0f;
+      } else {
+        const float dtheta = samples_[i].RearWheelAngle - samples_[i - 1].RearWheelAngle;
+        const float dt = sc.Time - samplesConverted_.end()->Time;
+        sc.theta_R_dot = dtheta  / dt;
+        float input[3] = {samples_[i].YawRate_sp,
+                          samples_[i].SteerAngle * cf::Steer_rad_per_quad_count,
+                          imu_calibration::phi_dot(samples_[i])};
+
+        float steer_torque, current;
+        // Perform controller state update as long as steer isn't too big
+        if ((std::fabs(input[1]) < (45.0f * cf::rad_per_degree)) &&
+          cg::state_and_output_update(sc.theta_R_dot, input, sc.x, steer_torque)) {
+          current = steer_torque * cf::kT_steer_inv;
+        } else {
+          current = 0.0f;
+        }
+        sc.steer_torque = steer_torque;
+        sc.steer_current = current;
+      }
+
       // Add sc to SampleConverted vector
       samplesConverted_.push_back(sc);
+      t_prev = t;
     }
     std::cout << "Total time = " << (t - t0) * cd::Rate_Timer_sec_per_count << std::endl;
     converted_ = true;
   }
   return samplesConverted_;
 }
+

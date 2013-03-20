@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
                               << " bytes per sample " << std::endl;
 
   std::ofstream outfile(argv[2], std::ios_base::out | std::ios_base::binary);
-  for (int i; i < samples.size(); ++i) {
+  for (unsigned int i = 0; i < samples.size(); ++i) {
     outfile.write(reinterpret_cast<char *>(&samples[i]), sizeof(SampleConverted));
   }
   outfile.close();

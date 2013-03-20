@@ -5,6 +5,7 @@
 
 class __attribute__((__packed__)) SampleConverted {
  public:
+  // Converted raw data
   // Time sample was taken
   double Time;
   // Control loop sample and control time
@@ -19,6 +20,14 @@ class __attribute__((__packed__)) SampleConverted {
   double I_rw, I_steer;
   // System state bits
   uint32_t SystemState;
+
+  // Generated data useful for debugging
+  float theta_R_dot;    // check rear wheel rate estimate
+  float phi_dot;        // check that imu_calibration is reasonable
+  float x[5];           // check state update equations
+  float steer_torque;   // calculated steer torque
+  float steer_current;  // calculated steer current
 };
 
 #endif
+

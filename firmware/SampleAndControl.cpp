@@ -63,7 +63,7 @@ void SampleAndControl::controlThread(char* filename)
 
     // Begin control
     if (rw.isEnabled() && (i % con::RW_N == 0))
-      rw.Update(s.SystemTime, s.RearWheelAngle);
+      rw.Update(s);
 
     if (yc.isEnabled() && (i % con::YC_N == 0))
       yc.Update(s);
