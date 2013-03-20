@@ -45,6 +45,18 @@ if __name__ == "__main__":
                         const="PlotSteerAngle", help="Plot Steer Angle")
     parser.add_argument("-S", "--state", dest="plots", action="append_const",
                         const="PlotState", help="Plot State")
+    parser.add_argument("--theta_R_dot", dest="plots", action="append_const",
+                        const="PlotRearWheelRate", help="Plot estimated " +
+                                                        "rear wheel rate")
+    parser.add_argument("--phi_dot", dest="plots", action="append_const",
+                        const="PlotRollRate", help="Plot estimated " +
+                                                        "roll rate")
+    parser.add_argument("--controller_states", dest="plots", action="append_const",
+                        const="PlotControllerStates", help="Plot " +
+                                                        "controller states")
+    parser.add_argument("--steer_torque_current", dest="plots", action="append_const",
+                        const="PlotSteerTorqueAndCurrent", help="Plot " +
+                                                        "steer torque and current")
     args = parser.parse_args()
     plot(args)
-#plot(interpret_args(args))
+

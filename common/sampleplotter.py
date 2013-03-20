@@ -211,3 +211,64 @@ class PlotSteer(PlotBase):
         ax.set_ylabel('[rad]')
         ax.set_xlabel('time [s]')
         ax.set_title('Steer angle')
+
+class PlotRearWheelRate(PlotBase):
+    def __init__(self, parent):
+        super(PlotRearWheelRate, self).__init__(parent)
+
+    def plot_data(self):
+        data = self.parent.data
+        ax = self.axes
+        ax.step(data['T'], data['theta_R_dot'], label='$\\dot{\\theta}_R$')
+        ax.legend(loc=0)
+        ax.set_ylabel('[rad / s]')
+        ax.set_xlabel('time [s]')
+        ax.set_title('Rear wheel rate')
+
+
+class PlotRollRate(PlotBase):
+    def __init__(self, parent):
+        super(PlotRollRate, self).__init__(parent)
+
+    def plot_data(self):
+        data = self.parent.data
+        ax = self.axes
+        ax.step(data['T'], data['phi_dot'], label='$\\dot{\\phi}$')
+        ax.legend(loc=0)
+        ax.set_ylabel('[rad / s]')
+        ax.set_xlabel('time [s]')
+        ax.set_title('Estimated roll rate')
+
+
+class PlotControllerStates(PlotBase):
+    def __init__(self, parent):
+        super(PlotControllerStates, self).__init__(parent)
+
+    def plot_data(self):
+        data = self.parent.data
+        ax = self.axes
+        ax.step(data['T'], data['x'][:, 0], label='$\\phi$')
+        ax.step(data['T'], data['x'][:, 1], label='$\\delta$')
+        ax.step(data['T'], data['x'][:, 2], label='$\\dot{\\phi}$')
+        ax.step(data['T'], data['x'][:, 3], label='$\\dot{\\delta}$')
+        ax.step(data['T'], data['x'][:, 4], label='$x_I$')
+        ax.legend(loc=0)
+        ax.set_ylabel('[rad, rad/s]')
+        ax.set_xlabel('time [s]')
+        ax.set_title('State estimates')
+
+
+class PlotSteerTorqueAndCurrent(PlotBase):
+    def __init__(self, parent):
+        super(PlotSteerTorqueAndCurrent, self).__init__(parent)
+
+    def plot_data(self):
+        data = self.parent.data
+        ax = self.axes
+        ax.step(data['T'], data['steer_torque'], label='$\\tau_\\delta$')
+        ax.step(data['T'], data['steer_current'], label='$I_\\delta$')
+        ax.legend(loc=0)
+        ax.set_ylabel('[N m, A]')
+        ax.set_xlabel('time [s]')
+        ax.set_title('Steer torque and current')
+

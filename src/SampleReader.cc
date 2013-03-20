@@ -116,24 +116,35 @@ std::vector<SampleConverted> SampleReader::Convert()
         for (int k = 0; k < 5; ++k)
           sc.x[k] = 0.0f;
         sc.steer_torque = 0.0f;
-      } else {
-        const float dtheta = samples_[i].RearWheelAngle - samples_[i - 1].RearWheelAngle;
-        const float dt = sc.Time - samplesConverted_.end()->Time;
-        sc.theta_R_dot = dtheta  / dt;
-        float input[3] = {samples_[i].YawRate_sp,
-                          samples_[i].SteerAngle * cf::Steer_rad_per_quad_count,
-                          imu_calibration::phi_dot(samples_[i])};
+        sc.steer_current = 0.0f;
+      } else { 
+          if (i % con::RW_N == 0) {
+            const float dtheta = static_cast<int16_t>(samples_[i].RearWheelAngle
+                                  - samples_[i - con::RW_N].RearWheelAngle)
+                         * cf::Wheel_rad_per_quad_count;
 
-        float steer_torque, current;
-        // Perform controller state update as long as steer isn't too big
-        if ((std::fabs(input[1]) < (45.0f * cf::rad_per_degree)) &&
-          cg::state_and_output_update(sc.theta_R_dot, input, sc.x, steer_torque)) {
-          current = steer_torque * cf::kT_steer_inv;
-        } else {
-          current = 0.0f;
-        }
-        sc.steer_torque = steer_torque;
-        sc.steer_current = current;
+            const float dt = sc.Time - (samplesConverted_.end() - con::RW_N)->Time;
+            sc.theta_R_dot = dtheta  / dt;
+          } else {
+            sc.theta_R_dot = samplesConverted_.back().theta_R_dot;
+          }
+
+          float input[3] = {samples_[i].YawRate_sp,
+                            samples_[i].SteerAngle * cf::Steer_rad_per_quad_count,
+                            sc.phi_dot};
+
+          float steer_torque = samplesConverted_.back().steer_torque,
+                current;
+          // Perform controller state update as long as steer isn't too big
+          if ((std::fabs(input[1]) < (45.0f * cf::rad_per_degree)) &&
+              cg::state_and_output_update(sc.theta_R_dot, input, sc.x, steer_torque)) {
+              current = steer_torque * cf::kT_steer_inv;
+          } else {
+            current = 0.0f;
+            steer_torque = 0.0f;
+          }
+          sc.steer_torque = steer_torque;
+          sc.steer_current = current;
       }
 
       // Add sc to SampleConverted vector
