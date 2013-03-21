@@ -67,7 +67,7 @@ class constants {
 
 class reg {
  public:
-  static constexpr uint32_t PWM_ARR = 0xFFFF;
+  static constexpr uint32_t PWM_ARR = 0xFFFE;
   static constexpr uint32_t ENC_ARR = 0xFFFF;
 };
 

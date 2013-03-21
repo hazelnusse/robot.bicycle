@@ -104,9 +104,9 @@ static void configureMotorPWM()
   STM32_TIM1->PSC = 0; // Results in 168MHz TIM3 Counter clock
 
   // TIM1 Frequency = TIM1 counter clock / (ARR + 1)
-  //                = 168 MHz / 2^16
-  //                = 2563.48 Hz
-  STM32_TIM1->ARR = reg::PWM_ARR; // 2^16 - 1
+  //                = 168 MHz / (2^16 - 1)
+  //                = 2563.52 Hz
+  STM32_TIM1->ARR = reg::PWM_ARR; // 2^16 - 2
 
   // Select PWM1 mode for OC1 and OC2 (OCX inactive when CNT<CCRX)
   STM32_TIM1->CCMR1 = (0b110 << 12) | (0b110 << 4);
