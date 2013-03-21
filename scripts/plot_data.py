@@ -5,7 +5,8 @@ Requires data to be converted.
 
 import os
 import sys
-sys.path.append(os.path.join(os.getcwd(), "..", "common"))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                             "..", "common"))
 
 import argparse
 import sys
