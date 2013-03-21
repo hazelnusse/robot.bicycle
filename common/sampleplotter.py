@@ -29,7 +29,7 @@ class Samples(object):
         plot_classes = class_objects("Plot")
         if not args:
             args = [name for name in plot_classes.keys() if
-                    (name != 'PlotBase' and name != 'PlotState')]
+                    name != 'PlotBase']
         for p in args:
             if p in plot_classes:
                 plot = plot_classes[p](self)
@@ -157,43 +157,21 @@ class PlotState(PlotBase):
     def plot_data(self):
         data = self.parent.data
         ax = self.axes
-        sc = np.c_[np.right_shift(
-                        np.bitwise_and(data['SystemState'],
-                                       st.SpeedControl),
-                        st.SpeedControl),
-                   np.right_shift(
-                        np.bitwise_and(data['SystemState'],
-                                       st.YawRateControl),
-                        st.YawRateControl),
-                   np.right_shift(
-                        np.bitwise_and(data['SystemState'],
-                                       st.HubMotorFault),
-                        st.HubMotorFault),
-                   np.right_shift(
-                        np.bitwise_and(data['SystemState'],
-                                       st.SteerMotorFault),
-                        st.SteerMotorFault),
-                   np.right_shift(
-                        np.bitwise_and(data['SystemState'],
-                                       st.RearWheelEncoderDir),
-                        st.RearWheelEncoderDir),
-                   np.right_shift(
-                        np.bitwise_and(data['SystemState'],
-                                       st.SteerEncoderDir),
-                        st.SteerEncoderDir),
-                   np.right_shift(
-                        np.bitwise_and(data['SystemState'],
-                                       st.FrontWheelEncoderDir),
-                        st.FrontWheelEncoderDir),
-                   np.right_shift(
-                       np.bitwise_and(data['SystemState'],
-                                      st.RearWheelMotorCurrentDir),
-                       st.RearWheelMotorCurrentDir),
-                   np.right_shift(
-                       np.bitwise_and(data['SystemState'],
-                                      st.SteerMotorCurrentDir),
-                       st.SteerMotorCurrentDir)]
-        lines = ax.matshow(sc.T[:, 4400:4500], aspect=1)
+        bitset = lambda x, y: 1 if x & y else 0
+        bitset_v = np.vectorize(bitset)
+        bitset_state = lambda x: bitset_v(data['SystemState'], x)
+
+        sc = np.c_[bitset_state(st.SpeedControl),
+                   bitset_state(st.YawRateControl),
+                   bitset_state(st.HubMotorFault),
+                   bitset_state(st.SteerMotorFault),
+                   bitset_state(st.RearWheelEncoderDir),
+                   bitset_state(st.SteerEncoderDir),
+                   bitset_state(st.FrontWheelEncoderDir),
+                   bitset_state(st.RearWheelMotorCurrentDir),
+                   bitset_state(st.SteerMotorCurrentDir)]
+        m, n = sc.shape
+        lines = ax.matshow(sc.T, aspect=m/n, cmap='Greys')
 
         #ax[0].legend(loc=0)
         ax.set_title('System state flags')
