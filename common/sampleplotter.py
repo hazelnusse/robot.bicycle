@@ -199,9 +199,9 @@ class PlotState(PlotBase):
         ax.set_title('System state flags')
         ax.set_xlabel('time [s]')
 
-class PlotSteer(PlotBase):
+class PlotSteerAngle(PlotBase):
     def __init__(self, parent):
-        super(PlotSteer, self).__init__(parent)
+        super(PlotSteerAngle, self).__init__(parent)
 
     def plot_data(self):
         data = self.parent.data
@@ -267,8 +267,10 @@ class PlotSteerTorqueAndCurrent(PlotBase):
         ax = self.axes
         ax.step(data['T'], data['steer_torque'], label='$\\tau_\\delta$')
         ax.step(data['T'], data['steer_current'], label='$I_\\delta$')
+        ax.step(data['T'], data['I_steer'], label='$I_\\delta$')
         ax.legend(loc=0)
         ax.set_ylabel('[N m, A]')
         ax.set_xlabel('time [s]')
+        ax.set_ylim((-12, 12))
         ax.set_title('Steer torque and current')
 
