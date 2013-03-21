@@ -23,6 +23,8 @@ struct ControllerGains {
   }
 };
 
+bool lu_bounds(float theta_R_dot, const ControllerGains * ar[2]);
+
 /** State and output update.
  *
  * Performs a lookup on theta_R_dot to determine if it is within range of rear
@@ -45,6 +47,7 @@ struct ControllerGains {
  * are update, otherwise they remain unchange.
  */
 bool state_and_output_update(float theta_R_dot, const float input[3], float x[5], float & y);
+extern const std::array<ControllerGains, num_gains> gains;
 
 } /* namespace cg */
 

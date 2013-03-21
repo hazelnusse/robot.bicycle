@@ -23,4 +23,5 @@ include_directories(${ROBOT_BICYCLE_SOURCE_DIR}/inc
                     ${ROBOT_BICYCLE_SOURCE_DIR}/firmware)
 
 add_subdirectory(${ROBOT_BICYCLE_SOURCE_DIR}/src)
+add_subdirectory(${ROBOT_BICYCLE_SOURCE_DIR}/design)
 
