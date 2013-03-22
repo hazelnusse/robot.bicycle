@@ -243,9 +243,8 @@ class PlotSteerTorqueAndCurrent(PlotBase):
     def plot_data(self):
         data = self.parent.data
         ax = self.axes
-        ax.step(data['T'], data['steer_torque'], label='$\\tau_\\delta$')
+        ax.step(data['T'], data['I_steer'], label='$I_\\delta$ (actual)')
         ax.step(data['T'], data['steer_current'], label='$I_\\delta$')
-        ax.step(data['T'], data['I_steer'], label='$I_\\delta$')
         ax.legend(loc=0)
         ax.set_ylabel('[N m, A]')
         ax.set_xlabel('time [s]')

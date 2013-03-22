@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.signal import dstep
+from scipy.signal import dstep, dlsim
 from parameters import rear, w
+import yaw_rate_controller as yrc
 
 class CDataPlotter(object):
 
@@ -174,10 +175,60 @@ class CDataPlotter(object):
         axarr[1, 1].set_title("Steer rate")
 
 
+    def closed_loop_zero_input(self, speed):
+        i = np.searchsorted(-self.d['theta_R_dot'], speed)
+        C_yr = self.d['C_cl'][i]
+        C_u = np.zeros((1, 9))
+        C_u[:, 4:] = self.d['F'][i]
+        C_x = np.hstack((np.eye(4), np.zeros((4,5))))
+        C_xe = np.hstack((np.zeros((4,4)), np.eye(4), np.zeros((4, 1))))
+
+        C = np.vstack((C_yr, C_u, C_x, C_xe))
+        D = np.zeros((C.shape[0], 1))
+        x0 = np.zeros((9,))
+        u = np.zeros((100,))
+        t = np.linspace(0, 20, 100)
+        # Start the bicycle with non-zero initial conditions to see how
+        # quickly estimator converges given the initial condition mismatch
+        x0[0] = 10.0 * np.pi/180.0  # Initial roll
+        x0[1] = 10.0 * np.pi/180.0  # Initial steer
+        x0[2] = 10.0 * np.pi/180.0  # Initial roll rate
+        x0[3] = 10.0 * np.pi/180.0  # Initial steer rate
+        t, y, x = dlsim((self.d['A_cl'][i],
+                         self.d['B_cl'][i, :, 6].reshape((9,1)),
+                         C,
+                         D,
+                         self.d['dt'][i]),
+                        u=u,
+                        t=t,
+                        x0=x0)
+
+        f, axarr = plt.subplots(2, 1, sharex=True)
+        axarr[0].plot(t, y[:, 0])
+        axarr[0].set_title('Closed loop zero input response, $\\dot{\\theta}_R$'
+                        + ' = {0}'.format(-self.d['theta_R_dot'][i]))
+        axarr[0].set_ylabel("Yaw rate")
+        axarr[1].plot(t, y[:, 1])
+        axarr[1].set_ylabel("Steer torque [N * m]")
+        axarr[1].set_xlabel("Time [s]")
+
+        f, axarr = plt.subplots(2, 2)
+        f.suptitle("Estimator performance")
+        axarr[0, 0].plot(t, y[:, [2, 6]])    # Roll
+        axarr[0, 0].set_title("Roll angle")
+        axarr[0, 1].plot(t, y[:, [3, 7]])    # Steer
+        axarr[0, 1].set_title("Steer angle")
+        axarr[1, 0].plot(t, y[:, [4, 8]])    # Roll rate
+        axarr[1, 0].set_title("Roll rate")
+        axarr[1, 1].plot(t, y[:, [5, 9]])    # Steer rate
+        axarr[1, 1].set_title("Steer rate")
+
+
 def main():
+    yrc.main()
     d = CDataPlotter("controller_data.npz")
     #d.plant_evals()
-    d.plant_evals_c()
+    #d.plant_evals_c()
     #d.plant_damp()
     #d.controller_evals()
     #d.controller_evals_c()
@@ -186,8 +237,9 @@ def main():
     #d.estimator_gains()
     #d.controller_estimator_evals_c()
     #d.closed_loop_evals_c()
-    d.closed_loop_bode(10.0 / rear.R)
-    d.closed_loop_step(10.0 / rear.R)
+    #d.closed_loop_bode(2.0 / rear.R)
+    d.closed_loop_step(2.0 / rear.R)
+    d.closed_loop_zero_input(2.0 / rear.R)
     plt.show()
 
 if __name__ == "__main__":
