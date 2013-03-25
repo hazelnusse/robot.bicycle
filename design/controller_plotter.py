@@ -122,18 +122,29 @@ class CDataPlotter(object):
         plt.title("Closed loop eigenvalues (continuous)")
 
     def closed_loop_bode(self, speed):
-        i = np.searchsorted(-self.d['theta_R_dot'], speed)
+        i = np.searchsorted(self.d['theta_R_dot'], speed)
         f, axarr = plt.subplots(2, 1, sharex=True)
-        axarr[0].semilogx(self.d['w'][i], self.d['mag_cl'][i])
+        axarr[0].semilogx(self.d['w_cl'][i], self.d['mag_cl'][i])
         axarr[0].set_title('Closed loop tf, $\\dot{\\theta}_R$'
                         + ' = {0}'.format(-self.d['theta_R_dot'][i]))
         axarr[0].set_ylabel("Magnitude [dB]")
-        axarr[1].semilogx(self.d['w'][i], self.d['phase_cl'][i])
+        axarr[1].semilogx(self.d['w_cl'][i], self.d['phase_cl'][i])
+        axarr[1].set_xlabel("Frequency [Hz]")
+        axarr[1].set_ylabel("Phase [deg]")
+    
+    def noise_to_torque_bode(self, speed):
+        i = np.searchsorted(self.d['theta_R_dot'], speed)
+        f, axarr = plt.subplots(2, 1, sharex=True)
+        axarr[0].semilogx(self.d['w_n_to_u'][i], self.d['mag_n_to_u'][i])
+        axarr[0].set_title('Noise to torque bode, $\\dot{\\theta}_R$'
+                        + ' = {0}'.format(-self.d['theta_R_dot'][i]))
+        axarr[0].set_ylabel("Magnitude [dB]")
+        axarr[1].semilogx(self.d['w_n_to_u'][i], self.d['phase_n_to_u'][i])
         axarr[1].set_xlabel("Frequency [Hz]")
         axarr[1].set_ylabel("Phase [deg]")
 
     def closed_loop_step(self, speed):
-        i = np.searchsorted(-self.d['theta_R_dot'], speed)
+        i = np.searchsorted(self.d['theta_R_dot'], speed)
         C_yr = self.d['C_cl'][i]
         C_u = np.zeros((1, 9))
         C_u[:, 4:] = self.d['F'][i]
@@ -176,7 +187,7 @@ class CDataPlotter(object):
 
 
     def closed_loop_zero_input(self, speed):
-        i = np.searchsorted(-self.d['theta_R_dot'], speed)
+        i = np.searchsorted(self.d['theta_R_dot'], speed)
         C_yr = self.d['C_cl'][i]
         C_u = np.zeros((1, 9))
         C_u[:, 4:] = self.d['F'][i]
@@ -225,21 +236,23 @@ class CDataPlotter(object):
 
 
 def main():
-    yrc.main()
+    #yrc.main()
     d = CDataPlotter("controller_data.npz")
+    v = 2.0
     #d.plant_evals()
     #d.plant_evals_c()
     #d.plant_damp()
     #d.controller_evals()
     #d.controller_evals_c()
     #d.estimator_evals_c()
-    #d.controller_gains()
-    #d.estimator_gains()
+    d.controller_gains()
+    d.estimator_gains()
     #d.controller_estimator_evals_c()
     #d.closed_loop_evals_c()
-    #d.closed_loop_bode(2.0 / rear.R)
-    d.closed_loop_step(2.0 / rear.R)
-    d.closed_loop_zero_input(2.0 / rear.R)
+    d.closed_loop_bode(-v / rear.R)
+    d.noise_to_torque_bode(-v / rear.R)
+    d.closed_loop_step(-v / rear.R)
+    d.closed_loop_zero_input(-v / rear.R)
     plt.show()
 
 if __name__ == "__main__":

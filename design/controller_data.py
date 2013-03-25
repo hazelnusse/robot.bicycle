@@ -18,6 +18,9 @@ controller_t = dtype([
     ('wn_p', '(4,)f8'),
     ('zeta_p', '(4,)f8'),
     ('tau_p', '(4,)f8'),
+    # Plant controllability and observability matrices
+    ('Ctrb', '(4,4)f8'),  # steer torque input
+    ('Obsv', '(8,4)f8'),  # steer angle and roll rate measured
     # LQR controller closed loop dynamics assuming full state feedback
     # States:  First 4 states are bicycle states, fifth state is integral of
     #          yaw rate error
@@ -54,6 +57,10 @@ controller_t = dtype([
     ('wn_ce', '(5,)f8'),    # Natural frequency of controller eigenvalues
     ('zeta_ce', '(5,)f8'),  # Damping ratio of controller eigenvalues
     ('tau_ce', '(5,)f8'),   # Time constant of controller eigenvalues
+    # Transfer function from roll rate measurement to steer torque
+    ('w_n_to_u', '(512,)f8'),
+    ('mag_n_to_u', '(512,)f8'),
+    ('phase_n_to_u', '(512,)f8'),
     # Closed loop system
     # States: four bicycle states, four bicycle state estimates, integral of
     #         yaw rate error
@@ -67,7 +74,7 @@ controller_t = dtype([
     ('wn_cl', '(9,)f8'),   # Natural frequency of closed loop eigenvalues
     ('zeta_cl', '(9,)f8'), # Damping ratio of closed loop eigenvalues
     ('tau_cl', '(9,)f8'),  # Time constant of closed loop eigenvalues
-    ('w', '(512,)f8'),     # Frequencies (Hz)
+    ('w_cl', '(512,)f8'),     # Frequencies (Hz)
     ('mag_cl', '(512,)f8'),   # Magnitude (dB)
     ('phase_cl', '(512,)f8')  # Phase (deg)
     ])

@@ -60,15 +60,13 @@ def calc_eigenvalues(theta_R_dot, bike, filename):
     np.savez(filename, theta_R_dot=theta_R_dot, A_w=A_w, B_w=B_w, C_w=C_w)
 
 if __name__ == '__main__':
-    theta_R_dot = -np.logspace(-0.5, 1, 101) / w.rR
+    theta_R_dot = sorted(-np.logspace(-0.5, 1, 101) / w.rR)
     calc_eigenvalues(theta_R_dot, benchmark_bicycle,
             'benchmark_bicycle_linear_dynamics_vs_logspeed.npz')
-    theta_R_dot = -np.logspace(-0.5, 1, 101) / rear.R
     calc_eigenvalues(theta_R_dot, robotic_bicycle,
             'robotic_bicycle_linear_dynamics_vs_logspeed.npz')
-    theta_R_dot = -np.linspace(0, 10, 101) / w.rR
+    theta_R_dot = sorted(-np.linspace(0, 10, 101) / w.rR)
     calc_eigenvalues(theta_R_dot, benchmark_bicycle,
             'benchmark_bicycle_linear_dynamics_vs_speed.npz')
-    theta_R_dot = -np.linspace(0, 10, 101) / rear.R
     calc_eigenvalues(theta_R_dot, robotic_bicycle,
             'robotic_bicycle_linear_dynamics_vs_speed.npz')

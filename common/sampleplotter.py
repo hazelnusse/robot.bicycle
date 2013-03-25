@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import sampletypes as st
 import matplotlib.pyplot as plt
+from scipy import fft, arange
 
 def get_color():
     for item in ['r', 'g', 'b']:
@@ -207,15 +208,39 @@ class PlotRearWheelRate(PlotBase):
 class PlotRollRate(PlotBase):
     def __init__(self, parent):
         super(PlotRollRate, self).__init__(parent)
+    
+    def create_figure_axes(self):
+        figure, axes = plt.subplots(2, 1, sharex=False, sharey=False)
+        return figure, axes
 
     def plot_data(self):
         data = self.parent.data
         ax = self.axes
-        ax.step(data['T'], data['phi_dot'], label='$\\dot{\\phi}$')
-        ax.legend(loc=0)
-        ax.set_ylabel('[rad / s]')
-        ax.set_xlabel('time [s]')
-        ax.set_title('Estimated roll rate')
+
+        # Time series
+        ax[0].step(data['T'], data['phi_dot'], label='$\\dot{\\phi}$')
+        ax[0].legend(loc=0)
+        ax[0].set_ylabel('[rad / s]')
+        ax[0].set_xlabel('time [s]')
+        ax[0].set_title('Estimated roll rate')
+        
+        # FFT 
+        N = len(data) # length of the signal
+
+        dt = np.zeros(N - 1)
+        for i in range(N - 1):
+            dt[i] = data['T'][i + 1] - data['T'][i]
+        Ts = dt.mean() * N
+        k = arange(N)
+        frq = k/Ts # two sides frequency range
+        frq = frq[:N//2] # one side frequency range
+
+        Y = fft(data['phi_dot'])/N # fft computing and normalization
+        Y = Y[:N//2]
+         
+        ax[1].plot(frq, abs(Y), 'r') # plotting the spectrum
+        ax[1].set_xlabel('$\\omega$ [Hz]')
+        ax[1].set_ylabel('$|\\phi(\\omega)|$')
 
 
 class PlotControllerStates(PlotBase):
