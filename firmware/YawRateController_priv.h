@@ -69,13 +69,13 @@ float YawRateController::RateCommanded() const
 inline
 void YawRateController::setCurrentDirPositive()
 {
-  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_STEER_DIR)) = 0x0;
+  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_STEER_DIR)) = 0x1;
 }
 
 inline 
 void YawRateController::setCurrentDirNegative()
 {
-  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_STEER_DIR)) = 0x1;
+  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_STEER_DIR)) = 0x0;
 }
 
 inline
