@@ -41,6 +41,7 @@ void RearWheel::setCurrent(float current)
 void RearWheel::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
   if (argc == 0) {
+      Reset();
       turnOff();
       chprintf(chp, "Rear wheel rate control disabled.\r\n");
   } else if (argc == 1) {

@@ -11,14 +11,16 @@ class Sample;
 class MPU6050 : public Singleton<MPU6050> {
   friend class Singleton<MPU6050>;
  public:
-  void Acquire(Sample & s) const;
-  void Initialize(I2CDriver * i2c);
+  bool Acquire(Sample & s) const;
+  bool Initialize(I2CDriver * i2c);
   void DeInitialize();
 
  private:
   MPU6050();
   MPU6050(const MPU6050&) = delete;
   MPU6050 & operator=(const MPU6050&) = delete;
+
+  static bool checkTransmission(msg_t res, Sample & s);
 
   I2CDriver * i2c_;
   I2CConfig i2cfg_;

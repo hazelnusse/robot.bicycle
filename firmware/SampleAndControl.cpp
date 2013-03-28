@@ -27,7 +27,9 @@ void SampleAndControl::controlThread(char* filename)
     samples[i].clear();
 
   MPU6050 & imu = MPU6050::Instance();
-  imu.Initialize(&I2CD2);
+  if (!imu.Initialize(&I2CD2)) {
+    chSysHalt(); while(1) {}    // couldn't initialize the MPU6050
+  }
 
   RearWheel & rw = RearWheel::Instance();
   rw.Reset();
@@ -68,6 +70,10 @@ void SampleAndControl::controlThread(char* filename)
     if (yc.isEnabled() && (i % con::YC_N == 0))
       yc.Update(s);
     // End control
+
+    // Record computed PWM signals
+    s.CCR_rw = STM32_TIM1->CCR[0];      // RW PWM duty cycle
+    s.CCR_steer = STM32_TIM1->CCR[1];   // Steer PWM duty cycle
     
     if (data && (i % (NUMBER_OF_SAMPLES/2) == 0)) {
       /* write data from buffer half that just completed */

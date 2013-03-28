@@ -27,7 +27,8 @@ void RearWheel::turnOff()
 inline
 void RearWheel::Reset()
 {
-  r_ = e_int_ = 0.0f;
+  u_ = r_ = e_int_ = z_ = 0.0f;
+  SystemTime_prev_ = RearWheelAngle_prev_ = 0;
   PWM_CCR(0);
   setCurrentDirNegative();// negative wheel rotation direction is forward
 }

@@ -13,9 +13,7 @@ const float imu_calibration::dcm[6] = {-0.894519492243436f,
 
 float imu_calibration::phi_dot(const Sample & s)
 {
-  const float wx = s.MPU6050[4]*cf::Gyroscope_sensitivity - gyro_x_bias;
-  const float wy = s.MPU6050[5]*cf::Gyroscope_sensitivity - gyro_y_bias;
-  const float wz = s.MPU6050[6]*cf::Gyroscope_sensitivity - gyro_z_bias;
-  return dcm[0] * wx + dcm[3] * wy + dcm[5] * wz;
+  //const float wx = s.MPU6050[4]*cf::Gyroscope_sensitivity - gyro_x_bias;
+  return s.MPU6050[5]*cf::Gyroscope_sensitivity - gyro_y_bias;
 }
 
