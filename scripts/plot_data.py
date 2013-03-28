@@ -33,7 +33,7 @@ if __name__ == "__main__":
                 usage="%(prog)s [options] datafile")
     parser.add_argument("datafile", help="Data to plot")
     parser.add_argument("-w", "--wheel", dest="plots", action="append_const",
-                        const="PlotRearWheel", help="Plot Rear Wheel")
+                        const="PlotWheel", help="Plot wheel related quantities")
     parser.add_argument("-t", "--time", dest="plots", action="append_const",
                         const="PlotTime", help="Plot Time")
     parser.add_argument("-a", "--accel", dest="plots", action="append_const",
@@ -46,9 +46,6 @@ if __name__ == "__main__":
                         const="PlotSteerAngle", help="Plot Steer Angle")
     parser.add_argument("-S", "--state", dest="plots", action="append_const",
                         const="PlotState", help="Plot State")
-    parser.add_argument("--theta_R_dot", dest="plots", action="append_const",
-                        const="PlotRearWheelRate", help="Plot estimated " +
-                                                        "rear wheel rate")
     parser.add_argument("--phi_dot", dest="plots", action="append_const",
                         const="PlotRollRate", help="Plot estimated " +
                                                         "roll rate")

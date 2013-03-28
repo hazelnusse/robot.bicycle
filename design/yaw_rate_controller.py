@@ -5,7 +5,7 @@ from parameters import rear, w
 import scipy.io as sio
 from scipy.signal import cont2discrete, bode, lti, ss2tf, dstep, freqz
 import numpy as np
-from numpy import pi, dot, outer
+from numpy import pi, dot
 from numpy.matlib import zeros, empty, eye, asmatrix, diag
 import numpy.linalg as la
 np.set_printoptions(precision=4)
@@ -87,10 +87,10 @@ def compute_gains(Q, R, W, V, dt):
         # Kalman filter design
         C_m = asmatrix(c_data['C'][i, :2, :])
         P_e = dare(c_data[i]['A'].T, C_m.T, V, W)
-        K_c = P_e*C_m.T*la.inv(C_m*P_e*C_m.T + V)
+        K_c = dot(P_e, dot(C_m.T, la.inv(dot(C_m, dot(P_e, C_m.T)) + V)))
         c_data['K_c'][i] = K_c
-        c_data['A_e'][i] = dot(eye(4) - K_c*C_m, c_data['A'][i])
-        c_data['B_e'][i] = np.hstack((dot(eye(4) - K_c*C_m, B_delta), K_c))
+        c_data['A_e'][i] = dot(eye(4) - dot(K_c, C_m), c_data['A'][i])
+        c_data['B_e'][i] = np.hstack((dot(eye(4) - dot(K_c, C_m), B_delta), K_c))
         c_data['estimator_evals'][i] = la.eigvals(c_data['A_e'][i])
 
         # Form combined controller/estimator matrices
@@ -118,8 +118,8 @@ def compute_gains(Q, R, W, V, dt):
 
         # Form closed loop state matrices
         A_cl_ul = c_data['A'][i]
-        A_cl_ur = outer(B_delta, c_data['F'][i])
-        A_cl_ll = np.vstack((K_c * C_m,zeros((1, 4))))
+        A_cl_ur = dot(B_delta, c_data['F'][i])
+        A_cl_ll = np.vstack((dot(K_c, C_m), zeros((1, 4))))
         A_cl_lr = c_data['A_ce'][i]
         A_cl = np.vstack((np.hstack((A_cl_ul, A_cl_ur)),
                           np.hstack((A_cl_ll, A_cl_lr))))
@@ -133,7 +133,7 @@ def compute_gains(Q, R, W, V, dt):
         c_data['C_cl'][i] = np.hstack((c_data['C'][i, 2, :], np.zeros((5,))))
         c_data['closed_loop_evals'][i] = la.eigvals(A_cl)
 
-        B_cl_r = asmatrix(B_cl[:, 5]).T
+        B_cl_r = asmatrix(B_cl[:, 6]).T
         num, den = ss2tf(A_cl, B_cl_r, c_data['C_cl'][i], 0)
         c_data['w_cl'][i], y = freqz(num[0], den)
         c_data['w_cl'][i] /= (dt * 2.0 * np.pi)
@@ -183,6 +183,7 @@ def design_controller():
 
     # Control input weighting matrix R
     R = diag([10])
+    #R = diag([.1])
 
     # State error covariance
     W = diag([0.0, 0.0, .001, .001]) * dt

@@ -62,18 +62,21 @@ class PlotBase(object):
         raise NotImplementedError("Subclass must implement abstract method")
 
 
-class PlotRearWheel(PlotBase):
+class PlotWheel(PlotBase):
     def __init__(self, parent):
-        super(PlotRearWheel, self).__init__(parent)
+        super(PlotWheel, self).__init__(parent)
 
     def plot_data(self):
         data = self.parent.data
         ax = self.axes
-        lines = ax.step(data['T'], data['RearWheelAngle'],
+        ax.step(data['T'], data['RearWheelAngle'],
                                label='$\\theta_R$')
+        ax.step(data['T'], data['FrontWheelAngle'],
+                               label='$\\theta_F$')
         ax.step(data['T'], data['I_rw'], label='I')
         ax.step(data['T'], data['RearWheelRate_sp'],
-                       label='$\\theta_r$')
+                       label='$\\dot{\\theta}_{Rc}$')
+        ax.step(data['T'], data['theta_R_dot'], label='$\\dot{\\theta}_R$')
         ax.legend(loc=0)
         ax.set_title('Rear wheel')
         ax.set_ylabel('[rad], [rad / s], [A]')
@@ -90,6 +93,7 @@ class PlotAccelerometer(PlotBase):
         ax.plot(data['T'], data['accx'],
                 data['T'], data['accy'],
                 data['T'], data['accz'])
+        ax.legend(('x', 'y', 'z'), loc=0)
         ax.set_xlabel('time [s]')
         ax.set_ylabel('acceleration [m/s^2]')
         ax.set_title('MPU-6050 accelerometer measurements')
@@ -105,6 +109,7 @@ class PlotGyroscope(PlotBase):
         ax.plot(data['T'], data['gyrox'],
                 data['T'], data['gyroy'],
                 data['T'], data['gyroz'])
+        ax.legend(('x', 'y', 'z'), loc=0)
         ax.set_xlabel('time [s]')
         ax.set_ylabel('angular velocity [rad/s^2]')
         ax.set_title('MPU-6050 rate gyroscope measurements')
@@ -190,19 +195,6 @@ class PlotSteerAngle(PlotBase):
         ax.set_ylabel('[rad]')
         ax.set_xlabel('time [s]')
         ax.set_title('Steer angle')
-
-class PlotRearWheelRate(PlotBase):
-    def __init__(self, parent):
-        super(PlotRearWheelRate, self).__init__(parent)
-
-    def plot_data(self):
-        data = self.parent.data
-        ax = self.axes
-        ax.step(data['T'], data['theta_R_dot'], label='$\\dot{\\theta}_R$')
-        ax.legend(loc=0)
-        ax.set_ylabel('[rad / s]')
-        ax.set_xlabel('time [s]')
-        ax.set_title('Rear wheel rate')
 
 
 class PlotRollRate(PlotBase):
