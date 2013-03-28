@@ -108,7 +108,7 @@ bool MPU6050::Initialize(I2CDriver * i2c)
 
 void MPU6050::DeInitialize()
 {
-  i2cStop(i2c_); // Configure and activate I2CD2
+  i2cStop(i2c_); // Deactivate I2CD2
 }
 
 bool MPU6050::checkTransmission(msg_t res, Sample & s)

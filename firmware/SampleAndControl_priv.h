@@ -62,8 +62,6 @@ uint32_t SampleAndControl::sampleSystemState() const
   s |= rw.RotationDir();
   s |= yc.RotationDir();
   //TODO s |= fw.RotationDir();//TODO
-  s |= rw.CurrentDir();
-  s |= yc.CurrentDir();
 
   return s;
 }

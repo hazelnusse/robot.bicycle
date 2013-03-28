@@ -71,9 +71,10 @@ void SampleAndControl::controlThread(char* filename)
       yc.Update(s);
     // End control
 
-    // Record computed PWM signals
+    // Record PWM duty cycle and direction
     s.CCR_rw = STM32_TIM1->CCR[0];      // RW PWM duty cycle
     s.CCR_steer = STM32_TIM1->CCR[1];   // Steer PWM duty cycle
+    state_ |= rw.CurrentDir() | yc.CurrentDir(); // RW and Steer current dir
     
     if (data && (i % (NUMBER_OF_SAMPLES/2) == 0)) {
       /* write data from buffer half that just completed */
