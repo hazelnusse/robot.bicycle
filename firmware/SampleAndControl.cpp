@@ -179,6 +179,7 @@ void SampleAndControl::writeThread()
   FRESULT res = FR_OK;
   uint8_t *b;
 
+  chRegSetThreadName("WriteThread");
   while (1) {
     Thread * calling_thread = chMsgWait();
     m = chMsgGet(calling_thread);
@@ -199,7 +200,7 @@ msg_t SampleAndControl::Start(const char* filename)
   msg_t m = 0;
   tp_write = chThdCreateStatic(SampleAndControl::waWriteThread,
                           sizeof(waWriteThread),
-                          NORMALPRIO,
+                          NORMALPRIO + 1,
                           reinterpret_cast<tfunc_t>(writeThread_),
                           0);
   if (!tp_write) {
@@ -207,13 +208,22 @@ msg_t SampleAndControl::Start(const char* filename)
   }
   tp_control = chThdCreateStatic(SampleAndControl::waControlThread,
                           sizeof(waControlThread),
-                          NORMALPRIO,
+                          NORMALPRIO + 1,
                           reinterpret_cast<tfunc_t>(controlThread_),
                           const_cast<char*>(filename));
   if (!tp_control) {
     m |= (1 << 1);
   }
 
+  return m;
+}
+
+msg_t SampleAndControl::Stop()
+{
+  msg_t m;
+  chThdTerminate(tp_control);
+  m = chThdWait(tp_control);
+  tp_control = 0;
   return m;
 }
 

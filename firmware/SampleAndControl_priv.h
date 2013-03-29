@@ -8,16 +8,6 @@ void SampleAndControl::shellcmd_(BaseSequentialStream *chp, int argc, char *argv
 }
 
 inline
-msg_t SampleAndControl::Stop()
-{
-  msg_t m;
-  chThdTerminate(tp_control);
-  m = chThdWait(tp_control);
-  tp_control = 0;
-  return m;
-}
-
-inline
 void SampleAndControl::controlThread_(char *filename)
 {
   SampleAndControl::Instance().controlThread(filename);

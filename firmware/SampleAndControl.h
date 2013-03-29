@@ -12,8 +12,7 @@
 #include "RearWheel.h"
 #include "YawRateController.h"
 
-
-#define NUMBER_OF_SAMPLES 128
+#define NUMBER_OF_SAMPLES 256
 
 class SampleAndControl : public Singleton<SampleAndControl> {
   friend class Singleton<SampleAndControl>;
@@ -43,8 +42,8 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   // Data collection related
   void sampleTimers(Sample & s);
 
-  WORKING_AREA(waControlThread, 1024);
-  WORKING_AREA(waWriteThread, 256);
+  WORKING_AREA(waControlThread, 4096);
+  WORKING_AREA(waWriteThread, 4096);
   Sample samples[NUMBER_OF_SAMPLES];
   FIL f_;
   Thread * tp_control;
