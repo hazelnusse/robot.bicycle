@@ -37,7 +37,7 @@ class Samples(object):
                 setattr(self, p[len('Plot'):].lower(), plot)
                 self.plots.append(plot)
 
-    def draw_plots(self):
+    def draw_plots(self, save_pdf=False):
         for p in self.plots:
             try:
                 p.axes.clear()
@@ -47,11 +47,15 @@ class Samples(object):
                     p.axes[i].clear()
             p.plot_data()
 
+            if save_pdf:
+                p.figure.savefig(p.plotname + ".pdf", figsize=(6,6))
+
 
 class PlotBase(object):
     def __init__(self, parent):
         self.parent = parent
         self.figure, self.axes = self.create_figure_axes()
+        self.plotname = ""
 
     def create_figure_axes(self):
         figure, axes = plt.subplots(1)
@@ -86,6 +90,7 @@ class PlotWheel(PlotBase):
 class PlotAccelerometer(PlotBase):
     def __init__(self, parent):
         super(PlotAccelerometer, self).__init__(parent)
+        self.plotname = "accelerometer"
 
     def plot_data(self):
         data = self.parent.data
@@ -102,6 +107,7 @@ class PlotAccelerometer(PlotBase):
 class PlotGyroscope(PlotBase):
     def __init__(self, parent):
         super(PlotGyroscope, self).__init__(parent)
+        self.plotname = "gyroscope"
 
     def plot_data(self):
         data = self.parent.data
@@ -118,6 +124,7 @@ class PlotGyroscope(PlotBase):
 class PlotTemperature(PlotBase):
     def __init__(self, parent):
         super(PlotTemperature, self).__init__(parent)
+        self.plotname = "temperature"
 
     def plot_data(self):
         data = self.parent.data
@@ -131,6 +138,7 @@ class PlotTemperature(PlotBase):
 class PlotTime(PlotBase):
     def __init__(self, parent):
         super(PlotTime, self).__init__(parent)
+        self.plotname = "time"
 
     def create_figure_axes(self):
         figure, axes = plt.subplots(2, sharex=False, sharey=False)
@@ -159,6 +167,7 @@ class PlotTime(PlotBase):
 class PlotState(PlotBase):
     def __init__self(parent):
         super(PlotState, self).__init__(parent)
+        self.plotname = "stateflags"
 
     def plot_data(self):
         data = self.parent.data
@@ -186,6 +195,7 @@ class PlotState(PlotBase):
 class PlotSteerAngle(PlotBase):
     def __init__(self, parent):
         super(PlotSteerAngle, self).__init__(parent)
+        self.plotname = "steer"
 
     def plot_data(self):
         data = self.parent.data
@@ -200,6 +210,7 @@ class PlotSteerAngle(PlotBase):
 class PlotRollRate(PlotBase):
     def __init__(self, parent):
         super(PlotRollRate, self).__init__(parent)
+        self.plotname = "rollrate"
     
     def create_figure_axes(self):
         figure, axes = plt.subplots(2, 1, sharex=False, sharey=False)
@@ -238,6 +249,7 @@ class PlotRollRate(PlotBase):
 class PlotControllerStates(PlotBase):
     def __init__(self, parent):
         super(PlotControllerStates, self).__init__(parent)
+        self.plotname = "controllerstates"
 
     def plot_data(self):
         data = self.parent.data
@@ -250,12 +262,41 @@ class PlotControllerStates(PlotBase):
         ax.legend(loc=0)
         ax.set_ylabel('[rad, rad/s]')
         ax.set_xlabel('time [s]')
+        ax.set_ylim(-10, 10)
         ax.set_title('State estimates')
 
+class PlotSteerAndRollRate(PlotBase):
+    def __init__(self, parent):
+        super(PlotSteerAndRollRate, self).__init__(parent)
+        self.plotname = "steerandrollrate"
+
+    def create_figure_axes(self):
+        figure, axes = plt.subplots(2, sharex=True, sharey=False)
+        return figure, axes
+
+    def plot_data(self):
+        data = self.parent.data
+        ax = self.axes
+
+        # Steer and steer estimate
+        ax[0].step(data['T'], data['x'][:, 1], label='$\\hat{\\delta}$')
+        ax[0].step(data['T'], data['SteerAngle'], label='$\\delta$')
+        ax[0].legend(loc=0)
+        ax[0].set_ylabel('Steer angle [rad]')
+        ax[0].set_xlabel('time [s]')
+        ax[0].set_ylim(-np.pi/2.0, np.pi/2.0)
+        # Steer and steer estimate
+        ax[1].step(data['T'], data['x'][:, 2], label='$\\hat{\\dot{\\phi}}$')
+        ax[1].step(data['T'], data['phi_dot'], label='$\\dot{\\phi}$')
+        ax[1].legend(loc=0)
+        ax[1].set_ylabel('Roll rate [rad / s]')
+        ax[1].set_xlabel('time [s]')
+        ax[1].set_ylim(-10, 10)
 
 class PlotSteerTorqueAndCurrent(PlotBase):
     def __init__(self, parent):
         super(PlotSteerTorqueAndCurrent, self).__init__(parent)
+        self.plotname = "steercurrent"
 
     def plot_data(self):
         data = self.parent.data

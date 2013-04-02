@@ -16,9 +16,15 @@ import sampleplotter as sp
 
 def plot(args):
     samples = sp.Samples(args.datafile, args.plots)
-    samples.draw_plots()
-    plt.show()
-    return
+    if args.options is None:
+        samples.draw_plots()
+        plt.show()
+    else:
+        if 'savepdf' in args.options:
+            samples.draw_plots(save_pdf=True)
+
+        if 'quiet' not in args.options:
+            plt.show()
 
 
 if __name__ == "__main__":
@@ -53,8 +59,16 @@ if __name__ == "__main__":
                         const="PlotControllerStates", help="Plot " +
                                                         "controller states")
     parser.add_argument("--steer_torque_current", dest="plots", action="append_const",
-                        const="PlotSteerTorqueAndCurrent", help="Plot " +
-                                                        "steer torque and current")
+                        const="PlotSteerTorqueAndCurrent",
+                        help="Plot steer torque and current")
+    parser.add_argument("--steerandrollrate", dest="plots", action="append_const",
+                        const="PlotSteerAndRollRate",
+                        help="Plot steer and roll rate measurements and estimates")
+    parser.add_argument("--quiet", dest="options", action="append_const",
+                        const="quiet", help="Don't display plots onscreen.")
+    parser.add_argument("--savepdf", dest="options", action="append_const",
+                        const="savepdf", help="Save figure to pdf.")
+
     args = parser.parse_args()
     plot(args)
 
