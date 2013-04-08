@@ -4,6 +4,9 @@
 
 from scipy.linalg import inv, schur, solve
 from numpy.matlib import empty
+import numpy.linalg as la
+import numpy as np
+from control import obsv, ctrb
 
 def dare(F, G1, G2, H):
     """Solves the discrete-time algebraic Riccati equation
@@ -43,6 +46,18 @@ def dare(F, G1, G2, H):
     eqautions as described in dx.doi.org/10.1109/TAC.1979.1102178
 
     """
+    # Verify that F is non-singular
+    u, s, v = la.svd(F)
+    assert(np.all(s > 0.0))
+    # Verify that (F, G1) controllable
+    C = ctrb(F, G1)
+    u, s, v = la.svd(C)
+    assert(np.all(s > 0.0))
+    # Verify that (H**.5, F) is observable
+    O = obsv(H**.5, F)
+    u, s, v = la.svd(O)
+    assert(np.all(s > 0.0))
+    
     n = F.shape[0]
     m = G2.shape[0]
 
