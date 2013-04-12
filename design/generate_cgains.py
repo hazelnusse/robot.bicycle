@@ -27,7 +27,7 @@ def generate(ccinfile, hinfile):
         SPEED.append(c_data_sorted[i]['theta_R_dot'])
         A = c_data_sorted[i]['A_ce']
         B = c_data_sorted[i]['B_ce']
-        C = c_data_sorted[i]['F']
+        C = c_data_sorted[i]['K_c']
         GAINS.append({'A_c' : A, 'B_c' : B, 'C_c' : C})
     render_dict['GAINS'] = GAINS
     render_dict['SPEED'] = SPEED

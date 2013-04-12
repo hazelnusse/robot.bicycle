@@ -124,7 +124,7 @@ def compute_gains(Q, R, W, V, dt):
         # Combined estimator controller equations
         # These are to be implemented on the bicycle firmware
         A_ce = np.zeros((5, 5))
-        A_ce += dot(np.eye(5) - dot(K_e, C_ep), A_cp + dot(B_cp, K_c))
+        A_ce += dot(np.eye(5) - dot(K_e, C_ep), A_ep + dot(B_cp, K_c))
         A_ce += dot(K_e[:, 2].reshape((5, 1)), np.array([[0, 0, 0, 0, 1]]))
 
         B_ce = np.zeros((5, 3))
