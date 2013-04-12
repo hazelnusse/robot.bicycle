@@ -6,8 +6,11 @@ import yaw_rate_controller as yrc
 
 class CDataPlotter(object):
 
-    def __init__(self, datafile):
-        self.d = np.load(datafile)['arr_0']
+    def __init__(self, datafile=None, c_data=None):
+        if datafile is not None:
+            self.d = np.load(datafile)['arr_0']
+        elif c_data is not None:
+            self.d = c_data
 
     def plant_evals(self):
         plt.figure()
@@ -32,22 +35,14 @@ class CDataPlotter(object):
     
     def controller_evals(self):
         plt.figure()
-        plt.plot(-self.d['theta_R_dot'], self.d['controller_evals'].real, 'k.')
-        plt.plot(-self.d['theta_R_dot'], self.d['controller_evals'].imag, 'b.')
-        plt.xlabel('$\\dot{\\theta}_R$')
+        plt.plot(self.d['controller_evals'].real,
+                 self.d['controller_evals'].imag, 'k.')
         plt.title("Controller eigenvalues (discrete)")
-
-    def controller_evals_c(self):
-        plt.figure()
-        plt.plot(-self.d['theta_R_dot'], self.d['controller_evals_c'].real, 'k.')
-        plt.plot(-self.d['theta_R_dot'], self.d['controller_evals_c'].imag, 'b.')
-        plt.xlabel('$\\dot{\\theta}_R$')
-        plt.title("Controller eigenvalues (continuous)")
 
     def controller_gains(self):
         plt.figure()
         N = len(self.d)
-        ax = plt.plot(-self.d['theta_R_dot'], self.d['F'][:,:,:].reshape((N, 5)))
+        ax = plt.plot(-self.d['theta_R_dot'], self.d['K_c'][:,:,:].reshape((N, 5)))
         ax[0].set_label(r"$k_\phi$")
         ax[1].set_label(r"$k_\delta$")
         ax[2].set_label(r"$k_\dot{\phi}$")
@@ -60,22 +55,14 @@ class CDataPlotter(object):
         
     def estimator_evals(self):
         plt.figure()
-        plt.plot(-self.d['theta_R_dot'], self.d['estimator_evals'].real, 'k.')
-        plt.plot(-self.d['theta_R_dot'], self.d['estimator_evals'].imag, 'b.')
-        plt.xlabel('$\\dot{\\theta}_R$')
+        plt.plot(self.d['estimator_evals'].real,
+                 self.d['estimator_evals'].imag, 'k.')
         plt.title("Estimator eigenvalues (discrete)")
-
-    def estimator_evals_c(self):
-        plt.figure()
-        plt.plot(-self.d['theta_R_dot'], self.d['estimator_evals_c'].real, 'k.')
-        plt.plot(-self.d['theta_R_dot'], self.d['estimator_evals_c'].imag, 'b.')
-        plt.xlabel('$\\dot{\\theta}_R$')
-        plt.title("Estimator eigenvalues (continuous)")
 
     def estimator_gains(self):
         N = len(self.d)
         f, axarr = plt.subplots(2, 1, sharex=True)
-        lines = axarr[0].plot(-self.d['theta_R_dot'], self.d['K_c'][:,:,0].reshape((N, 4)))
+        lines = axarr[0].plot(-self.d['theta_R_dot'], self.d['K_e'][:, :, 0].reshape((N, 5)))
         lines[0].set_label(r"$k_\phi$")
         lines[1].set_label(r"$k_\delta$")
         lines[2].set_label(r"$k_\dot{\phi}$")
@@ -84,7 +71,7 @@ class CDataPlotter(object):
         axarr[0].set_title('Estimator gains vs. speed')
         axarr[0].set_ylabel('Steer measurement gain')
         
-        lines = axarr[1].plot(-self.d['theta_R_dot'], self.d['K_c'][:,:,1].reshape((N, 4)))
+        lines = axarr[1].plot(-self.d['theta_R_dot'], self.d['K_e'][:, :, 1].reshape((N, 5)))
         lines[0].set_label(r"$k_\phi$")
         lines[1].set_label(r"$k_\delta$")
         lines[2].set_label(r"$k_\dot{\phi}$")
@@ -93,33 +80,40 @@ class CDataPlotter(object):
         axarr[1].set_xlabel('$\\dot{\\theta}_R$')
         axarr[1].set_ylabel('Roll rate measurement gain')
     
-    def controller_estimator_evals(self):
-        plt.figure()
-        plt.plot(-self.d['theta_R_dot'], self.d['controller_estimator_evals'].real, 'k.')
-        plt.plot(-self.d['theta_R_dot'], self.d['controller_estimator_evals'].imag, 'b.')
-        plt.xlabel('$\\dot{\\theta}_R$')
-        plt.title("Controller Estimator eigenvalues (discrete)")
-
-    def controller_estimator_evals_c(self):
-        plt.figure()
-        plt.plot(-self.d['theta_R_dot'], self.d['controller_estimator_evals_c'].real, 'k.')
-        plt.plot(-self.d['theta_R_dot'], self.d['controller_estimator_evals_c'].imag, 'b.')
-        plt.xlabel('$\\dot{\\theta}_R$')
-        plt.title("Controller Estimator eigenvalues (continuous)")
-
     def closed_loop_evals(self):
         plt.figure()
-        plt.plot(-self.d['theta_R_dot'], self.d['closed_loop_evals'].real, 'k.')
-        plt.plot(-self.d['theta_R_dot'], self.d['closed_loop_evals'].imag, 'b.')
-        plt.xlabel('$\\dot{\\theta}_R$')
-        plt.title("Closed loop eigenvalues (discrete)")
+        plt.plot(self.d['estimator_evals'].real,
+                 self.d['estimator_evals'].imag, 'r.')
+        plt.plot(self.d['controller_evals'].real,
+                 self.d['controller_evals'].imag, 'g.')
+        plt.title("Closed loop eigenvalues, red: estimator, green: controller")
 
-    def closed_loop_evals_c(self):
+    def cl_eval_difference(self):
         plt.figure()
-        plt.plot(-self.d['theta_R_dot'], self.d['closed_loop_evals_c'].real, 'k.')
-        plt.plot(-self.d['theta_R_dot'], self.d['closed_loop_evals_c'].imag, 'b.')
-        plt.xlabel('$\\dot{\\theta}_R$')
-        plt.title("Closed loop eigenvalues (continuous)")
+        cl_evals_cat = np.hstack((self.d['controller_evals'],
+                                  self.d['estimator_evals']))
+        cl_evals_cat.sort(axis=1)
+
+        cl_evals_orig = np.sort(self.d['closed_loop_evals'], axis=1)
+
+        diff = cl_evals_cat - cl_evals_orig
+        plt.plot(diff.real, diff.imag, 'k.')
+        plt.title("Difference in computed closed loop eigenvalues.")
+
+
+    def open_loop_bode(self, speed, filename=None):
+        i = np.searchsorted(self.d['theta_R_dot'], speed)
+        f, axarr = plt.subplots(2, 1, sharex=True, figsize=(8.5,11))
+        axarr[0].semilogx(self.d['w_ol'][i], self.d['mag_ol'][i])
+        axarr[0].set_title('Open loop e to y, LQR only, $(v, \\dot{\\theta}_R$)'
+                        + ' = ({0}, {1})'.format(-self.d['theta_R_dot'][i] *
+                            rear.R, self.d['theta_R_dot'][i]))
+        axarr[0].set_ylabel("Magnitude [dB]")
+        axarr[1].semilogx(self.d['w_ol'][i], self.d['phase_ol'][i])
+        axarr[1].set_xlabel("Frequency [Hz]")
+        axarr[1].set_ylabel("Phase [deg]")
+        if filename is not None:
+            f.savefig(filename)
 
     def closed_loop_bode(self, speed, filename=None):
         i = np.searchsorted(self.d['theta_R_dot'], speed)
@@ -149,70 +143,61 @@ class CDataPlotter(object):
         if filename is not None:
             f.savefig(filename)
 
-    def closed_loop_step(self, speed):
+    def closed_loop_step(self, speed, x0):
         i = np.searchsorted(self.d['theta_R_dot'], speed)
         C_yr = self.d['C_cl'][i]
-        C_u = np.zeros((1, 9))
-        C_u[:, 4:] = self.d['F'][i]
-        C_x = np.hstack((np.eye(4), np.zeros((4,5))))
-        C_xe = np.hstack((np.zeros((4,4)), np.eye(4), np.zeros((4, 1))))
+        C_u = np.zeros((1, 10))
+        C_u[:, 5:] = self.d['K_c'][i]
+        C_x = np.hstack((np.eye(5), np.zeros((5, 5))))
+        C_xe = np.hstack((np.zeros((5, 5)), np.eye(5)))
 
         C = np.vstack((C_yr, C_u, C_x, C_xe))
         D = np.zeros((C.shape[0], 1))
-        x0 = np.zeros((9,))
-        # Start the bicycle with non-zero initial conditions to see how
-        # quickly estimator converges given the initial condition mismatch
-        x0[0] = 10.0 * np.pi/180.0  # Initial roll
-        x0[1] = 10.0 * np.pi/180.0  # Initial steer
-        x0[2] = 10.0 * np.pi/180.0  # Initial roll rate
-        x0[3] = 10.0 * np.pi/180.0  # Initial steer rate
-        t, x = dstep((self.d['A_cl'][i], self.d['B_cl'][i, :, 6].reshape((9,1)),
-                      C, D, self.d['dt'][i]),
-                      x0=x0,
-                      t=np.linspace(0, 20, 100))
+        t, y, x = dlsim((self.d['A_cl'][i],
+                         self.d['B_cl'][i],
+                         C,
+                         D,
+                         self.d['dt'][i]),
+                        u=45.0*np.ones(100)*np.pi/180,
+                        t=np.linspace(0, 20, 100),
+                        x0=x0)
 
         f, axarr = plt.subplots(2, 1, sharex=True)
-        axarr[0].plot(t, x[0][:, 0])
+        axarr[0].plot(t, y[:, 0])
         axarr[0].set_title('Closed loop yaw rate step response, $\\dot{\\theta}_R$'
                         + ' = {0}'.format(-self.d['theta_R_dot'][i]))
         axarr[0].set_ylabel("Yaw rate")
-        axarr[1].plot(t, x[0][:, 1])
+        axarr[1].plot(t, y[:, 1])
         axarr[1].set_ylabel("Steer torque [N * m]")
         axarr[1].set_xlabel("Time [s]")
 
         f, axarr = plt.subplots(2, 2)
         f.suptitle("Estimator performance")
-        axarr[0, 0].plot(t, x[0][:, [2, 6]])    # Roll
+        axarr[0, 0].plot(t, y[:, [2, 7]])    # Roll
         axarr[0, 0].set_title("Roll angle")
-        axarr[0, 1].plot(t, x[0][:, [3, 7]])    # Steer
+        axarr[0, 1].plot(t, y[:, [3, 8]])    # Steer
         axarr[0, 1].set_title("Steer angle")
-        axarr[1, 0].plot(t, x[0][:, [4, 8]])    # Roll rate
+        axarr[1, 0].plot(t, y[:, [4, 9]])    # Roll rate
         axarr[1, 0].set_title("Roll rate")
-        axarr[1, 1].plot(t, x[0][:, [5, 9]])    # Steer rate
+        axarr[1, 1].plot(t, y[:, [5, 10]])    # Steer rate
         axarr[1, 1].set_title("Steer rate")
 
 
-    def closed_loop_zero_input(self, speed):
+    def closed_loop_zero_input(self, speed, x0):
         i = np.searchsorted(self.d['theta_R_dot'], speed)
-        C_yr = self.d['C_cl'][i]
-        C_u = np.zeros((1, 9))
-        C_u[:, 4:] = self.d['F'][i]
-        C_x = np.hstack((np.eye(4), np.zeros((4,5))))
-        C_xe = np.hstack((np.zeros((4,4)), np.eye(4), np.zeros((4, 1))))
 
+        C_yr = self.d['C_cl'][i]
+        C_u = np.zeros((1, 10))
+        C_u[:, 5:] = self.d['K_c'][i]
+        C_x = np.hstack((np.eye(5), np.zeros((5, 5))))
+        C_xe = np.hstack((np.zeros((5, 5)), np.eye(5)))
         C = np.vstack((C_yr, C_u, C_x, C_xe))
+
         D = np.zeros((C.shape[0], 1))
-        x0 = np.zeros((9,))
         u = np.zeros((100,))
         t = np.linspace(0, 20, 100)
-        # Start the bicycle with non-zero initial conditions to see how
-        # quickly estimator converges given the initial condition mismatch
-        x0[0] = 10.0 * np.pi/180.0  # Initial roll
-        x0[1] = 10.0 * np.pi/180.0  # Initial steer
-        x0[2] = 10.0 * np.pi/180.0  # Initial roll rate
-        x0[3] = 10.0 * np.pi/180.0  # Initial steer rate
         t, y, x = dlsim((self.d['A_cl'][i],
-                         self.d['B_cl'][i, :, 6].reshape((9,1)),
+                         self.d['B_cl'][i],
                          C,
                          D,
                          self.d['dt'][i]),
@@ -231,35 +216,45 @@ class CDataPlotter(object):
 
         f, axarr = plt.subplots(2, 2)
         f.suptitle("Estimator performance")
-        axarr[0, 0].plot(t, y[:, [2, 6]])    # Roll
+        axarr[0, 0].plot(t, y[:, [2, 7]])    # Roll
         axarr[0, 0].set_title("Roll angle")
-        axarr[0, 1].plot(t, y[:, [3, 7]])    # Steer
+        axarr[0, 1].plot(t, y[:, [3, 8]])    # Steer
         axarr[0, 1].set_title("Steer angle")
-        axarr[1, 0].plot(t, y[:, [4, 8]])    # Roll rate
+        axarr[1, 0].plot(t, y[:, [4, 9]])    # Roll rate
         axarr[1, 0].set_title("Roll rate")
-        axarr[1, 1].plot(t, y[:, [5, 9]])    # Steer rate
+        axarr[1, 1].plot(t, y[:, [5, 10]])    # Steer rate
         axarr[1, 1].set_title("Steer rate")
 
 
 def main():
-    #yrc.main()
-    d = CDataPlotter("controller_data.npz")
-    speeds = [1.0, 3.0, 5.0, 7.0]
+    d = CDataPlotter(c_data=yrc.design_controller())
+    speeds = [1.0, 3.0, 5.0]
+
+    x0 = np.zeros((10,))
+    # Start the bicycle with non-zero initial conditions to see how
+    # quickly estimator converges given the initial condition mismatch
+    x0[0] = 1e1 * np.pi/180.0  # Initial roll
+    x0[1] = 1e1 * np.pi/180.0  # Initial steer
+    x0[2] = 1e1 * np.pi/180.0  # Initial roll rate
+    x0[3] = 1e1 * np.pi/180.0  # Initial steer rate
+    x0[4] = 0.0                # Initial integral of yaw rate error
     for v in speeds:
         #d.plant_evals()
         #d.plant_evals_c()
         #d.plant_damp()
-        #d.controller_evals()
-        #d.controller_evals_c()
-        #d.estimator_evals_c()
-        #d.controller_gains()
-        #d.estimator_gains()
-        #d.controller_estimator_evals_c()
-        #d.closed_loop_evals_c()
-        d.closed_loop_bode(-v / rear.R, "cl_{0}.pdf".format(int(v)))
-        d.noise_to_torque_bode(-v / rear.R, "n_to_u_{0}.pdf".format(int(v)))
-        #d.closed_loop_step(-v / rear.R)
-        #d.closed_loop_zero_input(-v / rear.R)
+        d.closed_loop_bode(-v / rear.R)#, "cl_{0}.pdf".format(int(v)))
+        #d.open_loop_bode(-v / rear.R)#, "cl_{0}.pdf".format(int(v)))
+        #d.noise_to_torque_bode(-v / rear.R, "n_to_u_{0}.pdf".format(int(v)))
+        #d.closed_loop_step(-v / rear.R, x0)
+        #d.closed_loop_zero_input(-v / rear.R, x0)
+        continue
+
+    #d.controller_gains()
+    #d.estimator_evals()
+    #d.controller_evals()
+    #d.estimator_gains()
+    #d.closed_loop_evals()
+    #d.cl_eval_difference()
     plt.show()
 
 if __name__ == "__main__":

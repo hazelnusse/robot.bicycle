@@ -61,15 +61,15 @@ def dare(F, G1, G2, H):
     n = F.shape[0]
     m = G2.shape[0]
 
-    G = G1*inv(G2)*G1.T
+    G = np.dot(G1, np.dot(inv(G2), G1.T))
     Finv = inv(F)
     Finvt = Finv.T
 
     # Form symplectic matrix
     Z = empty((2*n, 2*n))
-    Z[:n, :n] = F + G*Finvt*H
-    Z[:n, n:] = -G*Finvt
-    Z[n:, :n] = -Finvt*H
+    Z[:n, :n] = F + np.dot(G, np.dot(Finvt, H))
+    Z[:n, n:] = -np.dot(G, Finvt)
+    Z[n:, :n] = -np.dot(Finvt, H)
     Z[n:, n:] = Finvt
 
     S, U, sdim = schur(Z, sort='iuc')
