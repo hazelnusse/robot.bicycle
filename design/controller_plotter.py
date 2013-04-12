@@ -11,6 +11,7 @@ class CDataPlotter(object):
             self.d = np.load(datafile)['arr_0']
         elif c_data is not None:
             self.d = c_data
+        self.cm = plt.get_cmap('gist_rainbow')
 
     def plant_evals(self):
         plt.figure()
@@ -33,11 +34,31 @@ class CDataPlotter(object):
         plt.plot(-self.d['theta_R_dot'], self.d['tau_p'], 'g')
         plt.xlabel('$\\dot{\\theta}_R$')
     
-    def controller_evals(self):
+    def plot_evals_vs_speed(self, data_label, plot_title):
         plt.figure()
-        plt.plot(self.d['controller_evals'].real,
-                 self.d['controller_evals'].imag, 'k.')
-        plt.title("Controller eigenvalues (discrete)")
+        ax = plt.subplot(1, 1, 1)
+        eigvals = self.d[data_label]
+        speeds = np.shape(eigvals)[0]
+        phs = []
+        lbl = []
+        for v in range(speeds):
+            ph, = ax.plot(eigvals[v, :].real, eigvals[v, :].imag,
+                          marker='.', linestyle='None',
+                          color=self.cm(1.*v/speeds),
+                          label='$v = {}$'.format(v))
+            if v in range(0, speeds, 10):
+                phs.append(ph)
+                lbl.append(ph.get_label())
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0, box.width * 0.9, box.height])
+        l = ax.legend(phs, lbl, loc='center left', bbox_to_anchor=(1, 0.5),
+                      numpoints=1)
+        #ax.legend(phs, lbl, loc='upper left'
+        plt.title(plot_title)
+
+    def controller_evals(self):
+        self.plot_evals_vs_speed('controller_evals',
+                                 "Controller eigenvalues (discrete)")
 
     def controller_gains(self):
         plt.figure()
@@ -52,12 +73,10 @@ class CDataPlotter(object):
         plt.title('Feedback gains vs. speed')
         plt.xlabel('$\\dot{\\theta}_R$')
         plt.ylabel('Gain')
-        
+
     def estimator_evals(self):
-        plt.figure()
-        plt.plot(self.d['estimator_evals'].real,
-                 self.d['estimator_evals'].imag, 'k.')
-        plt.title("Estimator eigenvalues (discrete)")
+        self.plot_evals_vs_speed('estimator_evals',
+                                 "Estimator eigenvalues (discrete)")
 
     def estimator_gains(self):
         N = len(self.d)
@@ -242,7 +261,7 @@ def main():
         #d.plant_evals()
         #d.plant_evals_c()
         #d.plant_damp()
-        d.closed_loop_bode(-v / rear.R)#, "cl_{0}.pdf".format(int(v)))
+        #d.closed_loop_bode(-v / rear.R)#, "cl_{0}.pdf".format(int(v)))
         #d.open_loop_bode(-v / rear.R)#, "cl_{0}.pdf".format(int(v)))
         #d.noise_to_torque_bode(-v / rear.R, "n_to_u_{0}.pdf".format(int(v)))
         #d.closed_loop_step(-v / rear.R, x0)
@@ -250,8 +269,8 @@ def main():
         continue
 
     #d.controller_gains()
-    #d.estimator_evals()
-    #d.controller_evals()
+    d.estimator_evals()
+    d.controller_evals()
     #d.estimator_gains()
     #d.closed_loop_evals()
     #d.cl_eval_difference()
