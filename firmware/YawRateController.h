@@ -22,7 +22,7 @@ class YawRateController : public Singleton<YawRateController> {
 
   float EstimationThreshold() const;
   void EstimationThreshold(float thresh);
-  
+
   float ControlThreshold() const;
   void ControlThreshold(float thresh);
 
@@ -30,8 +30,8 @@ class YawRateController : public Singleton<YawRateController> {
   void EnablePI();
   void DisablePI();
 
-  uint32_t RotationDir() const;
-  uint32_t CurrentDir() const;
+  bool RotationDir() const;
+  bool CurrentDir() const;
   int32_t SteerOffset() const;
 
   bool hasFault();

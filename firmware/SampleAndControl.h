@@ -9,6 +9,7 @@
 
 #include "Sample.h"
 #include "Singleton.h"
+#include "MPU6050.h"
 #include "RearWheel.h"
 #include "YawRateController.h"
 
@@ -21,8 +22,10 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   msg_t Stop();
 
   const char * fileName() const;
-  uint32_t sampleSystemState() const;
+  void sampleMotorState(Sample &s) const;
   uint32_t systemState() const;
+  void enableSensorsMotors() const;
+  void disableSensorsMotors() const;
 
   static void controlThread_(char *filename);
   static void shellcmd_(BaseSequentialStream *chp, int argc, char *argv[]);

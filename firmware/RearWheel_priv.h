@@ -78,15 +78,15 @@ void RearWheel::setCurrentDirNegative()
 }
 
 inline
-uint32_t RearWheel::CurrentDir() const
+bool RearWheel::CurrentDir() const
 {
-  return (MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->IDR)), GPIOF_RW_DIR))) ? Sample::RearWheelMotorCurrentDir : 0;
+  return MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->IDR)), GPIOF_RW_DIR));
 }
 
 inline
-uint32_t RearWheel::RotationDir() const
+bool RearWheel::RotationDir() const
 {
-  return (MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(STM32_TIM8->SR)), (1 << 4)))) ? Sample::RearWheelEncoderDir : 0;
+  return MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(STM32_TIM8->SR)), (1 << 4)));
 }
 
 inline

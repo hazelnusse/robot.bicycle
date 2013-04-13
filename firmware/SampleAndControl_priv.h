@@ -35,25 +35,63 @@ uint32_t SampleAndControl::systemState() const
 }
 
 inline
-uint32_t SampleAndControl::sampleSystemState() const
+void SampleAndControl::sampleMotorState(Sample & s) const
 {
-  uint32_t s;
   RearWheel & rw = RearWheel::Instance();
   YawRateController & yc = YawRateController::Instance();
 
+  // motor flags
   if (rw.isEnabled())
-    s = Sample::RearWheelMotorEnable;
+    s.SystemState |= Sample::RearWheelMotorEnable;
   if (yc.isEnabled())
-    s |= Sample::SteerMotorEnable;
+    s.SystemState|= Sample::SteerMotorEnable;
   if (rw.hasFault())
-    s |= Sample::HubMotorFault;
+    s.SystemState |= Sample::HubMotorFault;
   if (yc.hasFault())
-    s |= Sample::SteerMotorFault;
-  s |= rw.RotationDir();
-  s |= yc.RotationDir();
-  //TODO s |= fw.RotationDir();//TODO
+    s.SystemState |= Sample::SteerMotorFault;
+  if (rw.RotationDir())
+    s.SystemState |= Sample::RearWheelEncoderDir;
+  if (yc.RotationDir())
+    s.SystemState |= Sample::SteerEncoderDir;
+  if (rw.CurrentDir())
+    s.SystemState |= Sample::RearWheelMotorCurrentDir;
+  if (yc.CurrentDir())
+    s.SystemState |= Sample::SteerMotorCurrentDir;
 
-  return s;
+  // set points
+  s.RearWheelRate_sp = rw.RateCommanded();
+  s.YawRate_sp = yc.RateCommanded();
+
+  // duty cycle
+  s.CCR_rw = STM32_TIM1->CCR[0];      // RW PWM duty cycle
+  s.CCR_steer = STM32_TIM1->CCR[1];   // Steer PWM duty cycle
+}
+
+inline
+void SampleAndControl::enableSensorsMotors() const
+{
+  MPU6050 & imu = MPU6050::Instance();
+  if (!imu.Initialize(&I2CD2)) {
+    chSysHalt(); while(1) {}    // couldn't initialize the MPU6050
+  }
+
+  RearWheel & rw = RearWheel::Instance();
+  rw.Reset();
+  rw.turnOn();
+  YawRateController & yc = YawRateController::Instance();
+  yc.Reset();
+  yc.turnOn();
+}
+
+inline
+void SampleAndControl::disableSensorsMotors() const
+{
+  MPU6050 & imu = MPU6050::Instance();
+  RearWheel & rw = RearWheel::Instance();
+  YawRateController & yc = YawRateController::Instance();
+  imu.DeInitialize();
+  rw.turnOff();
+  yc.turnOff();
 }
 
 #endif

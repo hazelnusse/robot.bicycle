@@ -147,15 +147,15 @@ uint32_t YawRateController::CurrentToCCR(float current)
 }
 
 inline
-uint32_t YawRateController::CurrentDir() const
+bool YawRateController::CurrentDir() const
 {
-  return (MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->IDR)), GPIOF_STEER_DIR))) ? Sample::SteerMotorCurrentDir : 0;
+  return MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->IDR)), GPIOF_STEER_DIR));
 }
 
 inline
-uint32_t YawRateController::RotationDir() const
+bool YawRateController::RotationDir() const
 {
-  return (MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(STM32_TIM3->SR)), (1 << 4)))) ? Sample::SteerEncoderDir : 0;
+  return MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(STM32_TIM3->SR)), (1 << 4)));
 }
 
 inline

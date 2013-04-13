@@ -24,21 +24,10 @@ void SampleAndControl::controlThread(char* filename)
   if (res != FR_OK) {
     chSysHalt(); while (1) {}   // couldn't properly open the file!
   }
-
-  for (uint32_t i = 0; i < NUMBER_OF_SAMPLES; ++i)
-    samples[i].clear();
-
+  enableSensorsMotors();
   MPU6050 & imu = MPU6050::Instance();
-  if (!imu.Initialize(&I2CD2)) {
-    chSysHalt(); while(1) {}    // couldn't initialize the MPU6050
-  }
-
   RearWheel & rw = RearWheel::Instance();
-  rw.Reset();
-  rw.turnOn();
   YawRateController & yc = YawRateController::Instance();
-  yc.Reset();
-  yc.turnOn();
 
   // zero out wheel encoders and system timer
   STM32_TIM4->CNT = STM32_TIM5->CNT = STM32_TIM8->CNT = 0;
@@ -54,15 +43,11 @@ void SampleAndControl::controlThread(char* filename)
 
     // Get a sample to populate
     Sample & s = samples[i % NUMBER_OF_SAMPLES];
+    s.clear();
 
     // Begin data collection
     sampleTimers(s);  // sample system time/encoder counts/PWM duty cycle
     imu.Acquire(s);   // sample rate gyro, accelerometer and temperature sensors
-    // sampleStates(s);  // sample various system states
-    state_ = sampleSystemState() | Sample::CollectionEnabled;
-
-    s.RearWheelRate_sp = rw.RateCommanded();
-    s.YawRate_sp = yc.RateCommanded();
     // End data collection
 
     // Begin control
@@ -73,15 +58,10 @@ void SampleAndControl::controlThread(char* filename)
       yc.Update(s);
     // End control
 
-    // Record PWM duty cycle and direction
-    s.CCR_rw = STM32_TIM1->CCR[0];      // RW PWM duty cycle
-    s.CCR_steer = STM32_TIM1->CCR[1];   // Steer PWM duty cycle
-    state_ |= rw.CurrentDir() | yc.CurrentDir(); // RW and Steer current dir
-    
     if (data && (i % (NUMBER_OF_SAMPLES/2) == 0)) {
       /* write data from buffer half that just completed */
       msg_t buffer = reinterpret_cast<msg_t>(get_buffer(i + NUMBER_OF_SAMPLES / 2));
-      state_ |= Sample::FileSystemWriteTriggered;
+      s.SystemState |= Sample::FileSystemWriteTriggered;
       msg = chMsgSend(tp_write, buffer);
       if (static_cast<FRESULT>(msg) != FR_OK)
         ++write_errors;
@@ -89,7 +69,8 @@ void SampleAndControl::controlThread(char* filename)
 
     data = true;
 
-    s.SystemState = state_;
+    sampleMotorState(s);
+    s.SystemState |= Sample::CollectionEnabled;
     // Measure computation time
     s.ComputationTime = STM32_TIM5->CNT - s.SystemTime;
     // Go to sleep until next 5ms interval
@@ -97,9 +78,7 @@ void SampleAndControl::controlThread(char* filename)
   } // for i @ 200Hz
   
   // Clean up
-  imu.DeInitialize();
-  rw.turnOff();
-  yc.turnOff();
+  disableSensorsMotors();
   // End cleanup
 
   msg = chMsgSend(tp_write, 0); // send a message to end the write thread.
@@ -112,10 +91,8 @@ void SampleAndControl::controlThread(char* filename)
   // Write remaing samples in partially filled buffer.
   if (write_last_samples(i) != FR_OK)
     ++write_errors;
-  // Save system state, clearing a few bits.
-  state_ &= ~(Sample::CollectionEnabled | Sample::FileSystemWriteTriggered
-              | Sample::RearWheelMotorEnable | Sample::SteerMotorEnable);
   f_close(&f_);           // close the file
+  tp_control = 0;
   chThdExit(write_errors);
 }
 
@@ -223,7 +200,6 @@ msg_t SampleAndControl::Stop()
   msg_t m;
   chThdTerminate(tp_control);
   m = chThdWait(tp_control);
-  tp_control = 0;
   return m;
 }
 
