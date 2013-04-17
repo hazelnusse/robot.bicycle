@@ -30,7 +30,7 @@ endif
 
 # Enable this if you want to see the full log while compiling.
 ifeq ($(USE_VERBOSE_COMPILE),)
-  USE_VERBOSE_COMPILE = no
+  USE_VERBOSE_COMPILE = yes
 endif
 
 #
@@ -93,19 +93,20 @@ CSRC = $(PORTSRC) \
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CPPSRC = main.cpp \
-				 MPU6050.cpp \
-				 PeripheralInit.cpp \
-				 RearWheel.cpp \
-				 SampleAndControl.cpp \
-				 YawRateController.cpp \
-				 YawRateController_gains.cpp \
-				 stubs.cpp \
-				 SystemCommands.cpp \
-				 textutilities.cpp \
-				 VectorTable.cpp \
-				 Interrupts.cpp \
-				 imu_calibration.cpp
+CPPSRC = src/main.cpp \
+				 src/MPU6050.cpp \
+				 src/PeripheralInit.cpp \
+				 src/RearWheel.cpp \
+				 src/SampleAndControl.cpp \
+				 src/YawRateController.cpp \
+				 src/stubs.cpp \
+				 src/SystemCommands.cpp \
+				 src/textutilities.cpp \
+				 src/VectorTable.cpp \
+				 src/Interrupts.cpp \
+				 src/imu_calibration.cpp \
+				 src/YawRateController_gains.cpp \
+
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -185,7 +186,7 @@ DDEFS =
 DADEFS =
 
 # List all default directories to look for include files here
-DINCDIR = Singleton nanopb
+DINCDIR = Singleton nanopb src
 
 # List the default directory to look for the libraries here
 DLIBDIR =
