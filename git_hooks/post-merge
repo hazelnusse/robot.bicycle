@@ -1,0 +1,16 @@
+#!/bin/sh
+
+ROOT_DIR=$(git rev-parse --show-toplevel)
+cd $ROOT_DIR
+SUBMODULES=$(grep path ${ROOT_DIR}/.gitmodules | sed 's/^.*path = //')
+for SUBMODULE in $SUBMODULES; do
+	if ! [ "$(ls -A ${SUBMODULE})" ]; then
+		git submodule init
+		git submodule update
+	fi
+done
+
+MOD_SUBMODULES=$(git diff --name-only --ignore-submodules=dirty | grep -F "$SUBMODULES")
+if [ -n "$MOD_SUBMODULES" ]; then
+	git submodule update
+fi
