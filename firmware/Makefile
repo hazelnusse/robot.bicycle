@@ -97,13 +97,13 @@ CPPSRC = main.cpp \
 				 RearWheel.cpp \
 				 SampleAndControl.cpp \
 				 YawRateController.cpp \
+				 YawRateController_gains.cpp \
 				 stubs.cpp \
 				 SystemCommands.cpp \
 				 textutilities.cpp \
 				 VectorTable.cpp \
 				 Interrupts.cpp \
-				 imu_calibration.cpp \
-				 cgains.cpp
+				 imu_calibration.cpp
 
 
 # C sources to be compiled in ARM mode regardless of the global setting.

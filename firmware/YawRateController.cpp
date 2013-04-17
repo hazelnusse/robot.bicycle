@@ -8,7 +8,6 @@
 #include "hal.h"
 #include "shell.h"
 
-#include "cgains.h"
 #include "RearWheel.h"
 #include "Sample.h"
 #include "YawRateController.h"
@@ -22,8 +21,13 @@ int16_t counts_[EDGES];
 volatile uint8_t i_;
 
 YawRateController::YawRateController()
-  : offset_(-402), homed_(false), u_(0.0f), r_(0.0f),
-    x_{0.0f, 0.0f, 0.0f, 0.0f, 0.0f}
+  : offset_(-402),
+    homed_(false),
+    estimation_triggered_(false),
+    control_triggered_(false),
+    u_(0.0f), r_(0.0f), x_{0.0f, 0.0f, 0.0f, 0.0f},
+    estimator_theta_R_dot_threshold_(-2.0f),
+    controller_theta_R_dot_threshold_(-2.5f)
 {
   turnOff();
 }
@@ -68,22 +72,31 @@ void YawRateController::shellcmd(BaseSequentialStream *chp, int argc, char *argv
 void YawRateController::Update(const Sample & s)
 {
   const float theta_R_dot = RearWheel::Instance().RateEstimate();
-  const float input[3] = {r_,
+  // Estimator inputs:
+  //   -- Steer torque applied at previous step
+  //   -- Steer angle from most recent measurement
+  //   -- Roll rate from most recent measurement
+  const float input[3] = {u_ * cf::kT_steer,
                           s.SteerAngle * cf::Steer_rad_per_quad_count,
                           imu_calibration::phi_dot(s)};
 
-  // Steer torque at previous time step
-  float steer_torque;
-
-  // Perform controller state update as long as steer isn't too big
-  if ((std::fabs(input[1]) < (45.0f * cf::rad_per_degree)) &&
-    cg::state_and_output_update(theta_R_dot, input, x_, steer_torque)) {
-    u_ = steer_torque * cf::kT_steer_inv;
-  } else {
-    u_ = 0.0f;
+  u_ = 0.0f;  // set current to zero
+  if (theta_R_dot < estimator_theta_R_dot_threshold_ || estimation_triggered_) {
+    estimation_triggered_ = true;
+    // State update occurs only if we have hit threshold speed
+    if (state_estimate_update(theta_R_dot, input) &&
+        (std::fabs(input[1]) < (45.0f * cf::rad_per_degree))) {
+      // And if the speed is inside the speed range for which gains are computed
+      // Control law is updated only if steer is < 45 degrees,
+      if (theta_R_dot < controller_theta_R_dot_threshold_ || control_triggered_) {
+        // And if we have hit the threshold control speed
+        control_triggered_ = true;
+        double r_pi = 0.0f;   // TODO: implement PI outer loop
+        u_ = (control_output_update() + r_pi) * cf::kT_steer_inv;
+      }
+    }
   }
-
-  setCurrent(u_);
+  setCurrent(u_);  // sets current either to zero or to that from control law
 } // Update
 
 void YawRateController::calibrateSteerEncoder(BaseSequentialStream * chp)

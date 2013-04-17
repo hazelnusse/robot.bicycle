@@ -15,18 +15,18 @@ def generate(ccinfile, hinfile):
     c_data = yrc.design_controller()
     c_data_sorted = sorted(c_data, key=lambda c: c['theta_R_dot'])
     render_dict = {'NUMGAINS' : len(c_data_sorted),
-                   'AROWS' : 5,
-                   'ACOLS' : 5,
-                   'BROWS' : 5,
+                   'AROWS' : 4,
+                   'ACOLS' : 4,
+                   'BROWS' : 4,
                    'BCOLS' : 3,
                    'CROWS' : 1,
-                   'CCOLS' : 5}
+                   'CCOLS' : 4}
     GAINS = []
     SPEED = []
     for i in range(render_dict['NUMGAINS']):
         SPEED.append(c_data_sorted[i]['theta_R_dot'])
-        A = c_data_sorted[i]['A_ce']
-        B = c_data_sorted[i]['B_ce']
+        A = c_data_sorted[i]['A_e']
+        B = c_data_sorted[i]['B_e']
         C = c_data_sorted[i]['K_c']
         GAINS.append({'A_c' : A, 'B_c' : B, 'C_c' : C})
     render_dict['GAINS'] = GAINS
@@ -60,5 +60,5 @@ def name_outfile(infile, ext):
 
 
 if __name__ == '__main__':
-    generate('cgains.cpp.in', 'cgains.h.in');
+    generate('YawRateController_gains.cpp.in', 'ControllerGains.h.in');
     sys.exit(0)
