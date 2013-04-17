@@ -12,17 +12,11 @@ include(${CHIBIOS_ROOT}/tools/cmake/openocd.cmake)
 set(CHIBIOS_VARIOUS_SRC
     ${CHIBIOS_ROOT}/os/various/chprintf.c
     ${CHIBIOS_ROOT}/os/various/chprintf.h
-#    ${CHIBIOS_ROOT}/os/various/chrtclib.c
-#    ${CHIBIOS_ROOT}/os/various/chrtclib.h
     ${CHIBIOS_ROOT}/os/various/evtimer.c
     ${CHIBIOS_ROOT}/os/various/evtimer.h
-    ${CHIBIOS_ROOT}/os/various/memstreams.c
-    ${CHIBIOS_ROOT}/os/various/memstreams.h
     ${CHIBIOS_ROOT}/os/various/shell.c
     ${CHIBIOS_ROOT}/os/various/shell.h
     ${CHIBIOS_ROOT}/os/various/syscalls.c
-#    ${CHIBIOS_ROOT}/os/various/usb_msc.c
-#    ${CHIBIOS_ROOT}/os/various/usb_msc.h
 )
 
 
