@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(ROBOT_BICYCLE)
 
-set(CHIBIOS_ROOT "../../ChibiOS")
+set(CHIBIOS_ROOT "${ROBOT_BICYCLE_SOURCE_DIR}/ChibiOS-RT")
 get_filename_component(CHIBIOS_ROOT "${CHIBIOS_ROOT}" ABSOLUTE)
 
 set(CHIBIOS_BOARD_CMAKE_FILE
