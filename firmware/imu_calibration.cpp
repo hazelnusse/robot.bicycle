@@ -13,7 +13,15 @@ const float imu_calibration::dcm[6] = {-0.894519492243436f,
 
 float imu_calibration::phi_dot(const Sample & s)
 {
-  //const float wx = s.MPU6050[4]*cf::Gyroscope_sensitivity - gyro_x_bias;
-  return s.MPU6050[5]*cf::Gyroscope_sensitivity - gyro_y_bias;
+  // rate gyro y axis is pointed approximately forward, so use this as the roll
+  // rate measurement.
+  return s.MPU6050[5] * cf::Gyroscope_sensitivity - gyro_y_bias;
+}
+
+float imu_calibration::psi_dot(const Sample & s)
+{
+  // rate gyro z axis is pointed approximately down, so use this as the yaw
+  // rate measurement.
+  return s.MPU6050[6] * cf::Gyroscope_sensitivity - gyro_z_bias;
 }
 

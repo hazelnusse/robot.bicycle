@@ -67,6 +67,48 @@ float YawRateController::RateCommanded() const
 }
 
 inline
+float YawRateController::EstimationThreshold() const
+{
+  return estimator_theta_R_dot_threshold_;
+}
+
+inline
+void YawRateController::EstimationThreshold(float thresh)
+{
+  estimator_theta_R_dot_threshold_ = thresh;
+}
+
+inline
+float YawRateController::ControlThreshold() const
+{
+  return controller_theta_R_dot_threshold_;
+}
+
+inline
+void YawRateController::ControlThreshold(float thresh)
+{
+  controller_theta_R_dot_threshold_ = thresh;
+}
+
+inline
+bool YawRateController::isPIEnabled() const
+{
+  return PI_enabled_;
+}
+
+inline
+void YawRateController::EnablePI()
+{
+  PI_enabled_ = true;
+}
+
+inline
+void YawRateController::DisablePI()
+{
+  PI_enabled_ = false;
+}
+
+inline
 void YawRateController::setCurrentDirPositive()
 {
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_STEER_DIR)) = 0x1;

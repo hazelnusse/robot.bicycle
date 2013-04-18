@@ -25,9 +25,14 @@ YawRateController::YawRateController()
     homed_(false),
     estimation_triggered_(false),
     control_triggered_(false),
+    PI_enabled_(false),
     u_(0.0f), r_(0.0f), x_{0.0f, 0.0f, 0.0f, 0.0f},
     estimator_theta_R_dot_threshold_(-2.0f),
-    controller_theta_R_dot_threshold_(-2.5f)
+    controller_theta_R_dot_threshold_(-2.5f),
+    ar_{0, 0},
+    alpha_(0.0f),
+    x_pi_(0.0f),
+    SystemTime_prev_(0)
 {
   turnOff();
 }
@@ -91,13 +96,32 @@ void YawRateController::Update(const Sample & s)
       if (theta_R_dot < controller_theta_R_dot_threshold_ || control_triggered_) {
         // And if we have hit the threshold control speed
         control_triggered_ = true;
-        double r_pi = 0.0f;   // TODO: implement PI outer loop
-        u_ = (control_output_update() + r_pi) * cf::kT_steer_inv;
+        if (PI_enabled_) {
+          // Compute PI state update
+          const float e = RateCommanded() - imu_calibration::psi_dot(s);
+          const float dt = static_cast<uint32_t>(s.SystemTime - SystemTime_prev_) * cf::Rate_Timer_sec_per_count;
+          float Kp, Ki;
+          interpolate_PI_gains(Kp, Ki); // interpolate Kp and Ki from lookup table
+          const float r_pi = Ki * dt * x_pi_ + (Ki * dt + Kp) * e;
+          u_ = (control_output_update() + r_pi) * cf::kT_steer_inv;
+          // Update integral term only if we don't saturate the control
+          if (std::fabs(u_) < cf::Current_max_steer) {
+            x_pi_ += e;
+          }
+        } else {
+          u_ = control_output_update() * cf::kT_steer_inv;
+        }
       }
     }
   }
-  setCurrent(u_);  // sets current either to zero or to that from control law
+  setCurrent(u_);  // sets current to 0.0f or that commanded by control law
 } // Update
+
+void YawRateController::interpolate_PI_gains(float & Kp, float & Ki) const
+{
+  Kp = (ar_[1]->Kp - ar_[0]->Kp) * alpha_ + ar_[0]->Kp;
+  Ki = (ar_[1]->Ki - ar_[0]->Ki) * alpha_ + ar_[0]->Ki;
+}
 
 void YawRateController::calibrateSteerEncoder(BaseSequentialStream * chp)
 {
@@ -203,3 +227,40 @@ CH_IRQ_HANDLER(YawRateController::homeISR_)
   EXTI->PR = (1 << 11);   // clear the pending bit.
   i_ = 0;
 }
+
+void YawRateController::setEstimationThreshold(BaseSequentialStream * chp, int argc, char * argv[])
+{
+  YawRateController & yr = YawRateController::Instance();
+  if (argc != 1) {
+    chprintf(chp, "Invalid usage.\r\n");
+  } else {
+    float thresh = tofloat(argv[0]);
+    float thresh_old = yr.EstimationThreshold();
+    yr.EstimationThreshold(tofloat(argv[0]));
+    chprintf(chp, "Estimation threshold changed from %f to %f\r\n", thresh_old, thresh);
+  }
+}
+
+void YawRateController::setControlThreshold(BaseSequentialStream * chp, int argc, char * argv[])
+{
+  YawRateController & yr = YawRateController::Instance();
+  if (argc != 1) {
+    chprintf(chp, "Invalid usage.\r\n");
+  } else {
+    float thresh = tofloat(argv[0]);
+    float thresh_old = yr.ControlThreshold();
+    yr.ControlThreshold(tofloat(argv[0]));
+    chprintf(chp, "Control threshold changed from %f to %f\r\n", thresh_old, thresh);
+  }
+
+}
+
+void YawRateController::togglePI(BaseSequentialStream *, int, char **)
+{
+  YawRateController & yr = YawRateController::Instance();
+  if (yr.isPIEnabled())
+    yr.DisablePI();
+  else
+    yr.EnablePI();
+}
+

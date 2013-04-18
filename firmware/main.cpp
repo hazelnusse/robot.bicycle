@@ -124,6 +124,9 @@ static const ShellCommand commands[] = {
   {"reset", SystemCommands::reset},
   {"status", SystemCommands::status},
   {"threads", cmd_threads},
+  {"e_thresh", YawRateController::setEstimationThreshold},
+  {"c_thresh", YawRateController::setControlThreshold},
+  {"pi", YawRateController::togglePI},
   {NULL, NULL}
 };
 

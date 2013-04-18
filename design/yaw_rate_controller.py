@@ -4,6 +4,7 @@
 from parameters import rear, w
 import scipy.io as sio
 from scipy.signal import cont2discrete, bode, lti, ss2tf, dstep, freqz, ss2zpk
+from scipy.optimize import curve_fit
 import numpy as np
 from numpy import pi, dot
 from numpy.matlib import zeros, empty, eye, asmatrix, diag
@@ -29,6 +30,7 @@ A_w = data['A_w'][::skip]
 B_w = data['B_w'][::skip]
 C_w = data['C_w'][::skip]   # steer, roll rate, yaw rate measurements
 N = len(theta_R_dot)
+dt = 0.005
 
 def plot_evals():
     evals = np.zeros((N, 4), dtype=np.complex128)
@@ -103,7 +105,7 @@ def compute_gains(Q, R, W, V, dt):
         assert(np.all(abs(data['estimator_evals'][i]) < 1.0))
 
         # Closed loop state space equations
-        A_cl = np.empty((8, 8))
+        A_cl = np.zeros((8, 8))
         A_cl[:4, :4] = A
         A_cl[:4, 4:] = dot(B, K_c)
         A_cl[4:, :4] = dot(K_e, dot(C_m, A))
@@ -112,7 +114,7 @@ def compute_gains(Q, R, W, V, dt):
         data['closed_loop_evals'][i] = la.eigvals(A_cl)
         assert(np.all(abs(data['closed_loop_evals'][i]) < 1.0))
 
-        B_cl = np.empty((8, 1))
+        B_cl = np.zeros((8, 1))
         B_cl[:4, 0] = B.reshape((4,))
         B_cl[4:, 0] = dot(eye(4) - dot(K_e, C_m), B).reshape((4,))
         data['B_cl'][i] = B_cl
@@ -127,31 +129,9 @@ def compute_gains(Q, R, W, V, dt):
         data['mag_r_to_psi_dot'][i] = 20.0 * np.log10(abs(y))
         data['phase_r_to_psi_dot'][i] = np.unwrap(np.angle(y)) * 180.0 / np.pi
 
-        """
-        # Create a state space object representing the bike and lqr/lqg
-        # controller
-        ss_bike_stablized = ss(A_cl, B_cl, C_cl, 0)
-
-        # Create a PI controller
-        A_pi = 1.0
-        B_pi = dt*K_i
-        C_pi = 1.0
-        D_pi = K_p
-        ss_pi = ss(A_pi, B_pi, C_pi, D_pi)
-
-        # Connect bike with PI controller in series
-        ss_pi_bike_ol = series(ss_pi, ss_bike_stablized)
-
-        # Stabilized bicycle with 
-        ss_pi_bike_cl = feedback(ss_pi_bike_ol, 1, sign=-1)
-        evals = la.eigvals(ss_pi_bike_cl.A)
-        assert(np.all(abs(evals) <= 1.0))
-        """
-
     return data
 
 def design_controller():
-    dt = 0.005
 
     # Control input weighting
     R = 1.0
@@ -170,13 +150,57 @@ def design_controller():
     V = diag([(1.0/20000*2.0*pi)**2., # square of 1.0 count
               (0.00227631723111)**2]) # square of std deviation from static
 
-    # Proportional and Integral gains on yaw rate error signal
-    #K_p = 1.0
-    #K_i = -1.0
-
     # Calculate closed loop eigenvalues and gains
-    return compute_gains(Q, np.array([[1.0]]), W, V, dt)
+    data = compute_gains(Q, np.array([[1.0]]), W, V, dt)
 
+    matlab_data = {'A_cl_w' : data['A_cl'],
+                   'B_cl_w' : data['B_cl'],
+                   'C_cl_w' : data['C_cl'],
+                   'A_w' : data['A'],
+                   'B_c_w' : data['B_c'],
+                   'C_m_w' : data['C_m'],
+                   'C_z_w' : data['C_z'],
+                   'K_c_w' : data['K_c'],
+                   'A_e_w' : data['A_e'],
+                   'B_e_w' : data['B_e']}
+    sio.savemat("cl_data.mat", mdict=matlab_data)
+    matlab = "/home/hazelnusse/usr/matlab2012b/bin/matlab"
+    import os
+    os.system(matlab + " -nosplash -nodesktop -nojvm -r 'tune_pi; exit;'")
+    pi_gains = sio.loadmat('pi_gains.mat')
+    data['Kp'] = pi_gains['Kp_w'].reshape((N,))
+    data['Ki'] = pi_gains['Ki_w'].reshape((N,))
+    data['Kp_fit'] = smoother(data['theta_R_dot'], data['Kp'])
+    data['Ki_fit'] = smoother(data['theta_R_dot'], data['Ki'])
+
+    form_PI_cl(data)
+
+    return data
+
+def smoother(x, y):
+
+    def func(x, a0, a1, a2, a3, a4, a5):
+        return a0 + a1 * x + a2 * x**2 + a3 * x**3 + a4 * x**4 + a5 * x**5
+
+    popt, pcov = curve_fit(func, x, y)
+    return func(x, *popt)
+
+def form_PI_cl(data):
+    A = np.array([[1.0]])
+    B = np.array([[1.0]])
+    for i in range(N):
+        C = np.array([[dt*data['Ki_fit'][i]]])
+        D = np.array([[data['Kp_fit'][i]]])
+        pi_block = ss(A, B, C, D)
+        bike_block = ss(data['A_cl'][i], data['B_cl'][i], data['C_cl'][i], 0)
+        pc = series(pi_block, bike_block)
+        cl = feedback(pc, 1, sign=-1)
+
+        data['yr_cl_evals'][i] = la.eigvals(cl.A)
+        assert(np.all(abs(data['yr_cl_evals'][i]) < 1.0))
+        data['A_yr_cl'][i] = cl.A
+        data['B_yr_cl'][i] = cl.B
+        data['C_yr_cl'][i] = cl.C
 
 def main():
     data = design_controller()

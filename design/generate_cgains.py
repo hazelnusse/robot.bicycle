@@ -23,14 +23,20 @@ def generate(ccinfile, hinfile):
                    'CCOLS' : 4}
     GAINS = []
     SPEED = []
+    KP = []
+    KI = []
     for i in range(render_dict['NUMGAINS']):
         SPEED.append(c_data_sorted[i]['theta_R_dot'])
+        KP.append(c_data_sorted[i]['Kp_fit'])
+        KI.append(c_data_sorted[i]['Ki_fit'])
         A = c_data_sorted[i]['A_e']
         B = c_data_sorted[i]['B_e']
         C = c_data_sorted[i]['K_c']
         GAINS.append({'A_c' : A, 'B_c' : B, 'C_c' : C})
     render_dict['GAINS'] = GAINS
     render_dict['SPEED'] = SPEED
+    render_dict['KP'] = KP 
+    render_dict['KI'] = KI 
     generate_file(ccinfile, render_dict, '.cpp')
     generate_file(hinfile, render_dict, '.h')
 

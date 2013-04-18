@@ -19,7 +19,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
 {% endfor %}
   },
 {% endfor %}
-  {{ SPEED[k] }}f /* theta_R_dot at speed */
+  {{ SPEED[k] }}f, /* theta_R_dot at speed */
+  {{ KP[k] }}f,    /* Kp at speed */
+  {{ KI[k] }}f     /* Ki at speed */
 {% if not loop.last %}
   }, /* -------------- CONTROLLER GAINS FOR SPEED {{ k }} END --------------- */
 {% else %}

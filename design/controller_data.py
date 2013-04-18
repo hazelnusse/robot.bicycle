@@ -24,7 +24,7 @@ controller_t = dtype([
     # Inputs:  additive steer torque (added to feedback law: u = K_c * x + r)
     # Outputs: Yaw rate
     ('A_c', '(4,4)f8'),
-    ('B_c', '(4,4)f8'),
+    ('B_c', '(4,1)f8'),
     # Optimal state feedback gain u = K_c*x
     ('K_c', '(1,4)f8'),
     ('controller_evals', '(4,)c16'),
@@ -45,5 +45,13 @@ controller_t = dtype([
     ('w_r_to_psi_dot', '(512,)f8'),     # Frequencies (Hz)
     ('mag_r_to_psi_dot', '(512,)f8'),   # Magnitude (dB)
     ('phase_r_to_psi_dot', '(512,)f8'), # Phase (deg)
+    ('Kp', 'f8'),
+    ('Ki', 'f8'),
+    ('Kp_fit', 'f8'),
+    ('Ki_fit', 'f8'),
+    ('A_yr_cl', '(9,9)f8'),
+    ('B_yr_cl', '(9,1)f8'),
+    ('C_yr_cl', '(1,9)f8'),
+    ('yr_cl_evals', '(9,)c16')
     ])
 
