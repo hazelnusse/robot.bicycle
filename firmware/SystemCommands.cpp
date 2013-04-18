@@ -28,3 +28,4 @@ void SystemCommands::status(BaseSequentialStream *chp, int, char**)
 
   chprintf(chp, "%u,%f,%f\r\n", state, rw_sp, yr_sp);
 }
+
