@@ -3,6 +3,7 @@
 ROOT_DIR=$(git rev-parse --show-toplevel)
 cd $ROOT_DIR
 SUBMODULES=$(grep path ${ROOT_DIR}/.gitmodules | sed 's/^.*path = //')
+CHIBIOS_SUBMODULE=$(echo "$SUBMODULES" | grep ChibiOS)
 for SUBMODULE in $SUBMODULES; do
 	if ! [ "$(ls -A ${SUBMODULE})" ]; then
 		git submodule init
@@ -13,4 +14,13 @@ done
 MOD_SUBMODULES=$(git diff --name-only --ignore-submodules=dirty | grep -F "$SUBMODULES")
 if [ -n "$MOD_SUBMODULES" ]; then
 	git submodule update
+	RETVAL=$?
+	if [ $RETVAL -ne 0 ]; then
+	# if update fails, try adding tegesoft remote and updating again
+		cd ${ROOT_DIR}/${CHIBIOS_SUBMODULE}
+		git remote add tegesoft git://github.com/tegesoft/ChibiOS.git
+		git fetch tegesoft
+		cd $ROOT_DIR
+		git submodule update
+	fi
 fi
