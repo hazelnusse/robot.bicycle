@@ -42,7 +42,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     3.05656642008f,
     -3.58628633865f
   },
-  -33.3333333333f /* theta_R_dot at speed */
+  -33.3333333333f, /* theta_R_dot at speed */
+  -0.591771286164f,    /* Kp at speed */
+  -3.5551880116f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 0 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 1 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -83,7 +85,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     3.14729719992f,
     -3.62675516082f
   },
-  -32.2016959663f /* theta_R_dot at speed */
+  -32.2016959663f, /* theta_R_dot at speed */
+  -0.469073484907f,    /* Kp at speed */
+  -3.40809196753f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 1 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 2 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -124,7 +128,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     3.23952671473f,
     -3.6663701298f
   },
-  -31.1084766932f /* theta_R_dot at speed */
+  -31.1084766932f, /* theta_R_dot at speed */
+  -0.396314687412f,    /* Kp at speed */
+  -3.27431630302f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 2 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 3 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -165,7 +171,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     3.33333295907f,
     -3.70512400204f
   },
-  -30.0523712535f /* theta_R_dot at speed */
+  -30.0523712535f, /* theta_R_dot at speed */
+  -0.356537606535f,    /* Kp at speed */
+  -3.15114511871f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 3 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 4 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -206,7 +214,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     3.42880989769f,
     -3.7430105247f
   },
-  -29.0321196652f /* theta_R_dot at speed */
+  -29.0321196652f, /* theta_R_dot at speed */
+  -0.337473123725f,    /* Kp at speed */
+  -3.03643838256f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 4 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 5 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -247,7 +257,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     3.52606933855f,
     -3.78002421677f
   },
-  -28.0465047215f /* theta_R_dot at speed */
+  -28.0465047215f, /* theta_R_dot at speed */
+  -0.330430665135f,    /* Kp at speed */
+  -2.92853904945f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 5 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 6 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -288,7 +300,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     3.62524296983f,
     -3.81616012109f
   },
-  -27.0943505388f /* theta_R_dot at speed */
+  -27.0943505388f, /* theta_R_dot at speed */
+  -0.32942434061f,    /* Kp at speed */
+  -2.82619129393f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 6 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 7 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -329,7 +343,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     3.72648459787f,
     -3.85141353997f
   },
-  -26.1745211537f /* theta_R_dot at speed */
+  -26.1745211537f, /* theta_R_dot at speed */
+  -0.330488374834f,    /* Kp at speed */
+  -2.72846909642f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 7 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 8 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -370,7 +386,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     3.8299725831f,
     -3.88577974484f
   },
-  -25.2859191676f /* theta_R_dot at speed */
+  -25.2859191676f, /* theta_R_dot at speed */
+  -0.331144044995f,    /* Kp at speed */
+  -2.63471434987f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 8 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 9 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -411,7 +429,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     3.93591251279f,
     -3.91925365245f
   },
-  -24.427484438f /* theta_R_dot at speed */
+  -24.427484438f, /* theta_R_dot at speed */
+  -0.329987462569f,    /* Kp at speed */
+  -2.54448362512f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 9 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 10 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -452,7 +472,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     4.0445401147f,
     -3.95182948098f
   },
-  -23.5981928128f /* theta_R_dot at speed */
+  -23.5981928128f, /* theta_R_dot at speed */
+  -0.326373371227f,    /* Kp at speed */
+  -2.45750273511f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 10 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 11 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -493,7 +515,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     4.15612442813f,
     -3.98350035906f
   },
-  -22.7970549094f /* theta_R_dot at speed */
+  -22.7970549094f, /* theta_R_dot at speed */
+  -0.320174904744f,    /* Kp at speed */
+  -2.37362826347f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 11 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 12 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -534,7 +558,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     4.27097125026f,
     -4.01425790683f
   },
-  -22.0231149336f /* theta_R_dot at speed */
+  -22.0231149336f, /* theta_R_dot at speed */
+  -0.311603145469f,    /* Kp at speed */
+  -2.29281526351f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 12 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 13 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -575,7 +601,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     4.38942682403f,
     -4.0440917646f
   },
-  -21.2754495397f /* theta_R_dot at speed */
+  -21.2754495397f, /* theta_R_dot at speed */
+  -0.301073500693f,    /* Kp at speed */
+  -2.21509038392f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 13 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 14 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -616,7 +644,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     4.51188181485f,
     -4.07298908662f
   },
-  -20.5531667287f /* theta_R_dot at speed */
+  -20.5531667287f, /* theta_R_dot at speed */
+  -0.289108499311f,    /* Kp at speed */
+  -2.14052973388f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 14 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 15 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -657,7 +687,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     4.63877544534f,
     -4.1009339684f
   },
-  -19.8554047843f /* theta_R_dot at speed */
+  -19.8554047843f, /* theta_R_dot at speed */
+  -0.276268710648f,    /* Kp at speed */
+  -2.06924085904f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 15 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 16 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -698,7 +730,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     4.77059985913f,
     -4.12790684227f
   },
-  -19.1813312446f /* theta_R_dot at speed */
+  -19.1813312446f, /* theta_R_dot at speed */
+  -0.263105188734f,    /* Kp at speed */
+  -2.00134825912f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 16 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 17 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -739,7 +773,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     4.90790450273f,
     -4.15388380064f
   },
-  -18.530141909f /* theta_R_dot at speed */
+  -18.530141909f, /* theta_R_dot at speed */
+  -0.250128220931f,    /* Kp at speed */
+  -1.93698193572f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 17 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 18 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -780,7 +816,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     5.05130050094f,
     -4.17883588112f
   },
-  -17.901059879f /* theta_R_dot at speed */
+  -17.901059879f, /* theta_R_dot at speed */
+  -0.237788269142f,    /* Kp at speed */
+  -1.87626851441f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 18 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 19 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -821,7 +859,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     5.20146480551f,
     -4.2027283052f
   },
-  -17.293334631f /* theta_R_dot at speed */
+  -17.293334631f, /* theta_R_dot at speed */
+  -0.226465883881f,    /* Kp at speed */
+  -1.81932453734f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 19 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 20 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -862,7 +902,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     5.35914396674f,
     -4.22551968407f
   },
-  -16.7062411209f /* theta_R_dot at speed */
+  -16.7062411209f, /* theta_R_dot at speed */
+  -0.216468086629f,    /* Kp at speed */
+  -1.76625157145f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 20 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 21 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -903,7 +945,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     5.52515726056f,
     -4.24716121412f
   },
-  -16.1390789195f /* theta_R_dot at speed */
+  -16.1390789195f, /* theta_R_dot at speed */
+  -0.208029287098f,    /* Kp at speed */
+  -1.71713282142f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 21 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 22 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -944,7 +988,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     5.70039888573f,
     -4.26759587807f
   },
-  -15.5911713762f /* theta_R_dot at speed */
+  -15.5911713762f, /* theta_R_dot at speed */
+  -0.201315256648f,    /* Kp at speed */
+  -1.672030978f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 22 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 23 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -985,7 +1031,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     5.88583898224f,
     -4.28675769908f
   },
-  -15.0618648125f /* theta_R_dot at speed */
+  -15.0618648125f, /* theta_R_dot at speed */
+  -0.196429039171f,    /* Kp at speed */
+  -1.63098706828f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 23 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 24 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1026,7 +1074,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     6.08252314051f,
     -4.30457107824f
   },
-  -14.5505277413f /* theta_R_dot at speed */
+  -14.5505277413f, /* theta_R_dot at speed */
+  -0.193417964648f,    /* Kp at speed */
+  -1.59402010806f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 24 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 25 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1067,7 +1117,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     6.29157013815f,
     -4.32095025912f
   },
-  -14.0565501143f /* theta_R_dot at speed */
+  -14.0565501143f, /* theta_R_dot at speed */
+  -0.192281153081f,    /* Kp at speed */
+  -1.56112738543f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 25 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 26 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1108,7 +1160,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     6.51416775188f,
     -4.33579898419f
   },
-  -13.5793425935f /* theta_R_dot at speed */
+  -13.5793425935f, /* theta_R_dot at speed */
+  -0.192977069711f,    /* Kp at speed */
+  -1.53228523101f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 26 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 27 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1149,7 +1203,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     6.75156650321f,
     -4.34901037577f
   },
-  -13.1183358485f /* theta_R_dot at speed */
+  -13.1183358485f, /* theta_R_dot at speed */
+  -0.195430826269f,    /* Kp at speed */
+  -1.50745015281f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 27 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 28 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1190,7 +1246,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     7.00507146856f,
     -4.36046709015f
   },
-  -12.6729798774f /* theta_R_dot at speed */
+  -12.6729798774f, /* theta_R_dot at speed */
+  -0.199541025433f,    /* Kp at speed */
+  -1.4865602341f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 28 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 29 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1231,7 +1289,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     7.27603231341f,
     -4.37004177196f
   },
-  -12.2427433499f /* theta_R_dot at speed */
+  -12.2427433499f, /* theta_R_dot at speed */
+  -0.205186023182f,    /* Kp at speed */
+  -1.46953670995f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 29 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 30 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1272,7 +1332,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     7.56583205562f,
     -4.37759782109f
   },
-  -11.8271129745f /* theta_R_dot at speed */
+  -11.8271129745f, /* theta_R_dot at speed */
+  -0.212229541583f,    /* Kp at speed */
+  -1.4562856531f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 30 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 31 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1313,7 +1375,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     7.87587508307f,
     -4.38299044124f
   },
-  -11.4255928849f /* theta_R_dot at speed */
+  -11.4255928849f, /* theta_R_dot at speed */
+  -0.220525607011f,    /* Kp at speed */
+  -1.44669971328f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 31 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 32 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1354,7 +1418,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     8.20757513296f,
     -4.38606794779f
   },
-  -11.0377040494f /* theta_R_dot at speed */
+  -11.0377040494f, /* theta_R_dot at speed */
+  -0.229922819135f,    /* Kp at speed */
+  -1.44065986461f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 32 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 33 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1395,7 +1461,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     8.56234399932f,
     -4.38667325804f
   },
-  -10.662983699f /* theta_R_dot at speed */
+  -10.662983699f, /* theta_R_dot at speed */
+  -0.240267977113f,    /* Kp at speed */
+  -1.43803712606f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 33 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 34 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1436,7 +1504,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     8.94158172555f,
     -4.38464547906f
   },
-  -10.300984775f /* theta_R_dot at speed */
+  -10.300984775f, /* theta_R_dot at speed */
+  -0.251409103357f,    /* Kp at speed */
+  -1.43869422708f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 34 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 35 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1477,7 +1547,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     9.34666883609f,
     -4.37982150107f
   },
-  -9.95127539639f /* theta_R_dot at speed */
+  -9.95127539639f, /* theta_R_dot at speed */
+  -0.26319791374f,    /* Kp at speed */
+  -1.44248719823f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 35 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 36 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1518,7 +1590,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     9.77896104186f,
     -4.37203750294f
   },
-  -9.61343834376f /* theta_R_dot at speed */
+  -9.61343834376f, /* theta_R_dot at speed */
+  -0.275491787566f,    /* Kp at speed */
+  -1.44926687153f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 36 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 37 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1559,7 +1633,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     10.2397866119f,
     -4.3611302798f
   },
-  -9.2870705621f /* theta_R_dot at speed */
+  -9.2870705621f, /* theta_R_dot at speed */
+  -0.288155292134f,    /* Kp at speed */
+  -1.45888028049f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 37 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 38 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1600,7 +1676,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     10.7304465657f,
     -4.34693834007f
   },
-  -8.97178267976f /* theta_R_dot at speed */
+  -8.97178267976f, /* theta_R_dot at speed */
+  -0.301061316046f,    /* Kp at speed */
+  -1.47117195329f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 38 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 39 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1641,7 +1719,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     11.2522171123f,
     -4.32930271365f
   },
-  -8.66719854388f /* theta_R_dot at speed */
+  -8.66719854388f, /* theta_R_dot at speed */
+  -0.314091863274f,    /* Kp at speed */
+  -1.48598509611f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 39 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 40 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1682,7 +1762,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     11.8063543547f,
     -4.30806746817f
   },
-  -8.3729547717f /* theta_R_dot at speed */
+  -8.3729547717f, /* theta_R_dot at speed */
+  -0.327138556877f,    /* Kp at speed */
+  -1.50316266566f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 40 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 41 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1723,7 +1805,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     12.3941004905f,
     -4.28307993386f
   },
-  -8.08870031694f /* theta_R_dot at speed */
+  -8.08870031694f, /* theta_R_dot at speed */
+  -0.34010289752f,    /* Kp at speed */
+  -1.52254833242f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 41 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 42 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1764,7 +1848,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     13.0166911063f,
     -4.25419066045f
   },
-  -7.81409605107f /* theta_R_dot at speed */
+  -7.81409605107f, /* theta_R_dot at speed */
+  -0.352896317891f,    /* Kp at speed */
+  -1.54398733743f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 42 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 43 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1805,7 +1891,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     13.6753633744f,
     -4.22125314527f
   },
-  -7.54881435864f /* theta_R_dot at speed */
+  -7.54881435864f, /* theta_R_dot at speed */
+  -0.365440069951f,    /* Kp at speed */
+  -1.56732724663f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 43 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 44 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1846,7 +1934,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     14.3713640768f,
     -4.18412338247f
   },
-  -7.2925387465f /* theta_R_dot at speed */
+  -7.2925387465f, /* theta_R_dot at speed */
+  -0.377664977834f,    /* Kp at speed */
+  -1.59241860776f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 44 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 45 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1887,7 +1977,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     15.1059576402f,
     -4.14265927029f
   },
-  -7.04496346612f /* theta_R_dot at speed */
+  -7.04496346612f, /* theta_R_dot at speed */
+  -0.38951108525f,    /* Kp at speed */
+  -1.61911551535f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 45 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 46 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1928,7 +2020,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     15.8804341327f,
     -4.0967199191f
   },
-  -6.8057931489f /* theta_R_dot at speed */
+  -6.8057931489f, /* theta_R_dot at speed */
+  -0.400927222489f,    /* Kp at speed */
+  -1.64727608976f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 46 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 47 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -1969,7 +2063,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     16.6961161634f,
     -4.04616491917f
   },
-  -6.57474245372f /* theta_R_dot at speed */
+  -6.57474245372f, /* theta_R_dot at speed */
+  -0.411870514652f,    /* Kp at speed */
+  -1.67676287644f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 47 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 48 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2010,7 +2106,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     17.5543656053f,
     -3.99085356318f
   },
-  -6.35153572654f /* theta_R_dot at speed */
+  -6.35153572654f, /* theta_R_dot at speed */
+  -0.422305849554f,    /* Kp at speed */
+  -1.70744317163f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 48 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 49 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2051,7 +2149,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     18.4565893024f,
     -3.93064409684f
   },
-  -6.13590667156f /* theta_R_dot at speed */
+  -6.13590667156f, /* theta_R_dot at speed */
+  -0.432205320839f,    /* Kp at speed */
+  -1.73918928079f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 49 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 50 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2092,7 +2192,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     19.4042444812f,
     -3.865392963f
   },
-  -5.92759803346f /* theta_R_dot at speed */
+  -5.92759803346f, /* theta_R_dot at speed */
+  -0.441547659288f,    /* Kp at speed */
+  -1.77187871573f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 50 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 51 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2133,7 +2235,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     20.3988433382f,
     -3.79495409185f
   },
-  -5.72636129053f /* theta_R_dot at speed */
+  -5.72636129053f, /* theta_R_dot at speed */
+  -0.450317662975f,    /* Kp at speed */
+  -1.8053943365f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 51 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 52 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2174,7 +2278,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     21.4419577344f,
     -3.71917820127f
   },
-  -5.53195635813f /* theta_R_dot at speed */
+  -5.53195635813f, /* theta_R_dot at speed */
+  -0.458505634918f,    /* Kp at speed */
+  -1.83962444355f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 52 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 53 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2215,7 +2321,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     22.5352212188f,
     -3.63791224272f
   },
-  -5.3441513023f /* theta_R_dot at speed */
+  -5.3441513023f, /* theta_R_dot at speed */
+  -0.466106835109f,    /* Kp at speed */
+  -1.8744628256f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 53 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 54 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2256,7 +2364,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     23.6803351661f,
     -3.55099867716f
   },
-  -5.16272206304f /* theta_R_dot at speed */
+  -5.16272206304f, /* theta_R_dot at speed */
+  -0.473120952268f,    /* Kp at speed */
+  -1.90980876835f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 54 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 55 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2297,7 +2407,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     24.879068802f,
     -3.45827506388f
   },
-  -4.98745218698f /* theta_R_dot at speed */
+  -4.98745218698f, /* theta_R_dot at speed */
+  -0.479551599354f,    /* Kp at speed */
+  -1.9455670286f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 55 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 56 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2338,7 +2450,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     26.1332641793f,
     -3.35957345237f
   },
-  -4.81813256915f /* theta_R_dot at speed */
+  -4.81813256915f, /* theta_R_dot at speed */
+  -0.485405835751f,    /* Kp at speed */
+  -1.98164777845f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 56 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 57 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2379,7 +2493,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     27.4448380339f,
     -3.25471993103f
   },
-  -4.65456120352f /* theta_R_dot at speed */
+  -4.65456120352f, /* theta_R_dot at speed */
+  -0.490693718112f,    /* Kp at speed */
+  -2.01796652341f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 57 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 58 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2420,7 +2536,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     28.8157855443f,
     -3.14353410411f
   },
-  -4.49654294197f /* theta_R_dot at speed */
+  -4.49654294197f, /* theta_R_dot at speed */
+  -0.495427881017f,    /* Kp at speed */
+  -2.05444399842f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 58 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 59 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2461,7 +2579,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     30.2481791416f,
     -3.02582890281f
   },
-  -4.34388926151f /* theta_R_dot at speed */
+  -4.34388926151f, /* theta_R_dot at speed */
+  -0.49962314801f,    /* Kp at speed */
+  -2.09100604507f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 59 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 60 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2502,7 +2622,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     31.7441786595f,
     -2.90140968909f
   },
-  -4.19641803931f /* theta_R_dot at speed */
+  -4.19641803931f, /* theta_R_dot at speed */
+  -0.503296172979f,    /* Kp at speed */
+  -2.12758347316f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 60 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 61 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2543,7 +2665,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     33.3060242445f,
     -2.77007447428f
   },
-  -4.05395333549f /* theta_R_dot at speed */
+  -4.05395333549f, /* theta_R_dot at speed */
+  -0.506465111473f,    /* Kp at speed */
+  -2.16411190964f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 61 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 62 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2584,7 +2708,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     34.9360517812f,
     -2.6316126955f
   },
-  -3.91632518313f /* theta_R_dot at speed */
+  -3.91632518313f, /* theta_R_dot at speed */
+  -0.509149321164f,    /* Kp at speed */
+  -2.20053163723f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 62 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 63 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2625,7 +2751,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     36.6366806194f,
     -2.48580583538f
   },
-  -3.78336938557f /* theta_R_dot at speed */
+  -3.78336938557f, /* theta_R_dot at speed */
+  -0.511369090445f,    /* Kp at speed */
+  -2.23678742523f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 63 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 64 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2666,7 +2794,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     38.4104283584f,
     -2.33242623604f
   },
-  -3.65492732048f /* theta_R_dot at speed */
+  -3.65492732048f, /* theta_R_dot at speed */
+  -0.513145393909f,    /* Kp at speed */
+  -2.27282835446f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 64 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 65 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2707,7 +2837,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     40.2599111353f,
     -2.17123691868f
   },
-  -3.53084575059f /* theta_R_dot at speed */
+  -3.53084575059f, /* theta_R_dot at speed */
+  -0.514499673358f,    /* Kp at speed */
+  -2.3086076383f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 65 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 66 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2748,7 +2880,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     42.1878444671f,
     -2.00199133157f
   },
-  -3.41097664094f /* theta_R_dot at speed */
+  -3.41097664094f, /* theta_R_dot at speed */
+  -0.515453642876f,    /* Kp at speed */
+  -2.34408244124f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 66 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 67 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2789,7 +2923,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     44.1970466429f,
     -1.8244329876f
   },
-  -3.29517698219f /* theta_R_dot at speed */
+  -3.29517698219f, /* theta_R_dot at speed */
+  -0.51602911644f,    /* Kp at speed */
+  -2.37921369657f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 67 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 68 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2830,7 +2966,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     46.2904516598f,
     -1.63829437244f
   },
-  -3.18330862007f /* theta_R_dot at speed */
+  -3.18330862007f, /* theta_R_dot at speed */
+  -0.516247856531f,    /* Kp at speed */
+  -2.41396592433f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 68 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 69 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2871,7 +3009,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     48.4710998334f,
     -1.44329746891f
   },
-  -3.07523809052f /* theta_R_dot at speed */
+  -3.07523809052f, /* theta_R_dot at speed */
+  -0.516131442206f,    /* Kp at speed */
+  -2.44830705061f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 69 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 70 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2912,7 +3052,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     50.7421550033f,
     -1.23915237271f
   },
-  -2.97083646045f /* theta_R_dot at speed */
+  -2.97083646045f, /* theta_R_dot at speed */
+  -0.515701155116f,    /* Kp at speed */
+  -2.48220822917f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 70 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 71 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2953,7 +3095,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     53.1068988604f,
     -1.02555757474f
   },
-  -2.86997917395f /* theta_R_dot at speed */
+  -2.86997917395f, /* theta_R_dot at speed */
+  -0.514977881982f,    /* Kp at speed */
+  -2.51564366612f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 71 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 72 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -2994,7 +3138,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     55.5687393365f,
     -0.80219921149f
   },
-  -2.77254590368f /* theta_R_dot at speed */
+  -2.77254590368f, /* theta_R_dot at speed */
+  -0.513982032113f,    /* Kp at speed */
+  -2.54859044831f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 72 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 73 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3035,7 +3181,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     58.1312263624f,
     -0.568749706286f
   },
-  -2.67842040729f /* theta_R_dot at speed */
+  -2.67842040729f, /* theta_R_dot at speed */
+  -0.512733468601f,    /* Kp at speed */
+  -2.58102837604f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 73 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 74 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3076,7 +3224,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     60.7980234794f,
     -0.324869900699f
   },
-  -2.58749038876f /* theta_R_dot at speed */
+  -2.58749038876f, /* theta_R_dot at speed */
+  -0.511251451884f,    /* Kp at speed */
+  -2.6129398005f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 74 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 75 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3117,7 +3267,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     63.5729735247f,
     -0.0702037361084f
   },
-  -2.49964736444f /* theta_R_dot at speed */
+  -2.49964736444f, /* theta_R_dot at speed */
+  -0.509554594469f,    /* Kp at speed */
+  -2.64430946626f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 75 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 76 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3158,7 +3310,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     66.4600401883f,
     0.195617207909f
   },
-  -2.41478653358f /* theta_R_dot at speed */
+  -2.41478653358f, /* theta_R_dot at speed */
+  -0.507660825646f,    /* Kp at speed */
+  -2.67512435917f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 76 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 77 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3199,7 +3353,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     69.463362278f,
     0.472978182114f
   },
-  -2.33280665334f /* theta_R_dot at speed */
+  -2.33280665334f, /* theta_R_dot at speed */
+  -0.505587365134f,    /* Kp at speed */
+  -2.70537355986f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 77 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 78 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3240,7 +3396,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     72.5872266718f,
     0.762279178326f
   },
-  -2.25360991797f /* theta_R_dot at speed */
+  -2.25360991797f, /* theta_R_dot at speed */
+  -0.503350704646f,    /* Kp at speed */
+  -2.73504810288f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 78 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 79 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3281,7 +3439,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     75.8361132208f,
     1.06393871535f
   },
-  -2.17710184216f /* theta_R_dot at speed */
+  -2.17710184216f, /* theta_R_dot at speed */
+  -0.500966596465f,    /* Kp at speed */
+  -2.76414084174f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 79 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 80 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3322,7 +3482,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     79.2146474058f,
     1.37839003365f
   },
-  -2.10319114827f /* theta_R_dot at speed */
+  -2.10319114827f, /* theta_R_dot at speed */
+  -0.498450048152f,    /* Kp at speed */
+  -2.79264631977f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 80 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 81 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3363,7 +3525,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     82.7276889874f,
     1.70608860104f
   },
-  -2.03178965747f /* theta_R_dot at speed */
+  -2.03178965747f, /* theta_R_dot at speed */
+  -0.495815322633f,    /* Kp at speed */
+  -2.82056064681f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 81 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 82 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3404,7 +3568,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     86.3802603734f,
     2.04750620298f
   },
-  -1.96281218452f /* theta_R_dot at speed */
+  -1.96281218452f, /* theta_R_dot at speed */
+  -0.49307594293f,    /* Kp at speed */
+  -2.84788138176f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 82 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 83 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3445,7 +3611,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     90.1775892821f,
     2.40313464011f
   },
-  -1.89617643615f /* theta_R_dot at speed */
+  -1.89617643615f, /* theta_R_dot at speed */
+  -0.490244700882f,    /* Kp at speed */
+  -2.87460742087f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 83 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 84 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3486,7 +3654,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     94.125126724f,
     2.77348734544f
   },
-  -1.83180291286f /* theta_R_dot at speed */
+  -1.83180291286f, /* theta_R_dot at speed */
+  -0.487333669285f,    /* Kp at speed */
+  -2.90073889168f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 84 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 85 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3527,7 +3697,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     98.2285773008f,
     3.15910212135f
   },
-  -1.7696148141f /* theta_R_dot at speed */
+  -1.7696148141f, /* theta_R_dot at speed */
+  -0.484354216888f,    /* Kp at speed */
+  -2.92627705251f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 85 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 86 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3568,7 +3740,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     102.493825741f,
     3.56053492902f
   },
-  -1.70953794664f /* theta_R_dot at speed */
+  -1.70953794664f, /* theta_R_dot at speed */
+  -0.481317025785f,    /* Kp at speed */
+  -2.95122419739f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 86 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 87 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3609,7 +3783,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     106.927024676f,
     3.97836750828f
   },
-  -1.65150063602f /* theta_R_dot at speed */
+  -1.65150063602f, /* theta_R_dot at speed */
+  -0.47823211076f,    /* Kp at speed */
+  -2.9755835662f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 87 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 88 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3650,7 +3826,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     111.534645865f,
     4.4132120144f
   },
-  -1.59543364108f /* theta_R_dot at speed */
+  -1.59543364108f, /* theta_R_dot at speed */
+  -0.475108840193f,    /* Kp at speed */
+  -2.99935925996f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 88 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 89 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3691,7 +3869,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     116.323346203f,
     4.86569943356f
   },
-  -1.54127007133f /* theta_R_dot at speed */
+  -1.54127007133f, /* theta_R_dot at speed */
+  -0.471955958206f,    /* Kp at speed */
+  -3.02255616108f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 89 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 90 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3732,7 +3912,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     121.300140452f,
     5.33649477634f
   },
-  -1.48894530717f /* theta_R_dot at speed */
+  -1.48894530717f, /* theta_R_dot at speed */
+  -0.468781607704f,    /* Kp at speed */
+  -3.04517985828f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 90 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 91 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3773,7 +3955,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     126.472320239f,
     5.82629012549f
   },
-  -1.43839692276f /* theta_R_dot at speed */
+  -1.43839692276f, /* theta_R_dot at speed */
+  -0.465593354087f,    /* Kp at speed */
+  -3.0672365762f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 91 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 92 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3814,7 +3998,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     131.84741849f,
     6.33580153112f
   },
-  -1.38956461157f /* theta_R_dot at speed */
+  -1.38956461157f, /* theta_R_dot at speed */
+  -0.462398209358f,    /* Kp at speed */
+  -3.08873310938f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 92 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 93 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3855,7 +4041,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     137.433491185f,
     6.86579414318f
   },
-  -1.34239011442f /* theta_R_dot at speed */
+  -1.34239011442f, /* theta_R_dot at speed */
+  -0.459202656444f,    /* Kp at speed */
+  -3.10967676036f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 93 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 94 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3896,7 +4084,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     143.238710582f,
     7.41704617283f
   },
-  -1.29681714998f /* theta_R_dot at speed */
+  -1.29681714998f, /* theta_R_dot at speed */
+  -0.456012673538f,    /* Kp at speed */
+  -3.130075282f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 94 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 95 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3937,7 +4127,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     149.271834025f,
     7.99039078266f
   },
-  -1.25279134763f /* theta_R_dot at speed */
+  -1.25279134763f, /* theta_R_dot at speed */
+  -0.452833758317f,    /* Kp at speed */
+  -3.14993682347f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 95 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 96 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -3978,7 +4170,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     155.541956712f,
     8.5866942057f
   },
-  -1.21026018257f /* theta_R_dot at speed */
+  -1.21026018257f, /* theta_R_dot at speed */
+  -0.449670951893f,    /* Kp at speed */
+  -3.16926987997f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 96 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 97 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -4019,7 +4213,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     162.058308149f,
     9.2068374471f
   },
-  -1.16917291318f /* theta_R_dot at speed */
+  -1.16917291318f, /* theta_R_dot at speed */
+  -0.446528862389f,    /* Kp at speed */
+  -3.188083246f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 97 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 98 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -4060,7 +4256,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     168.831023047f,
     9.85178577224f
   },
-  -1.12948052046f /* theta_R_dot at speed */
+  -1.12948052046f, /* theta_R_dot at speed */
+  -0.443411688052f,    /* Kp at speed */
+  -3.20638597186f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 98 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 99 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -4101,7 +4299,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     175.870398705f,
     10.5225220707f
   },
-  -1.0911356496f /* theta_R_dot at speed */
+  -1.0911356496f, /* theta_R_dot at speed */
+  -0.440323239811f,    /* Kp at speed */
+  -3.22418732331f     /* Ki at speed */
   }, /* -------------- CONTROLLER GAINS FOR SPEED 99 END --------------- */
   { /* -------------- CONTROLLER GAINS FOR SPEED 100 START -------------- */
   { /* Matrix A in rowmajor order */
@@ -4142,7 +4342,9 @@ const std::array<cg::ControllerGains, cg::num_gains> YawRateController::gains_ =
     183.187165692f,
     11.2200712583f
   },
-  -1.05409255339f /* theta_R_dot at speed */
+  -1.05409255339f, /* theta_R_dot at speed */
+  -0.437266963231f,    /* Kp at speed */
+  -3.24149674423f     /* Ki at speed */
   } /* --------------- CONTROLLER GAINS FOR SPEED 100 END --------------- */
 }}; /* gains */
 

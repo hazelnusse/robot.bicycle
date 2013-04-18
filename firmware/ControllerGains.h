@@ -18,6 +18,8 @@ struct ControllerGains {
   float B[b_rows * b_cols];
   float C[c_rows * c_cols];
   float theta_R_dot;
+  float Kp;
+  float Ki;
   bool operator<(const ControllerGains & rhs) const {
     return theta_R_dot < rhs.theta_R_dot;
   }
