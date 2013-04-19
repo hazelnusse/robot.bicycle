@@ -21,6 +21,7 @@ set(CHIBIOS_VARIOUS_SRC
 
 
 add_subdirectory("${ROBOT_BICYCLE_SOURCE_DIR}/Singleton")
-include_directories("${ROBOT_BICYCLE_SOURCE_DIR}/Singleton")
+include_directories(${ROBOT_BICYCLE_SOURCE_DIR}/Singleton
+                    ${ROBOT_BICYCLE_SOURCE_DIR}/nanopb)
 add_subdirectory("${ROBOT_BICYCLE_SOURCE_DIR}/src")
 
