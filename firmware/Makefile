@@ -87,7 +87,9 @@ CSRC = $(PORTSRC) \
        $(CHIBIOS)/os/various/evtimer.c \
        $(CHIBIOS)/os/various/chprintf.c \
        $(CHIBIOS)/os/various/shell.c \
-       $(CHIBIOS)/os/various/syscalls.c
+       $(CHIBIOS)/os/various/syscalls.c \
+			 nanopb/pb_encode.c \
+			 Test.pb.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -104,7 +106,6 @@ CPPSRC = main.cpp \
 				 VectorTable.cpp \
 				 Interrupts.cpp \
 				 imu_calibration.cpp
-
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -184,7 +185,7 @@ DDEFS =
 DADEFS =
 
 # List all default directories to look for include files here
-DINCDIR = Singleton
+DINCDIR = Singleton nanopb
 
 # List the default directory to look for the libraries here
 DLIBDIR =
