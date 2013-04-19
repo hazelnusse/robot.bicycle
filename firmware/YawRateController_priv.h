@@ -43,7 +43,9 @@ void YawRateController::turnOff()
 inline
 void YawRateController::Reset()
 {
-  x_[0] = x_[1] = x_[2] = x_[3] = 0.0f;
+  estimation_triggered_ = control_triggered_ = false; 
+  r_ = u_ = x_[0] = x_[1] = x_[2] = x_[3] = x_pi_ = 0.0f;
+  SystemTime_prev_ = 0;
   PWM_CCR(0);
   setCurrentDirNegative();// negative rotation direction is to the left
 }

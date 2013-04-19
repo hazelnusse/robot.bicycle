@@ -6,6 +6,8 @@
 #include "MPU6050.h"
 #include "RearWheel.h"
 #include "YawRateController.h"
+#include "Test.pb.h"
+#include "pb_encode.h"
 
 SampleAndControl::SampleAndControl()
   : tp_control(0), tp_write(0), state_(0)
@@ -98,8 +100,6 @@ void SampleAndControl::controlThread(char* filename)
   imu.DeInitialize();
   rw.turnOff();
   yc.turnOff();
-  rw.Reset();
-  yc.Reset();
   // End cleanup
 
   msg = chMsgSend(tp_write, 0); // send a message to end the write thread.
