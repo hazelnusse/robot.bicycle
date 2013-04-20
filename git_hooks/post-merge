@@ -11,15 +11,19 @@ for SUBMODULE in $SUBMODULES; do
 	fi
 done
 
-MOD_SUBMODULES=$(git diff --name-only --ignore-submodules=dirty | grep -F "$SUBMODULES")
-if [ -n "$MOD_SUBMODULES" ]; then
+NUM_DIFF_SUBS_CLEAN=$(git diff --name-only --ignore-submodules=dirty | grep -F "$SUBMODULES" | wc -l)
+NUM_DIFF_SUBS=$(git diff --name-only | grep -F "$SUBMODULES" | wc -l)
+# skip update if any submodules are dirty
+if [ "$NUM_DIFF_SUBS" -eq "$NUM_DIFF_SUBS_CLEAN" ]; then
 	git submodule update
 	RETVAL=$?
 	if [ $RETVAL -ne 0 ]; then
-	# if update fails, try adding tegesoft remote and updating again
+	# if update fails, try adding additional remotes and updating again
 		cd ${ROOT_DIR}/${CHIBIOS_SUBMODULE}
 		git remote add tegesoft git://github.com/tegesoft/ChibiOS.git
 		git fetch tegesoft
+		git remote add oliverlee git://github.com/oliverlee/ChibiOS.git
+		git fetch oliverlee
 		cd $ROOT_DIR
 		git submodule update
 	fi
