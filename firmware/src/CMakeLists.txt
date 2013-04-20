@@ -4,7 +4,7 @@ include(${CHIBIOS_ROOT}/tools/cmake/ext/chprintf.cmake)
 include(${CHIBIOS_ROOT}/tools/cmake/ext/fatfs.cmake)
 
 
-set(USE_OPT "-Os -ggdb3 -fomit-frame-pointer -falign-functions=16 -ffunction-sections -fdata-sections -fno-common")
+set(USE_OPT "-O2 -ggdb3 -fomit-frame-pointer -falign-functions=16 -ffunction-sections -fdata-sections -fno-common")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_OPT}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_OPT} -fno-rtti -fno-exceptions -fno-stack-protector -std=c++11")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections --static -lc -lnosys")

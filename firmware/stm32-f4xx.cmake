@@ -13,7 +13,7 @@ include_directories(
 )
 
 # set the type of CPU
-set(CPU_FLAGS "-mcpu=cortex-m4 -mthumb")
+set(CPU_FLAGS "-mcpu=cortex-m4 -mthumb -mno-thumb-interwork")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CPU_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CPU_FLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${CPU_FLAGS} -nostartfiles")
