@@ -9,6 +9,16 @@ set(CHIBIOS_BOARD_CMAKE_FILE
 
 include(${CHIBIOS_ROOT}/tools/cmake/openocd.cmake)
 
+# Due to use of toolchain, unset CMAKE_FIND_ROOT_PATH_MODE_INCLUDE so that
+# directories on host are searched when find_path() and find_file() are
+# called in FindNanopb.cmake.
+set(TEMP ${CMAKE_FIND_ROOT_PATH_MODE_INCLUDE})
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE)
+set(NANOPB_SRC_ROOT_FOLDER "${ROBOT_BICYCLE_SOURCE_DIR}/nanopb")
+include("${NANOPB_SRC_ROOT_FOLDER}/cmake/FindNanopb.cmake")
+include_directories(${NANOPB_INCLUDE_DIRS})
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ${TEMP})
+
 set(CHIBIOS_VARIOUS_SRC
     ${CHIBIOS_ROOT}/os/various/chprintf.c
     ${CHIBIOS_ROOT}/os/various/chprintf.h
@@ -19,9 +29,8 @@ set(CHIBIOS_VARIOUS_SRC
     ${CHIBIOS_ROOT}/os/various/syscalls.c
 )
 
-
-add_subdirectory("${ROBOT_BICYCLE_SOURCE_DIR}/Singleton")
-include_directories(${ROBOT_BICYCLE_SOURCE_DIR}/Singleton
-                    ${ROBOT_BICYCLE_SOURCE_DIR}/nanopb)
-add_subdirectory("${ROBOT_BICYCLE_SOURCE_DIR}/src")
+include_directories(${ROBOT_BICYCLE_SOURCE_DIR}/nanopb
+                    ${ROBOT_BICYCLE_SOURCE_DIR}/Singleton)
+add_subdirectory(${ROBOT_BICYCLE_SOURCE_DIR}/Singleton)
+add_subdirectory(${ROBOT_BICYCLE_SOURCE_DIR}/src)
 

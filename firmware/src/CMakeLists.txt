@@ -49,6 +49,12 @@ set(ROBOT_BICYCLE_SRCS
     YawRateController_priv.h
 )
 
+# Source file properties (e.g. generated) are only visible to
+# targets added in the same directory.
+nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS "../Test.proto")
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 add_chibios_executable(robot_bicycle ${ROBOT_BICYCLE_SRCS}
-                                     ${CHIBIOS_VARIOUS_SRC})
+                                     ${CHIBIOS_VARIOUS_SRC}
+                                     ${PROTO_SRCS})
 add_flash_target(robot_bicycle)
