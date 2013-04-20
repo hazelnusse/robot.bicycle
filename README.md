@@ -43,11 +43,13 @@ tools in the Linaro toolchain and it seems to work well.
 To compile the firmware which runs on the bicycle, type:
 
     $ cd firmware
-    $ ./build_firmware.sh
+    $ mkdir build
+    $ cd build
+    $ cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchain-arm-none-eabi.cmake
+    $ make
 
-This shell script simply calls the ChibiOS provided Makefile with some
-options that affect the code compilation. You will need to modify this to
-point to your toolchain path.
+You will need to modify the CMake toolchain file to point to your toolchain
+path. You can view and change build options using `ccmake` instead of `cmake`.
 
 To build the dataprocessing code, ensure you have CMake installed, then type:
 
