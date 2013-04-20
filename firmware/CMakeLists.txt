@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.8)
 project(ROBOT_BICYCLE)
 
+set(CMAKE_MODULE_PATH "${ROBOT_BICYCLE_SOURCE_DIR}/../cmake/Modules")
 set(CHIBIOS_ROOT "${ROBOT_BICYCLE_SOURCE_DIR}/ChibiOS-RT")
 get_filename_component(CHIBIOS_ROOT "${CHIBIOS_ROOT}" ABSOLUTE)
 
@@ -12,6 +13,8 @@ include(${CHIBIOS_ROOT}/tools/cmake/openocd.cmake)
 find_package(PythonInterp 3.3 REQUIRED)
 get_filename_component(PYTHON_EXE_DIR ${PYTHON_EXECUTABLE} PATH)
 find_program(PYTHON_2TO3_EXECUTABLE 2to3-3.3 PATHS ${PYTHON_EXE_DIR})
+find_package(PythonModule)
+find_python_module(jinja2 REQUIRED)
 
 # Due to use of toolchain, unset CMAKE_FIND_ROOT_PATH_MODE_INCLUDE so that
 # directories on host are searched when find_path() and find_file() are
@@ -23,7 +26,7 @@ include("${NANOPB_SRC_ROOT_FOLDER}/cmake/FindNanopb.cmake")
 include_directories(${NANOPB_INCLUDE_DIRS})
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ${TEMP})
 
-#Convert generator script to python 3 so python 2 is not required.
+#Convert generator script to Python 3
 add_custom_target(target_nanpopb_gen_py3 ALL ${PYTHON_2TO3_EXECUTABLE}
     --output-dir=${CMAKE_CURRENT_BINARY_DIR} --nobackups --no-diffs
     --write-unchanged-files --nofix=isinstance --nofix=unicode

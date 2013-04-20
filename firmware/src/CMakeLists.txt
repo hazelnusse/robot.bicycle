@@ -16,7 +16,6 @@ set(ROBOT_BICYCLE_SRCS
     bitband.h
     chconf.h
     Constants.h
-    ControllerGains.h
     ffconf.h
     halconf.h
     imu_calibration.cpp
@@ -45,16 +44,38 @@ set(ROBOT_BICYCLE_SRCS
     VectorTable.h
     YawRateController.cpp
     YawRateController.h
-    YawRateController_gains.cpp
     YawRateController_priv.h
 )
 
 # Source file properties (e.g. generated) are only visible to
 # targets added in the same directory.
 nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS "../Test.proto")
+
+set(ROBOT_BICYCLE_DESIGN_DIR "${ROBOT_BICYCLE_SOURCE_DIR}/../design")
+set(YRC_GAINS_CPP "${CMAKE_CURRENT_BINARY_DIR}/YawRateController_gains.cpp")
+set(CONTROLLERGAINS_H "${CMAKE_CURRENT_BINARY_DIR}/ControllerGains.h")
+
+add_custom_command(OUTPUT ${YRC_GAINS_CPP} ${CONTROLLERGAINS_H}
+    COMMAND "${ROBOT_BICYCLE_DESIGN_DIR}/generate_cgains.py"
+    COMMAND ${CMAKE_COMMAND} -E rename YawRateController_gains.cpp ${YRC_GAINS_CPP}
+    COMMAND ${CMAKE_COMMAND} -E rename ControllerGains.h ${CONTROLLERGAINS_H}
+    DEPENDS "${ROBOT_BICYCLE_DESIGN_DIR}/pi_gains.mat"
+    "${ROBOT_BICYCLE_DESIGN_DIR}/YawRateController_gains.cpp.in"
+    "${ROBOT_BICYCLE_DESIGN_DIR}/ControllerGains.h.in"
+    "${ROBOT_BICYCLE_DESIGN_DIR}/parameters.py"
+    "${ROBOT_BICYCLE_DESIGN_DIR}/control_tools.py"
+    "${ROBOT_BICYCLE_DESIGN_DIR}/controller_data.py"
+    "${ROBOT_BICYCLE_DESIGN_DIR}/robotic_bicycle_linear_dynamics_vs_logspeed.npz"
+    WORKING_DIRECTORY ${ROBOT_BICYCLE_DESIGN_DIR}
+    COMMENT "Generating source and header files for controller gains")
+
+set_source_files_properties(${YRC_GAINS_CPP} ${CONTROLLERGAINS_H}
+                            PROPERTIES GENERATED TRUE)
+set(GENERATED_SRCS ${PROTO_SRCS} ${YRC_GAINS_CPP} ${CONTROLLERGAINS_H})
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_chibios_executable(robot_bicycle ${ROBOT_BICYCLE_SRCS}
                                      ${CHIBIOS_VARIOUS_SRC}
-                                     ${PROTO_SRCS})
+                                     ${GENERATED_SRCS})
 add_flash_target(robot_bicycle)
