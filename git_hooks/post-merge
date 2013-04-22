@@ -22,8 +22,6 @@ if [ "$NUM_DIFF_SUBS" -eq "$NUM_DIFF_SUBS_CLEAN" ]; then
 		cd ${ROOT_DIR}/${CHIBIOS_SUBMODULE}
 		git remote add tegesoft git://github.com/tegesoft/ChibiOS.git
 		git fetch tegesoft
-		git remote add oliverlee git://github.com/oliverlee/ChibiOS.git
-		git fetch oliverlee
 		cd $ROOT_DIR
 		git submodule update
 	fi
