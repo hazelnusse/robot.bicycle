@@ -92,6 +92,7 @@
 #                           write FindNanopb.cmake
 # 2013.04.22 - Oliver Lee - Find and use PYTHON_EXECUTABLE instead of hardcoding
 #                           the python command.
+#                           Use find_package() to find Protobuf.
 #
 #=============================================================================
 
@@ -198,15 +199,7 @@ foreach(FIL ${_nanopb_hdrs})
   list(APPEND NANOPB_HDRS "${${FIL}__nano_pb_file}")
 endforeach()
 
-# Find the protoc Executable
-find_program(PROTOBUF_PROTOC_EXECUTABLE
-    NAMES protoc
-    DOC "The Google Protocol Buffers Compiler"
-    PATHS
-    ${PROTOBUF_SRC_ROOT_FOLDER}/vsprojects/Release
-    ${PROTOBUF_SRC_ROOT_FOLDER}/vsprojects/Debug
-)
-mark_as_advanced(PROTOBUF_PROTOC_EXECUTABLE)
+find_package(Protobuf REQUIRED)
 
 # Find nanopb generator
 find_file(NANOPB_GENERATOR_EXECUTABLE

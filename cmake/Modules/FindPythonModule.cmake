@@ -17,8 +17,9 @@ function(find_python_module module)
 			ERROR_QUIET 
 			OUTPUT_STRIP_TRAILING_WHITESPACE)
 		if(NOT _${module}_status)
-			set(PY_${module_upper} ${_${module}_location} CACHE STRING 
+			set(PY_${module_upper} ${_${module}_location} CACHE FILEPATH
 				"Location of Python module ${module}")
+			mark_as_advanced(PY_${module_upper})
 		endif(NOT _${module}_status)
 	endif(NOT PY_${module_upper})
 	find_package_handle_standard_args(PY_${module} DEFAULT_MSG PY_${module_upper})
