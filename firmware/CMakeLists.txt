@@ -14,6 +14,9 @@ find_package(PythonInterp 3.2 REQUIRED)
 get_filename_component(PYTHON_EXE_DIR ${PYTHON_EXECUTABLE} PATH)
 find_package(PythonModule)
 find_python_module(jinja2 REQUIRED)
+find_python_module(numpy REQUIRED)
+find_python_module(scipy REQUIRED)
+find_python_module(control REQUIRED)
 set(PYTHON3_EXECUTABLE ${PYTHON_EXECUTABLE})
 
 # Python 2 is used for protobuf generation.
