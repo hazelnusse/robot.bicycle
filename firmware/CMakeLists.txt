@@ -26,7 +26,7 @@ find_package(PythonInterp 2.7 REQUIRED)
 set(TEMP ${CMAKE_FIND_ROOT_PATH_MODE_INCLUDE})
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE)
 set(NANOPB_SRC_ROOT_FOLDER "${ROBOT_BICYCLE_SOURCE_DIR}/nanopb")
-include("${NANOPB_SRC_ROOT_FOLDER}/cmake/FindNanopb.cmake")
+find_package(Nanopb)
 include_directories(${NANOPB_INCLUDE_DIRS})
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ${TEMP})
 
