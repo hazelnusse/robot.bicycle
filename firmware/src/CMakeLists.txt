@@ -56,7 +56,7 @@ set(YRC_GAINS_CPP "${CMAKE_CURRENT_BINARY_DIR}/YawRateController_gains.cpp")
 set(CONTROLLERGAINS_H "${CMAKE_CURRENT_BINARY_DIR}/ControllerGains.h")
 
 add_custom_command(OUTPUT ${YRC_GAINS_CPP} ${CONTROLLERGAINS_H}
-    COMMAND "${ROBOT_BICYCLE_DESIGN_DIR}/generate_cgains.py"
+    COMMAND ${PYTHON3_EXECUTABLE} "${ROBOT_BICYCLE_DESIGN_DIR}/generate_cgains.py"
     COMMAND ${CMAKE_COMMAND} -E rename YawRateController_gains.cpp ${YRC_GAINS_CPP}
     COMMAND ${CMAKE_COMMAND} -E rename ControllerGains.h ${CONTROLLERGAINS_H}
     DEPENDS "${ROBOT_BICYCLE_DESIGN_DIR}/pi_gains.mat"
