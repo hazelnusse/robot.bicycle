@@ -10,14 +10,18 @@ set(CHIBIOS_BOARD_CMAKE_FILE
 
 include(${CHIBIOS_ROOT}/tools/cmake/openocd.cmake)
 
-find_package(PythonInterp 3.2 REQUIRED)
-get_filename_component(PYTHON_EXE_DIR ${PYTHON_EXECUTABLE} PATH)
+
+if(NOT PYTHON3_EXECUTABLE)
+	find_package(PythonInterp 3.2 REQUIRED)
+	set(PYTHON3_EXECUTABLE ${PYTHON_EXECUTABLE} CACHE FILEPATH "Path to python3")
+	mark_as_advanced(PYTHON3_EXECUTABLE)
+endif()
+get_filename_component(PYTHON_EXE_DIR ${PYTHON3_EXECUTABLE} PATH)
 find_package(PythonModule)
 find_python_module(jinja2 REQUIRED)
 find_python_module(numpy REQUIRED)
 find_python_module(scipy REQUIRED)
 find_python_module(control REQUIRED)
-set(PYTHON3_EXECUTABLE ${PYTHON_EXECUTABLE})
 
 # Python 2 is used for protobuf generation.
 set(PYTHON_EXECUTABLE PYTHON_EXECUTABLE-NOTFOUND)
