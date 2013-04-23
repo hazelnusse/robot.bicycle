@@ -32,7 +32,6 @@ set(ROBOT_BICYCLE_SRCS
     SampleAndControl.cpp
     SampleAndControl.h
     SampleAndControl_priv.h
-    Sample.pb.h
     stubs.cpp
     stubs.h
     SystemCommands.cpp
@@ -48,8 +47,6 @@ set(ROBOT_BICYCLE_SRCS
 
 # Source file properties (e.g. generated) are only visible to
 # targets added in the same directory.
-nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS "../Sample.proto")
-
 set(ROBOT_BICYCLE_DESIGN_DIR "${ROBOT_BICYCLE_SOURCE_DIR}/../design")
 set(YRC_GAINS_CPP "${CMAKE_CURRENT_BINARY_DIR}/YawRateController_gains.cpp")
 set(CONTROLLERGAINS_H "${CMAKE_CURRENT_BINARY_DIR}/ControllerGains.h")
@@ -58,23 +55,23 @@ add_custom_command(OUTPUT ${YRC_GAINS_CPP} ${CONTROLLERGAINS_H}
     COMMAND ${PYTHON3_EXECUTABLE} "${ROBOT_BICYCLE_DESIGN_DIR}/generate_cgains.py"
     COMMAND ${CMAKE_COMMAND} -E rename YawRateController_gains.cpp ${YRC_GAINS_CPP}
     COMMAND ${CMAKE_COMMAND} -E rename ControllerGains.h ${CONTROLLERGAINS_H}
-    DEPENDS "${ROBOT_BICYCLE_DESIGN_DIR}/pi_gains.mat"
-    "${ROBOT_BICYCLE_DESIGN_DIR}/YawRateController_gains.cpp.in"
+    DEPENDS "${ROBOT_BICYCLE_DESIGN_DIR}/control_tools.py"
+    "${ROBOT_BICYCLE_DESIGN_DIR}/controller_data.py"
     "${ROBOT_BICYCLE_DESIGN_DIR}/ControllerGains.h.in"
     "${ROBOT_BICYCLE_DESIGN_DIR}/parameters.py"
-    "${ROBOT_BICYCLE_DESIGN_DIR}/control_tools.py"
-    "${ROBOT_BICYCLE_DESIGN_DIR}/controller_data.py"
+    "${ROBOT_BICYCLE_DESIGN_DIR}/pi_gains.mat"
     "${ROBOT_BICYCLE_DESIGN_DIR}/robotic_bicycle_linear_dynamics_vs_logspeed.npz"
+    "${ROBOT_BICYCLE_DESIGN_DIR}/yaw_rate_controller.py"
+    "${ROBOT_BICYCLE_DESIGN_DIR}/YawRateController_gains.cpp.in"
     WORKING_DIRECTORY ${ROBOT_BICYCLE_DESIGN_DIR}
     COMMENT "Generating source and header files for controller gains")
 
-set_source_files_properties(${YRC_GAINS_CPP} ${CONTROLLERGAINS_H}
-                            PROPERTIES GENERATED TRUE)
-set(GENERATED_SRCS ${PROTO_SRCS} ${YRC_GAINS_CPP} ${CONTROLLERGAINS_H})
+set(GENERATED_SRCS ${YRC_GAINS_CPP} ${CONTROLLERGAINS_H} ${PROTO_SRCS})
+set_source_files_properties(${GENERATED_SRCS} PROPERTIES GENERATED TRUE)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-add_definitions(-DPB_NO_ERRMSG=1)
 add_chibios_executable(robot_bicycle ${ROBOT_BICYCLE_SRCS}
                                      ${CHIBIOS_VARIOUS_SRC}
                                      ${GENERATED_SRCS})
 add_flash_target(robot_bicycle)
+
