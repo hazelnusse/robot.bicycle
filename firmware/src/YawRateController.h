@@ -4,7 +4,7 @@
 #include <array>
 #include <cstdint>
 #include "ch.h"
-#include "Sample.h"
+#include "Sample.pb.h"
 #include "Singleton.h"
 #include "ControllerGains.h"
 
@@ -19,6 +19,8 @@ class YawRateController : public Singleton<YawRateController> {
 
   float RateCommanded() const;
   void RateCommanded(float yaw_rate);
+
+  float CurrentCommanded() const;
 
   float EstimationThreshold() const;
   void EstimationThreshold(float thresh);
@@ -38,7 +40,7 @@ class YawRateController : public Singleton<YawRateController> {
 
   uint32_t PWM_CCR() const;
 
-  void Update(const Sample & s);
+  void Update(Sample & s);
 
   static void shellcmd_(BaseSequentialStream *chp, int argc, char *argv[]);
   static void calibrateSteerEncoder_(BaseSequentialStream * chp,
@@ -69,7 +71,7 @@ class YawRateController : public Singleton<YawRateController> {
   bool state_estimate_update(float theta_R_dot, const float input[cg::b_cols]);
   float control_output_update();
   void interpolate_PI_gains(float & Kp, float & Ki) const;
-
+  void saveEstimatorState(Sample & s) const;
 
   static CH_IRQ_HANDLER(CalibrationISR_);
   static CH_IRQ_HANDLER(homeISR_);

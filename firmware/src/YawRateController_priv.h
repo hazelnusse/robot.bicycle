@@ -29,8 +29,8 @@ void YawRateController::turnOn()
   if (!homed_)
     return;
 
-  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_STEER_ENABLE)) = 0x0;
   Reset();
+  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_STEER_ENABLE)) = 0x0;
 }
 
 inline
@@ -170,4 +170,23 @@ int32_t YawRateController::SteerOffset() const
   return offset_;
 }
 
+inline
+void YawRateController::saveEstimatorState(Sample & s) const
+{
+  s.has_estimate = true;
+  s.estimate.phi = x_[0];
+  s.estimate.delta = x_[1];
+  s.estimate.phi_dot = x_[2];
+  s.estimate.delta_dot = x_[3];
+  s.estimate.theta_R_dot_lower = ar_[0]->theta_R_dot;
+  s.estimate.theta_R_dot_lower = ar_[1]->theta_R_dot;
+}
+
+inline
+float YawRateController::CurrentCommanded() const
+{
+  return u_;
+}
+  
 #endif
+

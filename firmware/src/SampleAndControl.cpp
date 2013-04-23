@@ -6,8 +6,12 @@
 #include "MPU6050.h"
 #include "RearWheel.h"
 #include "YawRateController.h"
-#include "Test.pb.h"
 #include "pb_encode.h"
+#include "SystemState.h"
+#include "WriteMessage.h"
+
+
+const uint16_t SampleAndControl::buffer_size_;
 
 SampleAndControl::SampleAndControl()
   : tp_control(0), tp_write(0), state_(0)
@@ -26,56 +30,82 @@ void SampleAndControl::controlThread(char* filename)
   }
   enableSensorsMotors();
   MPU6050 & imu = MPU6050::Instance();
-  RearWheel & rw = RearWheel::Instance();
-  YawRateController & yc = YawRateController::Instance();
-
+  RearWheel & rwc = RearWheel::Instance();
+  YawRateController & yrc = YawRateController::Instance();
+  
   // zero out wheel encoders and system timer
   STM32_TIM4->CNT = STM32_TIM5->CNT = STM32_TIM8->CNT = 0;
-  bool data = false;                // flag to indicate we have data to write
   uint32_t write_errors = 0;
-  //uint32_t rw_fault_count = 0;
-  //uint32_t steer_fault_count = 0;
+
+  // Create a sample to populate
+  Sample s;
+  memset(&s, 0, sizeof(s));
+  uint16_t unwritten_bytes = 0;
+  uint16_t message_size;
+  pb_ostream_t stream = pb_ostream_from_buffer(front_buffer_.data(),
+                                               front_buffer_.size());
+  WriteMessage write_message;
+  write_message.m.bytes_to_write = 0;
+  write_message.m.buffer_selector = 1;
 
   systime_t time = chTimeNow();     // Initial time
-  uint32_t i;
-  for (i = 0; !chThdShouldTerminate(); ++i) {
+  for (uint32_t i = 0; !chThdShouldTerminate(); ++i) {
     time += MS2ST(con::T_ms);       // Next deadline
 
-    // Get a sample to populate
-    Sample & s = samples[i % NUMBER_OF_SAMPLES];
-    s.clear();
-
-    // Begin data collection
+    // Begin pre control data collection
     sampleTimers(s);  // sample system time/encoder counts/PWM duty cycle
     imu.Acquire(s);   // sample rate gyro, accelerometer and temperature sensors
-    // End data collection
+    sampleSetPoints(s); // sample rear wheel and yaw rate commands
+    // End pre control data collection
 
     // Begin control
-    if (rw.isEnabled() && (i % con::RW_N == 0))
-      rw.Update(s);
+    if (rwc.isEnabled() && (i % con::RW_N == 0))
+      rwc.Update(s);
 
-    if (yc.isEnabled() && (i % con::YC_N == 0))
-      yc.Update(s);
+    if (yrc.isEnabled() && (i % con::YC_N == 0))
+      yrc.Update(s);
     // End control
 
-    if (data && (i % (NUMBER_OF_SAMPLES/2) == 0)) {
-      /* write data from buffer half that just completed */
-      msg_t buffer = reinterpret_cast<msg_t>(get_buffer(i + NUMBER_OF_SAMPLES / 2));
-      s.SystemState |= Sample::FileSystemWriteTriggered;
-      msg = chMsgSend(tp_write, buffer);
+    // Begin post control data collection
+    sampleMotorState(s);
+    s.SystemState |= systemstate::CollectionEnabled;
+    // End post control data collection
+
+    message_size = getMessageSize(s);
+    if (unwritten_bytes + message_size + sizeof(message_size) > buffer_size_) {
+      s.SystemState |= systemstate::FileSystemWriteTriggered;
+      write_message.m.bytes_to_write = unwritten_bytes;
+      msg = chMsgSend(tp_write, write_message.message);
       if (static_cast<FRESULT>(msg) != FR_OK)
         ++write_errors;
+      unwritten_bytes = 0;
+      
+      // Change the stream to point to the appropriate buffer
+      if (write_message.m.buffer_selector & 2) {
+        stream = pb_ostream_from_buffer(front_buffer_.data(),
+                                        front_buffer_.size());
+      } else {
+        stream = pb_ostream_from_buffer(back_buffer_.data(),
+                                        back_buffer_.size());
+      }
+      // Toggle the buffer selector bit
+      write_message.m.buffer_selector ^= (1 << 1);
     }
+    // TODO: implement error checking on pb_write and pb_encode
+    pb_write(&stream, reinterpret_cast<uint8_t *>(&message_size), sizeof(message_size));
+    pb_encode(&stream, Sample_fields, &s);
+    unwritten_bytes += message_size + sizeof(message_size);
 
-    data = true;
+    // Clear the sample for the next iteration
+    // The first time through the loop, ComputationTime will be logged as zero,
+    // subsequent times will be accurate but delayed by one sample period
+    uint32_t temp = s.SystemTime;
+    memset(&s, 0, sizeof(s));
+    s.ComputationTime = STM32_TIM5->CNT - temp;
 
-    sampleMotorState(s);
-    s.SystemState |= Sample::CollectionEnabled;
-    // Measure computation time
-    s.ComputationTime = STM32_TIM5->CNT - s.SystemTime;
-    // Go to sleep until next 5ms interval
+    // Go to sleep until next interval
     chThdSleepUntil(time);
-  } // for i @ 200Hz
+  } // for
   
   // Clean up
   disableSensorsMotors();
@@ -84,37 +114,24 @@ void SampleAndControl::controlThread(char* filename)
   msg = chMsgSend(tp_write, 0); // send a message to end the write thread.
   if (static_cast<FRESULT>(msg) != FR_OK)
     ++write_errors;
-
   while (tp_write)
     chThdYield();           // yield this time slot so write thread can finish
 
-  // Write remaing samples in partially filled buffer.
-  if (write_last_samples(i) != FR_OK)
-    ++write_errors;
+  if (unwritten_bytes) {
+    uint8_t * b;
+    UINT bytes;
+    if (write_message.m.buffer_selector & 2)
+      b = back_buffer_.data();
+    else
+      b = front_buffer_.data();
+
+    if (f_write(&f_, b, unwritten_bytes, &bytes) != FR_OK) 
+      ++write_errors;
+  }
+
   f_close(&f_);           // close the file
   tp_control = 0;
   chThdExit(write_errors);
-}
-
-Sample* SampleAndControl::get_buffer(uint32_t index) const {
-  /* If i is an odd multiple NUMBER_OF_SAMPLES/2  (64, 192, 320, ...), return
-   * the second half of the buffer. Otherwise return the first half.
-   * */
-  uint32_t offset = 0;
-  if ((index / (NUMBER_OF_SAMPLES / 2)) & 1) 
-    offset = NUMBER_OF_SAMPLES / 2;
-  return const_cast<Sample*>(samples) + offset;
-}
-
-FRESULT SampleAndControl::write_last_samples(uint32_t index) {
-  FRESULT res = FR_OK;
-  uint32_t j = index % (NUMBER_OF_SAMPLES/2);
-  if (j) {
-    uint8_t* b = reinterpret_cast<uint8_t*>(get_buffer(index));
-    UINT bytes;
-    res = f_write(&f_, b, sizeof(Sample) * j, &bytes);
-  }
-  return res;
 }
 
 // Caller: Shell thread
@@ -152,21 +169,24 @@ void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[
 void SampleAndControl::writeThread()
 {
   UINT bytes;
-  msg_t m = -1;
+  WriteMessage wm;
   FRESULT res = FR_OK;
-  uint8_t *b;
+  uint8_t * b;
 
   chRegSetThreadName("WriteThread");
   while (1) {
     Thread * calling_thread = chMsgWait();
-    m = chMsgGet(calling_thread);
+    wm.message = chMsgGet(calling_thread);
     chMsgRelease(calling_thread, res);
 
-    if (m == 0) break;
+    if (wm.message == 0) break;
 
-    b = reinterpret_cast<uint8_t *>(m);
+    if (wm.m.buffer_selector & 2) 
+      b = back_buffer_.data();
+    else
+      b = front_buffer_.data();
 
-    res = f_write(&f_, b, sizeof(Sample)*NUMBER_OF_SAMPLES/2, &bytes);
+    res = f_write(&f_, b, wm.m.bytes_to_write, &bytes);
   }
   tp_write = 0;
   chThdExit(0);
@@ -180,17 +200,16 @@ msg_t SampleAndControl::Start(const char* filename)
                           NORMALPRIO + 1,
                           reinterpret_cast<tfunc_t>(writeThread_),
                           0);
-  if (!tp_write) {
+  if (!tp_write)
     m = (1 << 0);
-  }
+
   tp_control = chThdCreateStatic(SampleAndControl::waControlThread,
                           sizeof(waControlThread),
-                          NORMALPRIO + 1,
+                          NORMALPRIO + 2,
                           reinterpret_cast<tfunc_t>(controlThread_),
                           const_cast<char*>(filename));
-  if (!tp_control) {
+  if (!tp_control)
     m |= (1 << 1);
-  }
 
   return m;
 }
@@ -201,5 +220,12 @@ msg_t SampleAndControl::Stop()
   chThdTerminate(tp_control);
   m = chThdWait(tp_control);
   return m;
+}
+
+size_t SampleAndControl::getMessageSize(const Sample & s)
+{
+  pb_ostream_t sizestream = PB_OSTREAM_SIZING;
+  pb_encode(&sizestream, Sample_fields, &s);
+  return sizestream.bytes_written;
 }
 

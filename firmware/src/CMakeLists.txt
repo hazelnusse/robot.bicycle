@@ -4,7 +4,7 @@ include(${CHIBIOS_ROOT}/tools/cmake/ext/chprintf.cmake)
 include(${CHIBIOS_ROOT}/tools/cmake/ext/fatfs.cmake)
 
 
-set(USE_OPT "-O2 -ggdb3 -fomit-frame-pointer -falign-functions=16 -ffunction-sections -fdata-sections -fno-common")
+set(USE_OPT "-Wall -Wextra -O2 -ggdb3 -fomit-frame-pointer -falign-functions=16 -ffunction-sections -fdata-sections -fno-common")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_OPT}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_OPT} -fno-rtti -fno-exceptions -fno-stack-protector -std=c++11")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections --static -lc -lnosys")
@@ -18,12 +18,11 @@ set(ROBOT_BICYCLE_SRCS
     Constants.h
     ffconf.h
     halconf.h
-    imu_calibration.cpp
-    imu_calibration.h
     Interrupts.cpp
     main.cpp
     mcuconf.h
     MPU6050.cpp
+    MPU6050_calibration.cpp
     MPU6050.h
     PeripheralInit.cpp
     PeripheralInit.h
@@ -33,7 +32,7 @@ set(ROBOT_BICYCLE_SRCS
     SampleAndControl.cpp
     SampleAndControl.h
     SampleAndControl_priv.h
-    Sample.h
+    Sample.pb.h
     stubs.cpp
     stubs.h
     SystemCommands.cpp
@@ -49,7 +48,7 @@ set(ROBOT_BICYCLE_SRCS
 
 # Source file properties (e.g. generated) are only visible to
 # targets added in the same directory.
-nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS "../Test.proto")
+nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS "../Sample.proto")
 
 set(ROBOT_BICYCLE_DESIGN_DIR "${ROBOT_BICYCLE_SOURCE_DIR}/../design")
 set(YRC_GAINS_CPP "${CMAKE_CURRENT_BINARY_DIR}/YawRateController_gains.cpp")
@@ -74,7 +73,7 @@ set_source_files_properties(${YRC_GAINS_CPP} ${CONTROLLERGAINS_H}
 set(GENERATED_SRCS ${PROTO_SRCS} ${YRC_GAINS_CPP} ${CONTROLLERGAINS_H})
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
+add_definitions(-DPB_NO_ERRMSG=1)
 add_chibios_executable(robot_bicycle ${ROBOT_BICYCLE_SRCS}
                                      ${CHIBIOS_VARIOUS_SRC}
                                      ${GENERATED_SRCS})

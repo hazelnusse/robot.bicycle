@@ -10,7 +10,7 @@
 
 RearWheel::RearWheel()
   : u_(0.0f), r_(0.0f), Kp_(1.0f), Ki_(1.0f), e_int_(0.0f), z_(0.0f),
-    SystemTime_prev_(0), RearWheelAngle_prev_(0)
+    SystemTime_prev_(0), RearWheelCount_prev_(0)
 {
   turnOff();
 } // RearWheel()
@@ -57,8 +57,12 @@ void RearWheel::Update(const Sample & s)
 {
   // TODO: try better approximations of derivative, maybe second order
   // derivative filter to get high frequency roll-off
-  const float dtheta = static_cast<int16_t>(s.RearWheelAngle - RearWheelAngle_prev_) * cf::Wheel_rad_per_quad_count;
-  const float dt = static_cast<uint32_t>(s.SystemTime - SystemTime_prev_) * cf::Rate_Timer_sec_per_count;
+  const float dtheta = static_cast<int16_t>(s.encoder.RearWheelCount
+                                            - RearWheelCount_prev_)
+                                        * cf::Wheel_rad_per_quad_count;
+  const float dt = static_cast<uint32_t>(s.SystemTime
+                                         - SystemTime_prev_)
+                                        * cf::Rate_Timer_sec_per_count;
   z_ = dtheta / dt;
 
   const float e = RateCommanded() - z_;
@@ -71,7 +75,7 @@ void RearWheel::Update(const Sample & s)
     e_int_ = e_int_update;    // update integral of error
 
   SystemTime_prev_ = s.SystemTime;
-  RearWheelAngle_prev_ = s.RearWheelAngle;
+  RearWheelCount_prev_ = s.encoder.RearWheelCount;
 }
 
 

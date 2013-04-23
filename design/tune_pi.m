@@ -1,6 +1,5 @@
 clear all;
 close all;
-clc;
 
 load cl_data.mat;
 simulate = 0;

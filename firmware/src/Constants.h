@@ -17,8 +17,8 @@ class constants {
   static constexpr T g = 9.81;
 
   // Gyroscope constants
-  static constexpr T Gyroscope_temp_offset = 36.53;
-  static constexpr T Gyroscope_temp_sensitivity = 1.0 / 340.0;
+  static constexpr T Thermometer_offset = 36.53;
+  static constexpr T Thermometer_sensitivity = 1.0 / 340.0;
   static constexpr T Gyroscope_sensitivity = rad_per_degree / 131.0;
 
   // Accelerometer constants

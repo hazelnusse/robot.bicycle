@@ -1,0 +1,69 @@
+import "nanopb.proto";
+
+message Sample {
+  required uint32 SystemTime = 1;           //  4 bytes
+  required uint32 ComputationTime = 2;      //  4 bytes
+  required uint32 SystemState = 3;          //  4 bytes
+  required Encoder encoder = 4;             // 16 bytes
+  required SetPoint setpoint = 5;           //  8 bytes
+  required MotorCurrent motorcurrent = 6;   //  8 bytes
+
+  optional InvensenseMPU6050 mpu6050 = 7;   // 28 bytes
+  optional Estimator estimate = 8;          // 24 bytes
+  optional PIController yaw_rate_pi = 9;    // 16 bytes
+
+                                     // Total:116 bytes
+
+  // optional string notes = 10 [(nanopb).max_size = 64];
+  // optional string git_sha = 11 [(nanopb).max_size = 41]; // Assume we get the
+}
+
+// Size: 7 * 4 = 28 bytes
+message InvensenseMPU6050 {
+  required float AccelerometerX = 1;
+  required float AccelerometerY = 2;
+  required float AccelerometerZ = 3;
+  required float Temperature = 4;
+  required float GyroscopeX = 5;
+  required float GyroscopeY = 6;
+  required float GyroscopeZ = 7;
+}
+
+// Size: 4 * 4 = 16 bytes
+message Encoder {
+  required uint32 RearWheelCount = 1;
+  required float RearWheel = 2;
+  required float Steer = 3;
+  required float FrontWheel = 4;
+}
+
+// Size: 2 * 4 = 8 bytes
+message MotorCurrent {
+  required float RearWheel = 1;
+  required float Steer = 2;
+}
+
+// Size: 2 * 4 = 8 bytes
+message SetPoint {
+  required float theta_R_dot = 1;
+  required float psi_dot = 2;
+}
+
+// Size: 6 * 4 = 24 bytes
+message Estimator {
+  required float phi = 1;
+  required float delta = 2;
+  required float phi_dot = 3;
+  required float delta_dot = 4;
+  required float theta_R_dot_lower = 5;
+  required float theta_R_dot_upper = 6;
+}
+
+// Size: 4 * 4 = 16 bytes
+message PIController {
+  required float e = 1;
+  required float Kp = 2;
+  required float Ki = 3;
+  required float x = 4;
+}
+

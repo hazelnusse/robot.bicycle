@@ -4,7 +4,6 @@
 #include "bitband.h"
 #include "hal.h"
 #include "Constants.h"
-#include "Sample.h"
 
 inline
 void RearWheel::shellcmd_(BaseSequentialStream *chp, int argc, char *argv[])
@@ -15,8 +14,8 @@ void RearWheel::shellcmd_(BaseSequentialStream *chp, int argc, char *argv[])
 inline
 void RearWheel::turnOn()
 {
-  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_RW_ENABLE)) = 0x0;
   Reset();
+  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_RW_ENABLE)) = 0x0;
 }
 
 inline
@@ -30,7 +29,7 @@ inline
 void RearWheel::Reset()
 {
   u_ = r_ = e_int_ = z_ = 0.0f;
-  SystemTime_prev_ = RearWheelAngle_prev_ = 0;
+  SystemTime_prev_ = RearWheelCount_prev_ = 0;
   PWM_CCR(0);
   setCurrentDirNegative();// negative wheel rotation direction is forward
 }
@@ -130,4 +129,12 @@ float RearWheel::RateEstimate() const
 {
   return z_;
 }
+
+inline
+float RearWheel::CurrentCommanded() const
+{
+  return u_;
+}
+
 #endif
+

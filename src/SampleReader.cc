@@ -55,8 +55,8 @@ std::vector<SampleConverted> SampleReader::Convert()
       sc.Accelerometer[2] = samples_[i].MPU6050[2]
                                               * cd::Accelerometer_sensitivity;
       // Temperature 
-      sc.Temperature = samples_[i].MPU6050[3] * cd::Gyroscope_temp_sensitivity
-                       + cd::Gyroscope_temp_offset;
+      sc.Temperature = samples_[i].MPU6050[3] * cd::Thermometer_sensitivity
+                       + cd::Thermometer_offset;
       // Gyroscope
       sc.Gyroscope[0] = samples_[i].MPU6050[4]
                                           * cd::Gyroscope_sensitivity;

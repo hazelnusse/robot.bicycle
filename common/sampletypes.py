@@ -16,12 +16,7 @@ sample_t = np.dtype([('T', np.float64),
                      ('YawRate_sp', np.float64),
                      ('I_rw', np.float64),
                      ('I_steer', np.float64),
-                     ('SystemState', np.uint32),
-                     ('theta_R_dot', np.float32),
-                     ('phi_dot', np.float32),
-                     ('x', '(5,)f4'),
-                     ('steer_torque', np.float32),
-                     ('steer_current', np.float32)])
+                     ('SystemState', np.uint32)])
 
 sample_raw_t = np.dtype([('SystemTime', np.uint32),
                          ('ComputationTime', np.uint32),

@@ -15,7 +15,8 @@
 #include "hal.h"
 
 #include "MPU6050.h"
-#include "Sample.h"
+#include "Constants.h"
+#include "SystemState.h"
 
 MPU6050::MPU6050()
   : i2c_(0),
@@ -30,8 +31,9 @@ MPU6050::MPU6050()
 
 bool MPU6050::Acquire(Sample & s) const
 {
+  int16_t ar[7];
   msg_t res = i2cMasterTransmitTimeout(&I2CD2, I2C_ADDR, &ACCEL_XOUT_ADDR, 1,
-                                       reinterpret_cast<uint8_t *>(s.MPU6050),
+                                       reinterpret_cast<uint8_t *>(ar),
                                        14, timeout_);
 
   if (!checkTransmission(res, s))
@@ -46,8 +48,10 @@ bool MPU6050::Acquire(Sample & s) const
     // ldrh r2, [r4, #0] // loads r2 with contents located at r4+0
     // rev16 r2, r2      // Reverse byte order in each halfword independently
     // strh r2, [r4, #0] // Store contents of r2 to r4+0
-    asm("rev16 %0,%1" :  "=r" (s.MPU6050[i]) : "r" (s.MPU6050[i]));
+    asm("rev16 %0,%1" :  "=r" (ar[i]) : "r" (ar[i]));
   } // for i
+
+  convertData(s, ar);
 
   return true;
 } // Acquire()
@@ -116,10 +120,32 @@ bool MPU6050::checkTransmission(msg_t res, Sample & s)
   if (res != RDY_OK) {
     s.SystemState |= (i2cGetErrors(&I2CD2) << 16);
     if (res == RDY_TIMEOUT)
-      s.SystemState |= Sample::I2C_Software_Timeout;
+      s.SystemState |= systemstate::I2C_Software_Timeout;
 
     return false;
   }
   return true;
+}
+
+void MPU6050::convertData(Sample & s, int16_t ar[7])
+{
+  s.has_mpu6050 = true;
+  s.mpu6050.AccelerometerX = ar[0] * cf::Accelerometer_sensitivity;
+  s.mpu6050.AccelerometerY = ar[1] * cf::Accelerometer_sensitivity;
+  s.mpu6050.AccelerometerZ = ar[2] * cf::Accelerometer_sensitivity;
+  s.mpu6050.Temperature = ar[3] * cf::Thermometer_sensitivity + cf::Thermometer_offset;
+  s.mpu6050.GyroscopeX = ar[4] * cf::Gyroscope_sensitivity - MPU6050::gyro_x_bias;
+  s.mpu6050.GyroscopeY = ar[5] * cf::Gyroscope_sensitivity - MPU6050::gyro_y_bias;
+  s.mpu6050.GyroscopeZ = ar[6] * cf::Gyroscope_sensitivity - MPU6050::gyro_z_bias;
+}
+
+float MPU6050::phi_dot(const Sample & s)
+{
+  return s.mpu6050.GyroscopeY;
+}
+
+float MPU6050::psi_dot(const Sample & s)
+{
+  return s.mpu6050.GyroscopeZ;
 }
 

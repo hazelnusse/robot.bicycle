@@ -1,19 +1,19 @@
 #ifndef SAMPLEANDCONTROL_H
 #define SAMPLEANDCONTROL_H
 
+#include <array>
 #include <cstddef>
 
 #include "ch.h"
 #include "hal.h"
 #include "ff.h"
 
-#include "Sample.h"
+#include "Sample.pb.h"
 #include "Singleton.h"
 #include "MPU6050.h"
 #include "RearWheel.h"
 #include "YawRateController.h"
-
-#define NUMBER_OF_SAMPLES 256
+#include "SystemState.h"
 
 class SampleAndControl : public Singleton<SampleAndControl> {
   friend class Singleton<SampleAndControl>;
@@ -22,10 +22,10 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   msg_t Stop();
 
   const char * fileName() const;
-  void sampleMotorState(Sample &s) const;
+  void sampleMotorState(Sample & s) const;
   uint32_t systemState() const;
-  void enableSensorsMotors() const;
-  void disableSensorsMotors() const;
+  static void enableSensorsMotors();
+  static void disableSensorsMotors();
 
   static void controlThread_(char *filename);
   static void shellcmd_(BaseSequentialStream *chp, int argc, char *argv[]);
@@ -39,15 +39,21 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   void controlThread(char* filename);
   static void writeThread_(void * arg);
   void writeThread();
-  Sample* get_buffer(uint32_t index) const;
-  FRESULT write_last_samples(uint32_t index);
 
   // Data collection related
-  void sampleTimers(Sample & s);
+  static void sampleTimers(Sample & s);
+  void sampleSetPoints(Sample & s);
+
+  // Data writing related
+  static size_t getMessageSize(const Sample & s);
 
   WORKING_AREA(waControlThread, 4096);
   WORKING_AREA(waWriteThread, 4096);
-  Sample samples[NUMBER_OF_SAMPLES];
+  
+  static const uint16_t buffer_size_ = 2048;
+  std::array<uint8_t, buffer_size_> front_buffer_;
+  std::array<uint8_t, buffer_size_> back_buffer_;
+
   FIL f_;
   Thread * tp_control;
   Thread * tp_write;

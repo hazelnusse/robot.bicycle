@@ -9,12 +9,12 @@
 #include "shell.h"
 
 #include "RearWheel.h"
-#include "Sample.h"
+#include "Sample.pb.h"
+#include "MPU6050.h"
 #include "YawRateController.h"
 #include "Constants.h"
 #include "textutilities.h"
 #include "VectorTable.h"
-#include "imu_calibration.h"
   
 #define EDGES 16
 int16_t counts_[EDGES];
@@ -74,7 +74,7 @@ void YawRateController::shellcmd(BaseSequentialStream *chp, int argc, char *argv
   }
 }
 
-void YawRateController::Update(const Sample & s)
+void YawRateController::Update(Sample & s)
 {
   const float theta_R_dot = RearWheel::Instance().RateEstimate();
   // Estimator inputs:
@@ -82,8 +82,8 @@ void YawRateController::Update(const Sample & s)
   //   -- Steer angle from most recent measurement
   //   -- Roll rate from most recent measurement
   const float input[3] = {u_ * cf::kT_steer,
-                          s.SteerAngle * cf::Steer_rad_per_quad_count,
-                          imu_calibration::phi_dot(s)};
+                          s.encoder.Steer,
+                          MPU6050::phi_dot(s)};
 
   u_ = 0.0f;  // set current to zero
   if (theta_R_dot < estimator_theta_R_dot_threshold_ || estimation_triggered_) {
@@ -91,6 +91,8 @@ void YawRateController::Update(const Sample & s)
     // State update occurs only if we have hit threshold speed
     if (state_estimate_update(theta_R_dot, input) &&
         (std::fabs(input[1]) < (45.0f * cf::rad_per_degree))) {
+
+      saveEstimatorState(s);
       // And if the speed is inside the speed range for which gains are computed
       // Control law is updated only if steer is < 45 degrees,
       if (theta_R_dot < controller_theta_R_dot_threshold_ || control_triggered_) {
@@ -98,7 +100,7 @@ void YawRateController::Update(const Sample & s)
         control_triggered_ = true;
         if (PI_enabled_) {
           // Compute PI state update
-          const float e = RateCommanded() - imu_calibration::psi_dot(s);
+          const float e = RateCommanded() - MPU6050::psi_dot(s);
           const float dt = static_cast<uint32_t>(s.SystemTime - SystemTime_prev_) * cf::Rate_Timer_sec_per_count;
           float Kp, Ki;
           interpolate_PI_gains(Kp, Ki); // interpolate Kp and Ki from lookup table
@@ -108,6 +110,11 @@ void YawRateController::Update(const Sample & s)
           if (std::fabs(u_) < cf::Current_max_steer) {
             x_pi_ += e;
           }
+          s.has_yaw_rate_pi = true;
+          s.yaw_rate_pi.e = e;
+          s.yaw_rate_pi.Kp = Kp;
+          s.yaw_rate_pi.Ki = Ki;
+          s.yaw_rate_pi.x = x_pi_;
         } else {
           u_ = control_output_update() * cf::kT_steer_inv;
         }

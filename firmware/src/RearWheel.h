@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include "Singleton.h"
-#include "Sample.h"
+#include "Sample.pb.h"
 
 class RearWheel : public Singleton<RearWheel> {
   friend class Singleton<RearWheel>;
@@ -18,6 +18,8 @@ class RearWheel : public Singleton<RearWheel> {
   void RateCommanded(float rate);
 
   float RateEstimate() const;
+
+  float CurrentCommanded() const;
 
   bool RotationDir() const;
   bool CurrentDir() const;
@@ -58,7 +60,7 @@ class RearWheel : public Singleton<RearWheel> {
         z_;     /*! Most recent speed estimate */
 
   uint32_t SystemTime_prev_,    /*! System timer counts at previous update */
-           RearWheelAngle_prev_;/*! Wheel quadrature counts at previous update */
+           RearWheelCount_prev_;/*! Wheel quadrature counts at previous update */
 };
 
 #include "RearWheel_priv.h"

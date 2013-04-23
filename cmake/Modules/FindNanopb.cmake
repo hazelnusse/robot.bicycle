@@ -141,7 +141,7 @@ function(NANOPB_GENERATE_CPP SRCS HDRS)
     add_custom_command(
       OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb"
       COMMAND  ${PROTOBUF_PROTOC_EXECUTABLE}
-      ARGS -I${GENERATOR_PATH} -I${CMAKE_CURRENT_BINARY_DIR} ${_nanobp_include_path} -o${FIL_WE}.pb ${ABS_FIL}
+      ARGS -I/usr/include -I${GENERATOR_PATH} -I${CMAKE_CURRENT_BINARY_DIR} ${_nanobp_include_path} -o${FIL_WE}.pb ${ABS_FIL}
       DEPENDS ${ABS_FIL}
       COMMENT "Running C++ protocol buffer compiler on ${FIL}"
       VERBATIM )
