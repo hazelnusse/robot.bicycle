@@ -39,7 +39,7 @@ set(PROTO_FILES "${ROBOT_BICYCLE_SOURCE_DIR}/Sample.proto")
 set(PROTO_OUTPUT_DIR ${ROBOT_BICYCLE_BINARY_DIR}/src)
 set(PROTO_SRCS "${PROTO_OUTPUT_DIR}/Sample.pb.c"
     "${ROBOT_BICYCLE_SOURCE_DIR}/nanopb/pb_encode.c")
-include_directories(PROTO_OUTPUT_DIR)
+include_directories(${PROTO_OUTPUT_DIR})
 
 include(ExternalProject)
 ExternalProject_Add(ROBOT_BICYCLE_HOST
