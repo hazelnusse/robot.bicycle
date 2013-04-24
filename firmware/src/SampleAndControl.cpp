@@ -18,16 +18,9 @@ SampleAndControl::SampleAndControl()
 {
 }
 
-void SampleAndControl::controlThread(char* filename)
+void SampleAndControl::controlThread()
 {
   chRegSetThreadName("Control");
-  FRESULT res;
-  msg_t msg;
-
-  res = f_open(&f_, filename, FA_CREATE_ALWAYS | FA_WRITE);
-  if (res != FR_OK) {
-    chSysHalt(); while (1) {}   // couldn't properly open the file!
-  }
   enableSensorsMotors();
   MPU6050 & imu = MPU6050::Instance();
   RearWheel & rwc = RearWheel::Instance();
@@ -35,7 +28,6 @@ void SampleAndControl::controlThread(char* filename)
   
   // zero out wheel encoders and system timer
   STM32_TIM4->CNT = STM32_TIM5->CNT = STM32_TIM8->CNT = 0;
-  uint32_t write_errors = 0;
 
   // Create a sample to populate
   Sample s;
@@ -75,9 +67,7 @@ void SampleAndControl::controlThread(char* filename)
     if (unwritten_bytes + message_size + sizeof(message_size) > buffer_size_) {
       s.SystemState |= systemstate::FileSystemWriteTriggered;
       write_message.m.bytes_to_write = unwritten_bytes;
-      msg = chMsgSend(tp_write, write_message.message);
-      if (static_cast<FRESULT>(msg) != FR_OK)
-        ++write_errors;
+      chMsgSend(tp_write, write_message.message);
       unwritten_bytes = 0;
       
       // Change the stream to point to the appropriate buffer
@@ -111,69 +101,52 @@ void SampleAndControl::controlThread(char* filename)
   disableSensorsMotors();
   // End cleanup
 
-  msg = chMsgSend(tp_write, 0); // send a message to end the write thread.
-  if (static_cast<FRESULT>(msg) != FR_OK)
-    ++write_errors;
-  while (tp_write)
-    chThdYield();           // yield this time slot so write thread can finish
-
-  if (unwritten_bytes) {
-    uint8_t * b;
-    UINT bytes;
-    if (write_message.m.buffer_selector & 2)
-      b = back_buffer_.data();
-    else
-      b = front_buffer_.data();
-
-    if (f_write(&f_, b, unwritten_bytes, &bytes) != FR_OK) 
-      ++write_errors;
-  }
-
-  f_close(&f_);           // close the file
-  tp_control = 0;
-  chThdExit(write_errors);
+  chThdExit(0);
 }
 
 // Caller: Shell thread
 void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[])
 {
-  if (argc == 0) {         // Start/Stop data collection, default filename
-    if (tp_control) {      // Data collection enabled
-      msg_t m = Stop();    // Stop it
-      chprintf(chp, "Data collection and control terminated with %d errors.\r\n", m);
-    } else {               // Data collecton disabled
-      msg_t m = Start("samples.dat");// Start data collection to default file "samples.dat"
-      if (m == 0) {
-        chprintf(chp, "Data collection and control initiated.\r\n");
-      } else {
-        chprintf(chp, "Errors starting threads with error:  %d.\r\n", m);
-      }
-    }
-  } else if (argc == 1) { // Start/Stop data collection, with filename
-    if (tp_control) {     // Data collection enabled
-      msg_t m = Stop();   // Stop it, ignoring the argument
-      chprintf(chp, "Errors starting threads with error:  %d.\r\n", m);
-    } else {              // Data collection is disabled
-      msg_t m = Start(argv[0]);// Start data collection to file in argv[0]
-      if (m == 0) {
-        chprintf(chp, "Data collection and control initiated.\r\n");
-      } else {
-        chprintf(chp, "Errors starting threads with error:  %d.\r\n", m);
-      }
-    }
-  } else {
+  if (argc > 1 || argc < 0) {
     chprintf(chp, "Invalid usage.\r\n");
+    return;
   }
+
+  msg_t m;
+  if (tp_control) {
+    m = Stop();
+    if (argc == 0) {
+      chprintf(chp, "Data collection and control terminated with %d errors.\r\n", m);
+      return;
+    }
+  } else { // control thread not running
+    if (argc == 0)
+      m = Start("samples.dat");// Start data collection to default file "samples.dat"
+    else
+      m = Start(argv[0]);// Start data collection to file in argv[0]
+
+    if (m == 0) {
+      chprintf(chp, "Data collection and control initiated.\r\n");
+      return;
+    }
+  }
+  chprintf(chp, "Errors starting threads with error:  %d.\r\n", m);
 }
 
-void SampleAndControl::writeThread()
+void SampleAndControl::writeThread(char* filename)
 {
   UINT bytes;
   WriteMessage wm;
   FRESULT res = FR_OK;
   uint8_t * b;
+  uint32_t write_errors = 0;
 
   chRegSetThreadName("WriteThread");
+  res = f_open(&f_, filename, FA_CREATE_ALWAYS | FA_WRITE);
+  if (res != FR_OK) {
+    chSysHalt(); while (1) {}   // couldn't properly open the file!
+  }
+
   while (1) {
     Thread * calling_thread = chMsgWait();
     wm.message = chMsgGet(calling_thread);
@@ -187,9 +160,12 @@ void SampleAndControl::writeThread()
       b = front_buffer_.data();
 
     res = f_write(&f_, b, wm.m.bytes_to_write, &bytes);
+    if (res != FR_OK)
+      ++write_errors;
   }
-  tp_write = 0;
-  chThdExit(0);
+
+  f_close(&f_);           // close the file
+  chThdExit(write_errors);
 }
 
 msg_t SampleAndControl::Start(const char* filename)
@@ -199,7 +175,7 @@ msg_t SampleAndControl::Start(const char* filename)
                           sizeof(waWriteThread),
                           NORMALPRIO + 1,
                           reinterpret_cast<tfunc_t>(writeThread_),
-                          0);
+                          const_cast<char*>(filename));
   if (!tp_write)
     m = (1 << 0);
 
@@ -207,7 +183,7 @@ msg_t SampleAndControl::Start(const char* filename)
                           sizeof(waControlThread),
                           NORMALPRIO + 2,
                           reinterpret_cast<tfunc_t>(controlThread_),
-                          const_cast<char*>(filename));
+                          0);
   if (!tp_control)
     m |= (1 << 1);
 
@@ -217,8 +193,15 @@ msg_t SampleAndControl::Start(const char* filename)
 msg_t SampleAndControl::Stop()
 {
   msg_t m;
+
   chThdTerminate(tp_control);
-  m = chThdWait(tp_control);
+  chThdWait(tp_control);
+  tp_control = 0;
+
+  chMsgSend(tp_write, 0); // send a message to end the write thread.
+  m = chThdWait(tp_write);
+  tp_write = 0;
+
   return m;
 }
 

@@ -27,7 +27,7 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   static void enableSensorsMotors();
   static void disableSensorsMotors();
 
-  static void controlThread_(char *filename);
+  static void controlThread_(void* arg);
   static void shellcmd_(BaseSequentialStream *chp, int argc, char *argv[]);
 
  private:
@@ -36,9 +36,9 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   SampleAndControl & operator=(const SampleAndControl &) = delete;
 
   void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
-  void controlThread(char* filename);
-  static void writeThread_(void * arg);
-  void writeThread();
+  void controlThread();
+  static void writeThread_(char* filename);
+  void writeThread(char* filename);
 
   // Data collection related
   static void sampleTimers(Sample & s);

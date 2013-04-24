@@ -8,15 +8,15 @@ void SampleAndControl::shellcmd_(BaseSequentialStream *chp, int argc, char *argv
 }
 
 inline
-void SampleAndControl::controlThread_(char *filename)
+void SampleAndControl::controlThread_(void*)
 {
-  SampleAndControl::Instance().controlThread(filename);
+  SampleAndControl::Instance().controlThread();
 }
 
 inline
-void SampleAndControl::writeThread_(void *)
+void SampleAndControl::writeThread_(char* filename)
 {
-  SampleAndControl::Instance().writeThread();
+  SampleAndControl::Instance().writeThread(filename);
 }
 
 inline
