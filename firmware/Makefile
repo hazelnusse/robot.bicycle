@@ -89,7 +89,7 @@ CSRC = $(PORTSRC) \
        $(CHIBIOS)/os/various/shell.c \
        $(CHIBIOS)/os/various/syscalls.c \
 			 nanopb/pb_encode.c \
-			 build/Sample.pb.c
+			 src/Sample.pb.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -203,7 +203,7 @@ DLIBS =
 #
 
 # List all user C define here, like -D_DEBUG=1
-UDEFS = -DTESTCXXSTUFF=0
+UDEFS = -DPB_NO_ERRMSG=1
 
 # Define ASM defines here
 UADEFS =
