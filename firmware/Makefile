@@ -89,12 +89,13 @@ CSRC = $(PORTSRC) \
        $(CHIBIOS)/os/various/shell.c \
        $(CHIBIOS)/os/various/syscalls.c \
 			 nanopb/pb_encode.c \
-			 Test.pb.c
+			 build/Sample.pb.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 CPPSRC = src/main.cpp \
 				 src/MPU6050.cpp \
+				 src/MPU6050_calibration.cpp \
 				 src/PeripheralInit.cpp \
 				 src/RearWheel.cpp \
 				 src/SampleAndControl.cpp \
@@ -104,8 +105,7 @@ CPPSRC = src/main.cpp \
 				 src/textutilities.cpp \
 				 src/VectorTable.cpp \
 				 src/Interrupts.cpp \
-				 src/imu_calibration.cpp \
-				 src/YawRateController_gains.cpp \
+				 src/YawRateController_gains.cpp
 
 
 # C sources to be compiled in ARM mode regardless of the global setting.
