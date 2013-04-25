@@ -41,6 +41,7 @@ void SampleAndControl::controlThread()
   write_message.m.buffer_selector = 1;
 
   systime_t time = chTimeNow();     // Initial time
+  systime_t sleep_time;
   for (uint32_t i = 0; !chThdShouldTerminate(); ++i) {
     time += MS2ST(con::T_ms);       // Next deadline
 
@@ -94,7 +95,11 @@ void SampleAndControl::controlThread()
     s.ComputationTime = STM32_TIM5->CNT - temp;
 
     // Go to sleep until next interval
-    chThdSleepUntil(time);
+    chSysLock();
+    sleep_time = time - chTimeNow();
+    if (static_cast<int32_t>(sleep_time) > 0)
+      chThdSleepS(sleep_time);
+    chSysUnlock();
   } // for
   
   // Clean up
@@ -176,8 +181,13 @@ msg_t SampleAndControl::Start(const char* filename)
                           NORMALPRIO + 1,
                           reinterpret_cast<tfunc_t>(writeThread_),
                           const_cast<char*>(filename));
-  if (!tp_write)
+  if (!tp_write) {
     m = (1 << 0);
+    return m;
+  }
+
+  while (tp_write->p_state != THD_STATE_WTMSG)
+    chThdYield();
 
   tp_control = chThdCreateStatic(SampleAndControl::waControlThread,
                           sizeof(waControlThread),
@@ -195,7 +205,9 @@ msg_t SampleAndControl::Stop()
   msg_t m;
 
   chThdTerminate(tp_control);
-  chThdWait(tp_control);
+  //chThdWait(tp_control);
+  //while(tp_control->p_state != THD_STATE_FINAL)
+    //chThdYield();
   tp_control = 0;
 
   chMsgSend(tp_write, 0); // send a message to end the write thread.
