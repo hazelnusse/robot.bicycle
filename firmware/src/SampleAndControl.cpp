@@ -61,12 +61,12 @@ void SampleAndControl::controlThread()
 
     // Begin post control data collection
     sampleMotorState(s);
-    s.SystemState |= systemstate::CollectionEnabled;
+    s.system_state |= systemstate::CollectionEnabled;
     // End post control data collection
 
     message_size = getMessageSize(s);
     if (unwritten_bytes + message_size + sizeof(message_size) > buffer_size_) {
-      s.SystemState |= systemstate::FileSystemWriteTriggered;
+      s.system_state |= systemstate::FileSystemWriteTriggered;
       write_message.m.bytes_to_write = unwritten_bytes;
       chMsgSend(tp_write, write_message.message);
       unwritten_bytes = 0;
@@ -88,11 +88,11 @@ void SampleAndControl::controlThread()
     unwritten_bytes += message_size + sizeof(message_size);
 
     // Clear the sample for the next iteration
-    // The first time through the loop, ComputationTime will be logged as zero,
+    // The first time through the loop, computation_time will be logged as zero,
     // subsequent times will be accurate but delayed by one sample period
-    uint32_t temp = s.SystemTime;
+    uint32_t temp = s.system_time;
     memset(&s, 0, sizeof(s));
-    s.ComputationTime = STM32_TIM5->CNT - temp;
+    s.computation_time= STM32_TIM5->CNT - temp;
 
     // Go to sleep until next interval
     chSysLock();

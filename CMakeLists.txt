@@ -20,14 +20,16 @@ foreach(proto ${PROTO_FILES})
     set(PROTO_PB "${PROTO_OUTPUT_DIR}/${FIL_WE}.pb")
     set(PROTO_C "${PROTO_OUTPUT_DIR}/${FIL_WE}.pb.c")
     set(PROTO_H "${PROTO_OUTPUT_DIR}/${FIL_WE}.pb.h")
+    set(PROTO_PY "${FIL_PATH}/${FILE_WE}_pb2.py")
 
     add_custom_command(
-      OUTPUT ${PROTO_PB}
+      OUTPUT ${PROTO_PB} ${PROTO_PY}
       COMMAND  ${PROTOBUF_PROTOC_EXECUTABLE}
       ARGS -I${PROTOBUF_INCLUDE_DIR} -I${FIL_PATH} -I${NANOPB_DIR}/generator
-           -o${PROTO_PB} ${ABS_FIL}
+           -o${PROTO_PB} --python_out=${FIL_PATH} ${ABS_FIL}
       DEPENDS ${ABS_FIL}
       COMMENT "Running C++ protocol buffer compiler on ${proto}")
+    message(STATUS "${FIL_PATH}")
 
     add_custom_command(
       OUTPUT ${PROTO_C} ${PROTO_H}

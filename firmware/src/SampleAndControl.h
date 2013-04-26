@@ -8,7 +8,7 @@
 #include "hal.h"
 #include "ff.h"
 
-#include "Sample.pb.h"
+#include "sample.pb.h"
 #include "Singleton.h"
 #include "MPU6050.h"
 #include "RearWheel.h"

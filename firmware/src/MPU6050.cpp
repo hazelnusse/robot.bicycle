@@ -118,9 +118,9 @@ void MPU6050::DeInitialize()
 bool MPU6050::checkTransmission(msg_t res, Sample & s)
 {
   if (res != RDY_OK) {
-    s.SystemState |= (i2cGetErrors(&I2CD2) << 16);
+    s.system_state |= (i2cGetErrors(&I2CD2) << 16);
     if (res == RDY_TIMEOUT)
-      s.SystemState |= systemstate::I2C_Software_Timeout;
+      s.system_state |= systemstate::I2C_Software_Timeout;
 
     return false;
   }
@@ -130,22 +130,22 @@ bool MPU6050::checkTransmission(msg_t res, Sample & s)
 void MPU6050::convertData(Sample & s, int16_t ar[7])
 {
   s.has_mpu6050 = true;
-  s.mpu6050.AccelerometerX = ar[0] * cf::Accelerometer_sensitivity;
-  s.mpu6050.AccelerometerY = ar[1] * cf::Accelerometer_sensitivity;
-  s.mpu6050.AccelerometerZ = ar[2] * cf::Accelerometer_sensitivity;
-  s.mpu6050.Temperature = ar[3] * cf::Thermometer_sensitivity + cf::Thermometer_offset;
-  s.mpu6050.GyroscopeX = ar[4] * cf::Gyroscope_sensitivity - MPU6050::gyro_x_bias;
-  s.mpu6050.GyroscopeY = ar[5] * cf::Gyroscope_sensitivity - MPU6050::gyro_y_bias;
-  s.mpu6050.GyroscopeZ = ar[6] * cf::Gyroscope_sensitivity - MPU6050::gyro_z_bias;
+  s.mpu6050.accelerometer_x = ar[0] * cf::Accelerometer_sensitivity;
+  s.mpu6050.accelerometer_y = ar[1] * cf::Accelerometer_sensitivity;
+  s.mpu6050.accelerometer_z = ar[2] * cf::Accelerometer_sensitivity;
+  s.mpu6050.temperature = ar[3] * cf::Thermometer_sensitivity + cf::Thermometer_offset;
+  s.mpu6050.gyroscope_x = ar[4] * cf::Gyroscope_sensitivity - MPU6050::gyro_x_bias;
+  s.mpu6050.gyroscope_y = ar[5] * cf::Gyroscope_sensitivity - MPU6050::gyro_y_bias;
+  s.mpu6050.gyroscope_z = ar[6] * cf::Gyroscope_sensitivity - MPU6050::gyro_z_bias;
 }
 
 float MPU6050::phi_dot(const Sample & s)
 {
-  return s.mpu6050.GyroscopeY;
+  return s.mpu6050.gyroscope_y;
 }
 
 float MPU6050::psi_dot(const Sample & s)
 {
-  return s.mpu6050.GyroscopeZ;
+  return s.mpu6050.gyroscope_z;
 }
 

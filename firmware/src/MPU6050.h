@@ -6,7 +6,7 @@
 #include "hal.h"
 
 #include "Singleton.h"
-#include "Sample.pb.h"
+#include "sample.pb.h"
 
 class MPU6050 : public Singleton<MPU6050> {
   friend class Singleton<MPU6050>;

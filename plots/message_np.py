@@ -163,6 +163,6 @@ class Message_np:
 
 
 #if __name__ == '__main__':
-#    samples_np = Message_np('Sample_pb2')
+#    samples_np = Message_np('sample.pb2')
 #    samples_np.load_messages_from_file('samples.dat', 'Sample')
 #    samples_np.set_messages_np()

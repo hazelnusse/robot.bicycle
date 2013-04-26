@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include "Singleton.h"
-#include "Sample.pb.h"
+#include "sample.pb.h"
 
 class RearWheel : public Singleton<RearWheel> {
   friend class Singleton<RearWheel>;
