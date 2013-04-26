@@ -7,9 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from message_np import Message_np
 
-samples_np = Message_np('sample.pb2')
-samples_np.load_messages_from_file('samples.dat', 'sample')
-data = samples_np.set_messages_np()
+samples_np = Message_np('sample_pb2', 'Sample', 'samples.dat')
+data = samples_np.get_messages_np()
 
 fig, ax = plt.subplots(1)
 ax.plot(data['system_time'], data['mpu6050']['gyroscope_x'],

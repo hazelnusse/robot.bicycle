@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 from __future__ import print_function
 import struct
@@ -7,7 +8,7 @@ import sys
 import numpy as np
 
 class Message_np:
-    def __init__(self, pb_module):
+    def __init__(self, pb_module, message_name=None, filename=None):
         self.pb_module = __import__(pb_module)
         self.valid_cpptype_map = False
         self.cpptype_map = None
@@ -21,6 +22,9 @@ class Message_np:
         self.set_cpptype_map()
         self.set_cpp_to_npdtype_map()
         self.set_message_npdtype_map()
+        
+        if message_name and filename:
+            self.load_messages_from_file(message_name, filename)
 
     def message_types(self):
         return self.message_npdtype_map.keys()
@@ -33,6 +37,8 @@ class Message_np:
                 type_descriptor = message_type.DESCRIPTOR
             except AttributeError: # npdtype message
                 return message_type.fields.keys()
+        else:
+            type_descriptor = self.messages_pb[0].DESCRIPTOR
         return type_descriptor.fields_by_name.keys()
 
     def get_messages_pb(self):
@@ -66,7 +72,7 @@ class Message_np:
             ('CPPTYPE_ENUM', np.int32),
             ('CPPTYPE_STRING', str)])
 
-    def load_messages_from_file(self, filename, message_name,
+    def load_messages_from_file(self, message_name, filename,
                                 byte_format='<H', message_size_bytes=None):
         message_type = getattr(self.pb_module, message_name)
         if message_size_bytes is None:
@@ -84,7 +90,8 @@ class Message_np:
                 self.messages_pb.append(m)
         self.messages_np = np.empty((len(self.messages_pb),),
                                     dtype=self.message_npdtype_map[message_name])
-        return self.messages_pb
+        self.set_messages_np()
+        return self.get_messages_np()
 
     def convert_message_to_npdtype(self, message_pb, message_np):
         npdtype = self.message_npdtype_map[message_pb.__class__.__name__]
@@ -95,12 +102,10 @@ class Message_np:
                                                 message_np[field])
             else:
                 message_np[field] = getattr(message_pb, field)
-        return message_np
 
     def set_messages_np(self):
         for (message_pb, message_np) in zip(self.messages_pb, self.messages_np):
             self.convert_message_to_npdtype(message_pb, message_np)
-        return self.messages_np
 
     def validate_cpptype_map(self, field):
         cpptypes = [type for type in dir(field) if type.startswith('CPPTYPE')]
