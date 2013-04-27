@@ -875,8 +875,8 @@
                                      PIN_OTYPE_PUSHPULL(GPIOF_PIN13) |        \
                                      PIN_OTYPE_PUSHPULL(GPIOF_PIN14) |        \
                                      PIN_OTYPE_PUSHPULL(GPIOF_PIN15))
-#define VAL_GPIOF_OSPEEDR           (PIN_OSPEED_100M(GPIOF_I2C2_SDA) |        \
-                                     PIN_OSPEED_100M(GPIOF_I2C2_SCL) |        \
+#define VAL_GPIOF_OSPEEDR           (PIN_OSPEED_2M(GPIOF_I2C2_SDA) |        \
+                                     PIN_OSPEED_2M(GPIOF_I2C2_SCL) |        \
                                      PIN_OSPEED_100M(GPIOF_XBEE_RESET) |      \
                                      PIN_OSPEED_100M(GPIOF_TIMING_PIN) |      \
                                      PIN_OSPEED_100M(GPIOF_RW_ENABLE) |       \
