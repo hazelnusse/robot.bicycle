@@ -1,9 +1,9 @@
 #!/bin/bash
 # To build the firmware, adjust TRGT to point to your toolchain, and set
 # USE_FPU in accordence with whether your target MCU has a FPU or not.
-protoc -I/usr/include -Inanopb/generator -I. -o Sample.pb Sample.proto 
-python2 ./nanopb/generator/nanopb_generator.py Sample.pb
-mv Sample.pb.h Sample.pb.c ./src
-make -j8 USE_FPU=yes USE_VERBOSE_COMPILE=yes TRGT=~/toolchain/bin/arm-none-eabi-
-rm ./src/Sample.pb.c ./src/Sample.pb.h ./Sample.pb
+protoc -I/usr/include -Inanopb/generator -I../proto -o sample.pb --python_out=../proto ../proto/sample.proto
+python2 ./nanopb/generator/nanopb_generator.py sample.pb
+mv sample.pb.h sample.pb.c ./src
+make -j8 USE_FPU=yes USE_VERBOSE_COMPILE=NO TRGT=~/toolchain/bin/arm-none-eabi-
+rm ./src/sample.pb.c ./src/sample.pb.h ./sample.pb
 

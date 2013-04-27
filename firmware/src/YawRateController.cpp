@@ -9,7 +9,7 @@
 #include "shell.h"
 
 #include "RearWheel.h"
-#include "Sample.pb.h"
+#include "sample.pb.h"
 #include "MPU6050.h"
 #include "YawRateController.h"
 #include "Constants.h"
@@ -82,7 +82,7 @@ void YawRateController::Update(Sample & s)
   //   -- Steer angle from most recent measurement
   //   -- Roll rate from most recent measurement
   const float input[3] = {u_ * cf::kT_steer,
-                          s.encoder.Steer,
+                          s.encoder.steer,
                           MPU6050::phi_dot(s)};
 
   u_ = 0.0f;  // set current to zero
@@ -101,7 +101,7 @@ void YawRateController::Update(Sample & s)
         if (PI_enabled_) {
           // Compute PI state update
           const float e = RateCommanded() - MPU6050::psi_dot(s);
-          const float dt = static_cast<uint32_t>(s.SystemTime - SystemTime_prev_) * cf::Rate_Timer_sec_per_count;
+          const float dt = static_cast<uint32_t>(s.system_time - SystemTime_prev_) * cf::Rate_Timer_sec_per_count;
           float Kp, Ki;
           interpolate_PI_gains(Kp, Ki); // interpolate Kp and Ki from lookup table
           const float r_pi = Ki * dt * x_pi_ + (Ki * dt + Kp) * e;

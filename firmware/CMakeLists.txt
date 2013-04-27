@@ -10,20 +10,12 @@ set(CHIBIOS_BOARD_CMAKE_FILE
 
 include(${CHIBIOS_ROOT}/tools/cmake/openocd.cmake)
 
-if(NOT PYTHON3_EXECUTABLE)
-    find_package(PythonInterp 3.2 REQUIRED)
-    set(PYTHON3_EXECUTABLE ${PYTHON_EXECUTABLE} CACHE FILEPATH "Path to python3")
-    mark_as_advanced(PYTHON3_EXECUTABLE)
-endif()
-get_filename_component(PYTHON_EXE_DIR ${PYTHON3_EXECUTABLE} PATH)
+find_package(PythonInterp 2.7 REQUIRED)
 find_package(PythonModule)
 find_python_module(jinja2 REQUIRED)
 find_python_module(numpy REQUIRED)
 find_python_module(scipy REQUIRED)
 find_python_module(control REQUIRED)
-
-set(PYTHON_EXECUTABLE PYTHON_EXECUTABLE-NOTFOUND)
-find_package(PythonInterp 2.7 REQUIRED)
 
 set(CHIBIOS_VARIOUS_SRC
     ${CHIBIOS_ROOT}/os/various/chprintf.c
@@ -35,9 +27,12 @@ set(CHIBIOS_VARIOUS_SRC
     ${CHIBIOS_ROOT}/os/various/syscalls.c)
 
 add_definitions(-DPB_NO_ERRMSG=1)
-set(PROTO_FILES "${ROBOT_BICYCLE_SOURCE_DIR}/Sample.proto")
+#set(PROTO_FILES "${ROBOT_BICYCLE_SOURCE_DIR}/../proto/sample.proto")
+#set(PROTO_OUTPUT_DIR ${ROBOT_BICYCLE_BINARY_DIR}/src)
+get_filename_component(ROBOT_BICYCLE_HOST_DIR ${ROBOT_BICYCLE_SOURCE_DIR} PATH)
+set(PROTO_FILES "${ROBOT_BICYCLE_HOST_DIR}/proto/sample.proto")
 set(PROTO_OUTPUT_DIR ${ROBOT_BICYCLE_BINARY_DIR}/src)
-set(PROTO_SRCS "${PROTO_OUTPUT_DIR}/Sample.pb.c"
+set(PROTO_SRCS "${PROTO_OUTPUT_DIR}/sample.pb.c"
     "${ROBOT_BICYCLE_SOURCE_DIR}/nanopb/pb_encode.c")
 include_directories(${PROTO_OUTPUT_DIR})
 

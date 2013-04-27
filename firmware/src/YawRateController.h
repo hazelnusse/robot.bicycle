@@ -4,7 +4,7 @@
 #include <array>
 #include <cstdint>
 #include "ch.h"
-#include "Sample.pb.h"
+#include "sample.pb.h"
 #include "Singleton.h"
 #include "ControllerGains.h"
 

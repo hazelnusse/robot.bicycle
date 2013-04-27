@@ -22,11 +22,11 @@ void SampleAndControl::writeThread_(char* filename)
 inline
 void SampleAndControl::sampleTimers(Sample & s)
 {
-  s.SystemTime = STM32_TIM5->CNT;
-  s.encoder.RearWheelCount = STM32_TIM8->CNT;
-  s.encoder.RearWheel = static_cast<int16_t>(s.encoder.RearWheelCount) * cf::Wheel_rad_per_quad_count;
-  s.encoder.Steer = static_cast<int16_t>(STM32_TIM3->CNT) * cf::Steer_rad_per_quad_count;
-  s.encoder.FrontWheel = static_cast<int16_t>(STM32_TIM4->CNT) * cf::Wheel_rad_per_quad_count;
+  s.system_time = STM32_TIM5->CNT;
+  s.encoder.rear_wheel_count = STM32_TIM8->CNT;
+  s.encoder.rear_wheel = static_cast<int16_t>(s.encoder.rear_wheel_count) * cf::Wheel_rad_per_quad_count;
+  s.encoder.steer = static_cast<int16_t>(STM32_TIM3->CNT) * cf::Steer_rad_per_quad_count;
+  s.encoder.front_wheel = static_cast<int16_t>(STM32_TIM4->CNT) * cf::Wheel_rad_per_quad_count;
 }
 
 inline
@@ -43,25 +43,25 @@ void SampleAndControl::sampleMotorState(Sample & s) const
 
   // motor flags
   if (rw.isEnabled())
-    s.SystemState |= systemstate::RearWheelMotorEnable;
+    s.system_state |= systemstate::RearWheelMotorEnable;
   if (yc.isEnabled())
-    s.SystemState|= systemstate::SteerMotorEnable;
+    s.system_state|= systemstate::SteerMotorEnable;
   if (rw.hasFault())
-    s.SystemState |= systemstate::HubMotorFault;
+    s.system_state |= systemstate::HubMotorFault;
   if (yc.hasFault())
-    s.SystemState |= systemstate::SteerMotorFault;
+    s.system_state |= systemstate::SteerMotorFault;
   if (rw.RotationDir())
-    s.SystemState |= systemstate::RearWheelEncoderDir;
+    s.system_state |= systemstate::RearWheelEncoderDir;
   if (yc.RotationDir())
-    s.SystemState |= systemstate::SteerEncoderDir;
+    s.system_state |= systemstate::SteerEncoderDir;
   if (rw.CurrentDir())
-    s.SystemState |= systemstate::RearWheelMotorCurrentDir;
+    s.system_state |= systemstate::RearWheelMotorCurrentDir;
   if (yc.CurrentDir())
-    s.SystemState |= systemstate::SteerMotorCurrentDir;
+    s.system_state |= systemstate::SteerMotorCurrentDir;
 
   // Motor current
-  s.motorcurrent.RearWheel = rw.CurrentCommanded();
-  s.motorcurrent.Steer = yc.CurrentCommanded();
+  s.motor_current.rear_wheel = rw.CurrentCommanded();
+  s.motor_current.steer = yc.CurrentCommanded();
 }
 
 inline
@@ -85,8 +85,8 @@ void SampleAndControl::disableSensorsMotors()
 inline
 void SampleAndControl::sampleSetPoints(Sample & s)
 {
-  s.setpoint.theta_R_dot = RearWheel::Instance().RateCommanded();
-  s.setpoint.psi_dot = YawRateController::Instance().RateCommanded();
+  s.set_point.theta_R_dot = RearWheel::Instance().RateCommanded();
+  s.set_point.psi_dot = YawRateController::Instance().RateCommanded();
 }
 
 #endif
