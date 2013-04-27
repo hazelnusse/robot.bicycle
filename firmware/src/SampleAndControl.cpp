@@ -8,10 +8,10 @@
 #include "YawRateController.h"
 #include "pb_encode.h"
 #include "SystemState.h"
-#include "WriteMessage.h"
 
 
 const uint16_t SampleAndControl::buffer_size_;
+const uint16_t SampleAndControl::write_size_;
 
 SampleAndControl::SampleAndControl()
   : tp_control(0), tp_write(0), state_(0)
@@ -32,13 +32,6 @@ void SampleAndControl::controlThread()
   // Create a sample to populate
   Sample s;
   memset(&s, 0, sizeof(s));
-  uint16_t unwritten_bytes = 0;
-  uint16_t message_size;
-  pb_ostream_t stream = pb_ostream_from_buffer(front_buffer_.data(),
-                                               front_buffer_.size());
-  WriteMessage write_message;
-  write_message.m.bytes_to_write = 0;
-  write_message.m.buffer_selector = 1;
 
   systime_t time = chTimeNow();     // Initial time
   systime_t sleep_time;
@@ -64,28 +57,7 @@ void SampleAndControl::controlThread()
     s.system_state |= systemstate::CollectionEnabled;
     // End post control data collection
 
-    message_size = getMessageSize(s);
-    if (unwritten_bytes + message_size + sizeof(message_size) > buffer_size_) {
-      s.system_state |= systemstate::FileSystemWriteTriggered;
-      write_message.m.bytes_to_write = unwritten_bytes;
-      chMsgSend(tp_write, write_message.message);
-      unwritten_bytes = 0;
-      
-      // Change the stream to point to the appropriate buffer
-      if (write_message.m.buffer_selector & 2) {
-        stream = pb_ostream_from_buffer(front_buffer_.data(),
-                                        front_buffer_.size());
-      } else {
-        stream = pb_ostream_from_buffer(back_buffer_.data(),
-                                        back_buffer_.size());
-      }
-      // Toggle the buffer selector bit
-      write_message.m.buffer_selector ^= (1 << 1);
-    }
-    // TODO: implement error checking on pb_write and pb_encode
-    pb_write(&stream, reinterpret_cast<uint8_t *>(&message_size), sizeof(message_size));
-    pb_encode(&stream, Sample_fields, &s);
-    unwritten_bytes += message_size + sizeof(message_size);
+    chMsgSend(tp_write, reinterpret_cast<msg_t>(&s));
 
     // Clear the sample for the next iteration
     // The first time through the loop, computation_time will be logged as zero,
@@ -140,31 +112,56 @@ void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[
 
 void SampleAndControl::writeThread(char* filename)
 {
-  UINT bytes;
-  WriteMessage wm;
-  FRESULT res = FR_OK;
-  uint8_t * b;
-  uint32_t write_errors = 0;
-
   chRegSetThreadName("WriteThread");
+  FRESULT res = FR_OK;
   res = f_open(&f_, filename, FA_CREATE_ALWAYS | FA_WRITE);
   if (res != FR_OK) {
     chSysHalt(); while (1) {}   // couldn't properly open the file!
   }
 
+  std::array<uint8_t, buffer_size_> *buffer = &buffer0_;
+  std::array<uint8_t, buffer_size_> *inactive_buffer = &buffer1_;
+  pb_ostream_t stream = pb_ostream_from_buffer(buffer->data(),
+                                               buffer->size());
+
+  uint16_t bytes = 0;
+  uint16_t extra_bytes;
+  uint16_t message_size;
+  uint32_t write_errors = 0;
+  UINT bytes_written;
+  Sample *sp;
   while (1) {
-    Thread * calling_thread = chMsgWait();
-    wm.message = chMsgGet(calling_thread);
-    chMsgRelease(calling_thread, res);
+    Thread *calling_thread = chMsgWait();
+    sp = reinterpret_cast<Sample*>(chMsgGet(calling_thread));
+    if (sp == 0) {
+      chMsgRelease(calling_thread, res);
+      break;
+    } else {
+      message_size = getMessageSize(*sp);
+      pb_write(&stream, reinterpret_cast<uint8_t*>(&message_size), sizeof(message_size));
+      pb_encode(&stream, Sample_fields, sp);
+      bytes += sizeof(message_size) + message_size;
+      chMsgRelease(calling_thread, res);
+    }
 
-    if (wm.message == 0) break;
+    if (bytes < write_size_)
+        continue;
 
-    if (wm.m.buffer_selector & 2) 
-      b = back_buffer_.data();
+    res = f_write(&f_, buffer->data(), write_size_, &bytes_written);
+    extra_bytes = bytes - write_size_;
+    bytes = 0;
+
+    if (extra_bytes > 0) /* copy over bytes not written to disk */
+        memcpy(inactive_buffer->data(), buffer->data() + write_size_, extra_bytes);
+
+    /* swap buffers */
+    inactive_buffer = buffer;
+    if (buffer == &buffer0_)
+        buffer = &buffer1_;
     else
-      b = front_buffer_.data();
+        buffer = &buffer0_;
+    stream = pb_ostream_from_buffer(buffer->data(), buffer->size());
 
-    res = f_write(&f_, b, wm.m.bytes_to_write, &bytes);
     if (res != FR_OK)
       ++write_errors;
   }

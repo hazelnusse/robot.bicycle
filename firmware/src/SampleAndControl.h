@@ -50,9 +50,10 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   WORKING_AREA(waControlThread, 4096);
   WORKING_AREA(waWriteThread, 4096);
   
-  static const uint16_t buffer_size_ = 2048;
-  std::array<uint8_t, buffer_size_> front_buffer_;
-  std::array<uint8_t, buffer_size_> back_buffer_;
+  static const uint16_t write_size_ = 512;
+  static const uint16_t buffer_size_ = write_size_ + sizeof(Sample);
+  std::array<uint8_t, buffer_size_> buffer0_;
+  std::array<uint8_t, buffer_size_> buffer1_;
 
   FIL f_;
   Thread * tp_control;
