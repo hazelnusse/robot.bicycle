@@ -20,7 +20,7 @@
 
 MPU6050::MPU6050()
   : i2c_(0),
-    i2cfg_({OPMODE_I2C, 100000, STD_DUTY_CYCLE}),
+    i2cfg_({OPMODE_I2C, 400000, FAST_DUTY_CYCLE_2}),
     timeout_(MS2ST(2)),
     I2C_ADDR(0b1101000),
     ACCEL_XOUT_ADDR(59)
@@ -95,7 +95,7 @@ bool MPU6050::Initialize(I2CDriver * i2c)
   if (!checkTransmission(res, s))
     return false;
 
-  // Sleep 40 ms to allow PLL and gyro readings on MPU6050 to settle
+  // Sleep 50 ms to allow PLL and gyro readings on MPU6050 to settle
   time = chTimeNow() + MS2ST(50);
   chThdSleepUntil(time);
   for (int i = 0; i < 10; ++i) {
