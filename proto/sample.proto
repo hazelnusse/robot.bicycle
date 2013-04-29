@@ -1,7 +1,7 @@
 message Sample {
   required uint32 system_time = 1;           //  4 bytes
-  required uint32 computation_time = 2;      //  4 bytes
-  required uint32 system_state = 3;          //  4 bytes
+  required uint32 computation_time = 2;      //  4 bytes **
+  required uint32 system_state = 3;          //  4 bytes **
   required Encoder encoder = 4;             // 16 bytes
   required SetPoint set_point = 5;           //  8 bytes
   required MotorCurrent motor_current = 6;   //  8 bytes
@@ -11,7 +11,9 @@ message Sample {
   optional PIController yaw_rate_pi = 9;    // 16 bytes
 
                                      // Total:116 bytes
-
+  // ** computation_time and system_state::FileSystemWriteTriggered are
+  // ** calculated for the previous sample.
+  //
   // optional string notes = 10 [(nanopb).max_size = 64];
   // optional string git_sha = 11 [(nanopb).max_size = 41]; // Assume we get the
 }

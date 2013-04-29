@@ -128,7 +128,7 @@ void SampleAndControl::writeThread(char* filename)
   uint16_t extra_bytes;
   uint16_t message_size;
   uint32_t write_errors = 0;
-  UINT bytes_written;
+  UINT bytes_written = 0;
   Sample *sp;
   while (1) {
     Thread *calling_thread = chMsgWait();
@@ -137,6 +137,11 @@ void SampleAndControl::writeThread(char* filename)
       chMsgRelease(calling_thread, res);
       break;
     } else {
+      if (bytes_written > 0) { // record if a write occured with the last sample
+        sp->system_state |= systemstate::FileSystemWriteTriggered;
+        bytes_written = 0;
+      }
+
       message_size = getMessageSize(*sp);
       pb_write(&stream, reinterpret_cast<uint8_t*>(&message_size), sizeof(message_size));
       pb_encode(&stream, Sample_fields, sp);
@@ -151,10 +156,10 @@ void SampleAndControl::writeThread(char* filename)
     extra_bytes = bytes - write_size_;
     bytes = 0;
 
-    if (extra_bytes > 0) /* copy over bytes not written to disk */
+    if (extra_bytes > 0) // copy over bytes not written to disk
         memcpy(inactive_buffer->data(), buffer->data() + write_size_, extra_bytes);
 
-    /* swap buffers */
+    // swap buffers
     inactive_buffer = buffer;
     if (buffer == &buffer0_)
         buffer = &buffer1_;
