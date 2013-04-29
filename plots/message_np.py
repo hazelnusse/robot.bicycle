@@ -3,7 +3,6 @@
 
 from __future__ import print_function
 import struct
-import sys
 
 import numpy as np
 
@@ -19,9 +18,9 @@ class Message_np:
         self.messages_pb = None
         self.messages_np = None
 
-        self.set_cpptype_map()
-        self.set_cpp_to_npdtype_map()
-        self.set_message_npdtype_map()
+        self._set_cpptype_map()
+        self._set_cpp_to_npdtype_map()
+        self._set_message_npdtype_map()
         
         if message_name and filename:
             self.load_messages_from_file(message_name, filename)
@@ -47,7 +46,7 @@ class Message_np:
     def get_messages_np(self):
         return self.messages_np
 
-    def set_cpptype_map(self):
+    def _set_cpptype_map(self):
         self.cpptype_map = dict([
             (1, 'CPPTYPE_INT32'),
             (2, 'CPPTYPE_INT64'),
@@ -60,7 +59,7 @@ class Message_np:
             (9, 'CPPTYPE_STRING'),
             (10, 'CPPTYPE_MESSAGE')])
 
-    def set_cpp_to_npdtype_map(self):
+    def _set_cpp_to_npdtype_map(self):
         self.cpp_to_npdtype_map = dict([
             ('CPPTYPE_INT32', np.int32),
             ('CPPTYPE_INT64', np.int64),
@@ -90,41 +89,41 @@ class Message_np:
                 self.messages_pb.append(m)
         self.messages_np = np.empty((len(self.messages_pb),),
                                     dtype=self.message_npdtype_map[message_name])
-        self.set_messages_np()
+        self._set_messages_np()
         return self.get_messages_np()
 
-    def convert_message_to_npdtype(self, message_pb, message_np):
+    def _convert_message_to_npdtype(self, message_pb, message_np):
         npdtype = self.message_npdtype_map[message_pb.__class__.__name__]
         for field in npdtype.fields.keys():
             subfields = npdtype[field].fields
             if subfields:
-                self.convert_message_to_npdtype(getattr(message_pb, field),
+                self._convert_message_to_npdtype(getattr(message_pb, field),
                                                 message_np[field])
             else:
                 message_np[field] = getattr(message_pb, field)
 
-    def set_messages_np(self):
+    def _set_messages_np(self):
         for (message_pb, message_np) in zip(self.messages_pb, self.messages_np):
-            self.convert_message_to_npdtype(message_pb, message_np)
+            self._convert_message_to_npdtype(message_pb, message_np)
 
-    def validate_cpptype_map(self, field):
-        cpptypes = [type for type in dir(field) if type.startswith('CPPTYPE')]
-        for type in cpptypes:
-            cpptype_value = getattr(field, type)
+    def _validate_cpptype_map(self, field):
+        cpptypes = [type_ for type_ in dir(field) if type_.startswith('CPPTYPE')]
+        for type_ in cpptypes:
+            cpptype_value = getattr(field, type_)
             stored_cpptype = self.cpptype_map[cpptype_value]
-            if stored_cpptype != type:
+            if stored_cpptype != type_:
                 raise ValueError(("CPPTYPE_VALUE '{0}': stored name" +
                     "'{1}' does not match protobuf DESCRIPTOP name" +
-                    "'{2}'").format(cpptype_value, stored_cpptype, type))
+                    "'{2}'").format(cpptype_value, stored_cpptype, type_))
     
-    def get_message_field_npdtypes(self, message_name):
+    def _get_message_field_npdtypes(self, message_name):
         type_descriptor = getattr(self.pb_module, message_name).DESCRIPTOR
         field_type_map = {}
         has_dependency = False
 
         for field in type_descriptor.fields:
             if not self.valid_cpptype_map:
-                self.validate_cpptype_map(field)
+                self._validate_cpptype_map(field)
 
             if self.cpptype_map[field.cpp_type] == 'CPPTYPE_MESSAGE':
                 field_type_map[field.name] = (field.cpp_type,
@@ -135,7 +134,7 @@ class Message_np:
                 has_dependency = True
         return field_type_map, has_dependency
     
-    def set_message_npdtype_map(self):
+    def _set_message_npdtype_map(self):
         self.message_npdtype_map = {}
         message_names = self.pb_module.DESCRIPTOR.message_types_by_name.keys()
         message_fieldtypes = {}
@@ -146,11 +145,11 @@ class Message_np:
             if message_name in message_fieldtypes:
                 ft_map = message_fieldtypes[message_name]
                 # second elem in tuple is name of message_type
-                old_dependencies = [(field, type) for field, type in ft_map.iteritems()
-                                    if isinstance(type, tuple)]
+                old_dependencies = [(field, type_) for field, type_ in ft_map.iteritems()
+                                    if isinstance(type_, tuple)]
                 has_dependency = False
-                for field, type in old_dependencies:
-                    _, dep_message_name = type
+                for field, type_ in old_dependencies:
+                    _, dep_message_name = type_
                     if dep_message_name in self.message_npdtype_map:
                         ft_map[field] = self.message_npdtype_map[dep_message_name]
                     else: # message_type not yet defined
@@ -158,7 +157,7 @@ class Message_np:
                         continue
 
             else:
-                ft_map, has_dependency = self.get_message_field_npdtypes(message_name)
+                ft_map, has_dependency = self._get_message_field_npdtypes(message_name)
 
             if has_dependency:
                 message_names.append(message_name)
@@ -170,4 +169,3 @@ class Message_np:
 #if __name__ == '__main__':
 #    samples_np = Message_np('sample.pb2')
 #    samples_np.load_messages_from_file('samples.dat', 'Sample')
-#    samples_np.set_messages_np()
