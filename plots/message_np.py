@@ -4,6 +4,7 @@
 from __future__ import print_function
 import struct
 
+import google.protobuf.message
 import numpy as np
 
 class Message_np:
@@ -85,7 +86,11 @@ class Message_np:
                     break
                 message_size = struct.unpack(byte_format, size_bytes)[0]
                 m = message_type()
-                m.ParseFromString(f.read(message_size))
+                try:
+                    m.ParseFromString(f.read(message_size))
+                except google.protobuf.message.DecodeError:
+                    # TODO: Find a more graceful way to handle a DecodeError
+                    break
                 self.messages_pb.append(m)
         self.messages_np = np.empty((len(self.messages_pb),),
                                     dtype=self.message_npdtype_map[message_name])
