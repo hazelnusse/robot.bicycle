@@ -8,7 +8,7 @@ union WriteMessage {
   msg_t message;
   struct {
     uint16_t bytes_to_write;
-    uint16_t buffer_selector;
+    uint16_t buffer_offset;
   } m;
 };
 
