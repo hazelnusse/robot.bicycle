@@ -12,7 +12,7 @@
 class SampleBuffer : public Singleton<SampleBuffer> {
   friend class Singleton<SampleBuffer>;
  public:
-  msg_t initialize(const char * filename);
+  void initialize(const char * filename);
   msg_t insert(Sample & s);
   msg_t deinitialize();
 

@@ -1,6 +1,7 @@
 #include "ch.h"
-#include "SampleBuffer.h"
 #include "pb_encode.h"
+#include "SampleBuffer.h"
+#include "SystemState.h"
 
 const uint16_t SampleBuffer::bytes_per_block_;
 const uint16_t SampleBuffer::blocks_per_buffer_;
@@ -11,18 +12,37 @@ SampleBuffer::SampleBuffer()
 {
 }
 
-msg_t SampleBuffer::initialize(const char * filename)
+// Caller: control_thread_
+void SampleBuffer::initialize(const char * filename)
 {
+  if (tp_manage_ && !chThdTerminated(tp_manage_))
+    chThdExit(systemstate::SampleBufferInitError);
+
   tp_manage_ = chThdCreateStatic(waManagementThread,
                                  sizeof(waManagementThread),
                                  NORMALPRIO + 1,
                                  manager_thread_,
                                  const_cast<char *>(filename));
+}
 
-  if (!tp_manage_)
-    return 1;
-  
-  return 0;
+// Caller: control_thread_
+msg_t SampleBuffer::deinitialize()
+{
+  if (chThdTerminated(tp_manage_))
+    chThdExit(tp_manage_->p_u.exitcode);
+
+  msg_t m = chMsgSend(tp_manage_, -1);
+  tp_manage_ = 0;
+  return m;
+}
+
+// Caller: control_thread_
+msg_t SampleBuffer::insert(Sample & s)
+{
+  if (chThdTerminated(tp_manage_))
+    chThdExit(tp_manage_->p_u.exitcode);
+
+  return chMsgSend(tp_manage_, reinterpret_cast<msg_t>(&s));
 }
 
 msg_t SampleBuffer::manager_thread(void * filename)
@@ -31,8 +51,7 @@ msg_t SampleBuffer::manager_thread(void * filename)
   FRESULT res = f_open(&f_, static_cast<char *>(filename),
                        FA_WRITE | FA_CREATE_ALWAYS);
   if (res != FR_OK)
-    chSysHalt();
-    // chThdExit(-1);
+    chThdExit(systemstate::FATFS_f_open_error);
 
   uint8_t current_buffer = 0;
   uint16_t i = 0;
@@ -43,8 +62,7 @@ msg_t SampleBuffer::manager_thread(void * filename)
     pb_ostream_t out = pb_ostream_from_buffer(&buffer_[current_buffer][i + 2],
                                               buffer_[current_buffer].size() - i - 2);
     Sample * s = reinterpret_cast<Sample *>(m);
-    pb_encode(&out, Sample_fields, s);
-    chMsgRelease(tp, overflows);
+    chMsgRelease(tp, pb_encode(&out, Sample_fields, s) ? 1 : 0);
     if (m == -1)
       break;
 
@@ -70,23 +88,12 @@ msg_t SampleBuffer::manager_thread(void * filename)
     }
   }
 
-  //TODO: Come up with something more elegant than a sleep 
-  chThdSleepUntil(chTimeNow() + MS2ST(250));
-  f_close(&f_);
+  chThdWait(tp_write_);
   tp_write_ = 0;
+  f_close(&f_);
 
   chThdExit(overflows);
   return overflows;
-}
-
-msg_t SampleBuffer::deinitialize()
-{
-  return chMsgSend(tp_manage_, -1);
-}
-
-msg_t SampleBuffer::insert(Sample & s)
-{
-  return chMsgSend(tp_manage_, reinterpret_cast<msg_t>(&s));
 }
 
 msg_t SampleBuffer::write_thread(void * arg)

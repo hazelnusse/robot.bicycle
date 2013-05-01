@@ -114,37 +114,6 @@ static void cmd_threads(BaseSequentialStream *chp, int argc, char *argv[]) {
   } while (tp != NULL);
 }
 
-static void createfile(BaseSequentialStream *chp, int, char **)
-{
-  FRESULT res;
-  FIL f;
-  res = f_open(&f, "test.txt", FA_WRITE | FA_CREATE_ALWAYS);
-  if (res != FR_OK) {
-    chprintf(chp, "Couldn't open file.\r\n");
-    return;
-  }
-  char alphabet[26];
-  UINT bytes_written;
-  for (uint8_t i = 0; i < 26; ++i)
-    alphabet[i] = i + 'a';
-  res = f_write(&f, alphabet, 26, &bytes_written);
-  if ((res != FR_OK) || bytes_written != 26) {
-    if (res != FR_OK)
-      chprintf(chp, "Couldn't write to file.\r\n");
-    if (bytes_written != 26)
-      chprintf(chp, "Didn't write 26 bytes.\r\n");
-    return;
-  }
-
-  res = f_close(&f);
-  if (res != FR_OK) {
-    chprintf(chp, "Couldn't close file.\r\n");
-    return;
-  }
-
-  return;
-}
-
 static const ShellCommand commands[] = {
   {"rw", RearWheel::shellcmd_},             // select rear wheel rate set point
   {"yr", YawRateController::shellcmd_},     // select yaw rate set point
@@ -158,7 +127,6 @@ static const ShellCommand commands[] = {
   {"e_thresh", YawRateController::setEstimationThreshold},
   {"c_thresh", YawRateController::setControlThreshold},
   {"pi", YawRateController::togglePI},
-  {"file", createfile},
   {NULL, NULL}
 };
 

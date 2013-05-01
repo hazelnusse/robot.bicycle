@@ -22,8 +22,7 @@ void SampleAndControl::controlThread(void * arg)
   RearWheel & rwc = RearWheel::Instance();
   YawRateController & yrc = YawRateController::Instance();
   SampleBuffer & sb = SampleBuffer::Instance();
-  if (sb.initialize(static_cast<char *>(arg)))
-    chSysHalt();
+  sb.initialize(static_cast<char *>(arg));
   
   // zero out wheel encoders and system timer
   STM32_TIM4->CNT = STM32_TIM5->CNT = STM32_TIM8->CNT = 0;
@@ -57,14 +56,18 @@ void SampleAndControl::controlThread(void * arg)
     // End post control data collection
 
     // Put the sample in to the buffer
-    sb.insert(s);
+    bool encode_failure = false;
+    if (!sb.insert(s))
+      encode_failure = true;
 
     // Clear the sample for the next iteration
     // The first time through the loop, computation_time will be logged as zero,
     // subsequent times will be accurate but delayed by one sample period
-    uint32_t temp = s.system_time;
+    uint32_t ti = s.system_time;
     memset(&s, 0, sizeof(s));
-    s.computation_time = STM32_TIM5->CNT - temp;
+    s.computation_time = STM32_TIM5->CNT - ti;
+    if (encode_failure) 
+      s.system_state |= systemstate::SampleBufferEncodeError;
 
     // Go to sleep until next interval
     chSysLock();
@@ -76,10 +79,10 @@ void SampleAndControl::controlThread(void * arg)
   
   // Clean up
   disableSensorsMotors();
-  sb.deinitialize();
+  msg_t total_overflows = sb.deinitialize();
   // End cleanup
  
-  chThdExit(0);
+  chThdExit(total_overflows);
 }
 
 // Caller: Shell thread
@@ -127,8 +130,8 @@ msg_t SampleAndControl::Start(const char * filename)
 msg_t SampleAndControl::Stop()
 {
   chThdTerminate(tp_control_);
+  msg_t m = chThdWait(tp_control_);
   tp_control_ = 0;
-
-  return 0;
+  return m;
 }
 
