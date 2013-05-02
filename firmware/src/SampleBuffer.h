@@ -35,12 +35,13 @@ class SampleBuffer : public Singleton<SampleBuffer> {
 
   static msg_t write_thread_(void * arg);
   msg_t write_thread(void * arg);
-  bool launch_write_thread(uint8_t current_buffer);
   WORKING_AREA(waWriteThread, 4096);
   WORKING_AREA(waManagementThread, 1024);
 
   FIL f_;
   Thread * tp_write_, * tp_manage_;
+  Mutex buffer_mtx_;
+  uint8_t active_buffer_;
 };
 
 #include "SampleBuffer_priv.h"

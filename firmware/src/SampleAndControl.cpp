@@ -79,10 +79,10 @@ void SampleAndControl::controlThread(void * arg)
   
   // Clean up
   disableSensorsMotors();
-  msg_t total_overflows = sb.deinitialize();
+  msg_t write_errors = sb.deinitialize();
   // End cleanup
  
-  chThdExit(total_overflows);
+  chThdExit(write_errors);
 }
 
 // Caller: Shell thread
@@ -118,7 +118,7 @@ msg_t SampleAndControl::Start(const char * filename)
 {
   tp_control_ = chThdCreateStatic(SampleAndControl::waControlThread,
                                  sizeof(waControlThread),
-                                 NORMALPRIO + 2,
+                                 NORMALPRIO + 3,
                                  reinterpret_cast<tfunc_t>(controlThread_),
                                  const_cast<char *>(filename));
   if (!tp_control_)

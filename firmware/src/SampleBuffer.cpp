@@ -8,7 +8,7 @@ const uint16_t SampleBuffer::blocks_per_buffer_;
 const uint8_t SampleBuffer::number_of_buffers_;
 
 SampleBuffer::SampleBuffer()
-  : tp_write_(0), tp_manage_(0)
+  : tp_write_(0), tp_manage_(0), active_buffer_(0)
 {
 }
 
@@ -20,7 +20,7 @@ void SampleBuffer::initialize(const char * filename)
 
   tp_manage_ = chThdCreateStatic(waManagementThread,
                                  sizeof(waManagementThread),
-                                 NORMALPRIO + 1,
+                                 NORMALPRIO + 2,
                                  manager_thread_,
                                  const_cast<char *>(filename));
 }
@@ -28,12 +28,10 @@ void SampleBuffer::initialize(const char * filename)
 // Caller: control_thread_
 msg_t SampleBuffer::deinitialize()
 {
-  if (chThdTerminated(tp_manage_))
-    chThdExit(tp_manage_->p_u.exitcode);
-
-  msg_t m = chMsgSend(tp_manage_, -1);
+  chMsgSend(tp_manage_, -1); // ends the manager thread
+  msg_t write_errors = chThdWait(tp_manage_);
   tp_manage_ = 0;
-  return m;
+  return write_errors;
 }
 
 // Caller: control_thread_
@@ -53,75 +51,80 @@ msg_t SampleBuffer::manager_thread(void * filename)
   if (res != FR_OK)
     chThdExit(systemstate::FATFS_f_open_error);
 
-  uint8_t current_buffer = 0;
+  chMtxInit(&buffer_mtx_);
+
+  // Spawn the write thread
+  tp_write_ = chThdCreateStatic(waWriteThread,
+                                sizeof(waWriteThread),
+                                NORMALPRIO + 1,
+                                write_thread_,
+                                NULL);
+
   uint16_t i = 0;
-  msg_t overflows = 0;
   while (1) {
     Thread * tp = chMsgWait(); 
     msg_t m = chMsgGet(tp);
-    pb_ostream_t out = pb_ostream_from_buffer(&buffer_[current_buffer][i + 2],
-                                              buffer_[current_buffer].size() - i - 2);
+    if (m == -1) {
+      chMsgRelease(tp, 0);
+      break;
+    }
+    pb_ostream_t out = pb_ostream_from_buffer(&buffer_[active_buffer_][i + 2],
+                                              buffer_[active_buffer_].size() - i - 2);
     Sample * s = reinterpret_cast<Sample *>(m);
     chMsgRelease(tp, pb_encode(&out, Sample_fields, s) ? 1 : 0);
-    if (m == -1)
-      break;
 
-    // Comment to see whether timing is affected by encoding
-    // continue;
-
-    buffer_[current_buffer][i] = out.bytes_written;           // LSB
-    buffer_[current_buffer][i + 1] = out.bytes_written >> 8;  // MSB
+    buffer_[active_buffer_][i] = out.bytes_written;           // LSB
+    buffer_[active_buffer_][i + 1] = out.bytes_written >> 8;  // MSB
     uint16_t packet_size = out.bytes_written + 2;
 
     if (i + packet_size < bytes_per_buffer_) {
       i += packet_size;
-    } else {
-      if (!launch_write_thread(current_buffer))
-        ++overflows;
+    } else {  // we've filled or overflowed the buffer
       uint16_t excess_bytes = i + packet_size  - bytes_per_buffer_;
-      uint8_t next_buffer = (current_buffer + 1) % number_of_buffers_;
+      uint8_t next_buffer = (active_buffer_ + 1) % number_of_buffers_;
       memcpy(&buffer_[next_buffer][0],
-             &buffer_[current_buffer][bytes_per_buffer_],
+             &buffer_[active_buffer_][bytes_per_buffer_],
              excess_bytes);
       i = excess_bytes;
-      current_buffer = next_buffer;
+      chMtxLock(&buffer_mtx_);
+        active_buffer_ = next_buffer;
+      chMtxUnlock();
     }
   }
-
-  chThdWait(tp_write_);
+  chThdTerminate(tp_write_);        // request that write thread terminate
+  msg_t write_errors = chThdWait(tp_write_);
   tp_write_ = 0;
   f_close(&f_);
-
-  chThdExit(overflows);
-  return overflows;
-}
-
-msg_t SampleBuffer::write_thread(void * arg)
-{
-  chRegSetThreadName("write");
-  const uint8_t current_buffer = reinterpret_cast<uint32_t>(arg);
-  UINT bytes_written = 0;
-  msg_t write_errors = 0;
-
-  FRESULT res = f_write(&f_, &buffer_[current_buffer][0],
-                        bytes_per_buffer_, &bytes_written);
-  if ((res != FR_OK) || (bytes_written != bytes_per_buffer_))
-    ++write_errors;
 
   chThdExit(write_errors);
   return write_errors;
 }
 
-bool SampleBuffer::launch_write_thread(uint8_t current_buffer)
+msg_t SampleBuffer::write_thread(void *)
 {
-  if (tp_write_ && tp_write_->p_state != THD_STATE_FINAL)
-    return false;
+  chRegSetThreadName("write");
+  UINT bytes_written = 0;
+  msg_t write_errors = 0;
+  uint8_t buffer_to_write = 0;
 
-  tp_write_ = chThdCreateStatic(waWriteThread,
-                                sizeof(waWriteThread),
-                                NORMALPRIO + 1,
-                                write_thread_,
-                                reinterpret_cast<void *>(current_buffer));
-  return true;
+  while (1) {
+    chMtxLock(&buffer_mtx_);
+      bool buffer_filled = (active_buffer_ != buffer_to_write);
+    chMtxUnlock();
+    if (buffer_filled) {
+      FRESULT res = f_write(&f_, &buffer_[buffer_to_write][0],
+                            bytes_per_buffer_, &bytes_written);
+    if ((res != FR_OK) || (bytes_written != bytes_per_buffer_))
+      ++write_errors;
+
+      buffer_to_write = (buffer_to_write + 1) % number_of_buffers_;
+    }
+    
+    chThdSleep(MS2ST(10));
+    if (chThdShouldTerminate())
+      break;
+  }
+  chThdExit(write_errors);
+  return write_errors;
 }
 
