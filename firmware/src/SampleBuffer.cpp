@@ -90,7 +90,7 @@ msg_t SampleBuffer::manager_thread(void * filename)
                 buffer_index, &bytes_written);
   if ((res != FR_OK))
     ++write_errors;
-  if (bytes_written != bytes_per_buffer_)
+  if (bytes_written != buffer_index)
     ++write_errors;
   if (f_close(&f_) != FR_OK)
     ++write_errors;
