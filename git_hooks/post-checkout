@@ -1,3 +1,11 @@
 #!/bin/sh
+
+# If run as a post-checkout script hook, and the previous and current
+# HEAD are the same or if its a file checkout, don't proceed
+SCRIPT_NAME=$(basename "$0")
+if [[ "$SCRIPT_NAME" = "post-checkout" && "$1" = "$2" || "$3" = "0" ]]; then
+    exit 0
+fi
+
 ROOT_DIR=$(dirname $(git rev-parse --git-dir))
 ${ROOT_DIR}/git_hooks/post-merge
