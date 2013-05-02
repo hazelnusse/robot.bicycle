@@ -14,7 +14,7 @@ SampleAndControl::SampleAndControl()
 {
 }
 
-void SampleAndControl::controlThread(void * arg)
+void SampleAndControl::controlThread(const char * filename)
 {
   chRegSetThreadName("Control");
   enableSensorsMotors();
@@ -22,7 +22,7 @@ void SampleAndControl::controlThread(void * arg)
   RearWheel & rwc = RearWheel::Instance();
   YawRateController & yrc = YawRateController::Instance();
   SampleBuffer & sb = SampleBuffer::Instance();
-  sb.initialize(static_cast<char *>(arg));
+  sb.initialize(filename);
   
   // zero out wheel encoders and system timer
   STM32_TIM4->CNT = STM32_TIM5->CNT = STM32_TIM8->CNT = 0;

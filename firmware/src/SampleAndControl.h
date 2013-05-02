@@ -35,7 +35,7 @@ class SampleAndControl : public Singleton<SampleAndControl> {
 
   void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
   static void controlThread_(void * arg);
-  void controlThread(void * arg);
+  void controlThread(const char * filename);
 
   // Data collection related
   static void sampleTimers(Sample & s);

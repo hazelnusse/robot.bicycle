@@ -15,9 +15,6 @@ SampleBuffer::SampleBuffer()
 // Caller: control_thread_
 void SampleBuffer::initialize(const char * filename)
 {
-  if (tp_manage_ && !chThdTerminated(tp_manage_))
-    chThdExit(systemstate::SampleBufferInitError);
-
   tp_manage_ = chThdCreateStatic(waManagementThread,
                                  sizeof(waManagementThread),
                                  NORMALPRIO + 2,
@@ -32,15 +29,6 @@ msg_t SampleBuffer::deinitialize()
   msg_t write_errors = chThdWait(tp_manage_);
   tp_manage_ = 0;
   return write_errors;
-}
-
-// Caller: control_thread_
-msg_t SampleBuffer::insert(Sample & s)
-{
-  if (chThdTerminated(tp_manage_))
-    chThdExit(tp_manage_->p_u.exitcode);
-
-  return chMsgSend(tp_manage_, reinterpret_cast<msg_t>(&s));
 }
 
 msg_t SampleBuffer::manager_thread(void * filename)
@@ -60,7 +48,7 @@ msg_t SampleBuffer::manager_thread(void * filename)
                                 write_thread_,
                                 NULL);
 
-  uint16_t i = 0;
+  uint16_t buffer_index = 0;
   while (1) {
     Thread * tp = chMsgWait(); 
     msg_t m = chMsgGet(tp);
@@ -68,24 +56,25 @@ msg_t SampleBuffer::manager_thread(void * filename)
       chMsgRelease(tp, 0);
       break;
     }
-    pb_ostream_t out = pb_ostream_from_buffer(&buffer_[active_buffer_][i + 2],
-                                              buffer_[active_buffer_].size() - i - 2);
+    pb_ostream_t out = pb_ostream_from_buffer(
+        &buffer_[active_buffer_][buffer_index + 2],
+        buffer_[active_buffer_].size() - buffer_index - 2);
     Sample * s = reinterpret_cast<Sample *>(m);
-    chMsgRelease(tp, pb_encode(&out, Sample_fields, s) ? 1 : 0);
+    chMsgRelease(tp, pb_encode(&out, Sample_fields, s));
 
-    buffer_[active_buffer_][i] = out.bytes_written;           // LSB
-    buffer_[active_buffer_][i + 1] = out.bytes_written >> 8;  // MSB
+    buffer_[active_buffer_][buffer_index] = out.bytes_written;           // LSB
+    buffer_[active_buffer_][buffer_index + 1] = out.bytes_written >> 8;  // MSB
     uint16_t packet_size = out.bytes_written + 2;
 
-    if (i + packet_size < bytes_per_buffer_) {
-      i += packet_size;
+    if (buffer_index + packet_size < bytes_per_buffer_) {
+      buffer_index += packet_size;
     } else {  // we've filled or overflowed the buffer
-      uint16_t excess_bytes = i + packet_size  - bytes_per_buffer_;
+      uint16_t excess_bytes = buffer_index + packet_size  - bytes_per_buffer_;
       uint8_t next_buffer = (active_buffer_ + 1) % number_of_buffers_;
       memcpy(&buffer_[next_buffer][0],
              &buffer_[active_buffer_][bytes_per_buffer_],
              excess_bytes);
-      i = excess_bytes;
+      buffer_index = excess_bytes;
       chMtxLock(&buffer_mtx_);
         active_buffer_ = next_buffer;
       chMtxUnlock();
@@ -114,15 +103,15 @@ msg_t SampleBuffer::write_thread(void *)
     if (buffer_filled) {
       FRESULT res = f_write(&f_, &buffer_[buffer_to_write][0],
                             bytes_per_buffer_, &bytes_written);
-    if ((res != FR_OK) || (bytes_written != bytes_per_buffer_))
-      ++write_errors;
+      if ((res != FR_OK) || (bytes_written != bytes_per_buffer_))
+        ++write_errors;
 
       buffer_to_write = (buffer_to_write + 1) % number_of_buffers_;
+    } else {
+      chThdSleep(MS2ST(10));
+      if (chThdShouldTerminate())
+        break;
     }
-    
-    chThdSleep(MS2ST(10));
-    if (chThdShouldTerminate())
-      break;
   }
   chThdExit(write_errors);
   return write_errors;
