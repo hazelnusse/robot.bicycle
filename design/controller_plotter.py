@@ -150,6 +150,40 @@ class CDataPlotter(object):
         axarr[1].set_ylabel("Phase [deg]")
         if filename is not None:
             f.savefig(filename)
+
+    def bode_open_loop_e_to_psi_dot(self, speed, filename=None):
+        i = np.searchsorted(self.d['theta_R_dot'], speed)
+        f, axarr = plt.subplots(2, 1, sharex=True, figsize=(8.5,11))
+        axarr[0].semilogx(self.d['w_e_to_psi_dot'][i],
+                          self.d['mag_e_to_psi_dot'][i])
+        axarr[0].set_title('Inner LQR/LQG loop closed, PI outer loop open:\n' 
+                        +  '$e_{\dot{\psi}}$ to $\\dot{\\psi}}$\n'
+                        +  '$(v, \\dot{\\theta}_R$)'
+                        + ' = ({0}, {1})'.format(-self.d['theta_R_dot'][i] *
+                            rear.R, self.d['theta_R_dot'][i]))
+        axarr[0].set_ylabel("Magnitude [dB]")
+        axarr[1].semilogx(self.d['w_e_to_psi_dot'][i],
+                          self.d['phase_e_to_psi_dot'][i])
+        axarr[1].set_xlabel("Frequency [Hz]")
+        axarr[1].set_ylabel("Phase [deg]")
+        if filename is not None:
+            f.savefig(filename)
+    
+    def bode_psi_r_to_psi_dot(self, speed, filename=None):
+        i = np.searchsorted(self.d['theta_R_dot'], speed)
+        f, axarr = plt.subplots(2, 1, sharex=True, figsize=(8.5,11))
+        axarr[0].semilogx(self.d['w_psi_r_to_psi_dot'][i],
+                          self.d['mag_psi_r_to_psi_dot'][i])
+        axarr[0].set_title('Closed loop\n: $\\dot{\\psi}_r$ to $\\dot{\\psi}$, $(v, \\dot{\\theta}_R$)'
+                        + ' = ({0}, {1})'.format(-self.d['theta_R_dot'][i] *
+                            rear.R, self.d['theta_R_dot'][i]))
+        axarr[0].set_ylabel("Magnitude [dB]")
+        axarr[1].semilogx(self.d['w_psi_r_to_psi_dot'][i],
+                          self.d['phase_psi_r_to_psi_dot'][i])
+        axarr[1].set_xlabel("Frequency [Hz]")
+        axarr[1].set_ylabel("Phase [deg]")
+        if filename is not None:
+            f.savefig(filename)
     
     def step_r_to_psi_dot(self, speed, x0):
         i = np.searchsorted(self.d['theta_R_dot'], speed)
@@ -288,7 +322,7 @@ class CDataPlotter(object):
 
 def main():
     d = CDataPlotter(datafile="controller_data.npz") #c_data=yrc.design_controller())
-    speeds = [7.0]#, 3.0, 5.0, 7.0]
+    speeds = [1.0, 3.0, 5.0, 7.0, 9.0]
 
     x0 = np.zeros((8,))
     # Start the bicycle with non-zero initial conditions to see how
@@ -300,9 +334,11 @@ def main():
     for v in speeds:
         #d.plant_evals()
         #d.bode_r_to_psi_dot(-v / rear.R)#, "cl_{0}.pdf".format(int(v)))
+        d.bode_open_loop_e_to_psi_dot(-v / rear.R, "e_to_psi_dot_{0}.pdf".format(int(v)))
+        #d.bode_psi_r_to_psi_dot(-v / rear.R)
         #d.step_r_to_psi_dot(-v / rear.R, x0)
         #d.lqrlqg_zero_input(-v / rear.R, x0)
-        d.step_yr_cl(-v / rear.R, np.hstack((0, x0)))
+        #d.step_yr_cl(-v / rear.R, np.hstack((0, x0)))
 
         continue
 

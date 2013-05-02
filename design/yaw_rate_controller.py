@@ -129,6 +129,20 @@ def compute_gains(Q, R, W, V, dt):
         data['mag_r_to_psi_dot'][i] = 20.0 * np.log10(abs(y))
         data['phase_r_to_psi_dot'][i] = np.unwrap(np.angle(y)) * 180.0 / np.pi
 
+        # Open loop transfer function from e to yaw rate (PI loop not closed,
+        # but LQR/LQG loop closed.
+        inner_cl = ss(A_cl, B_cl, C_cl, 0)
+        pi_block = ss([[1]], [[1]], [[data['Ki_fit'][i]*dt]], [[data['Kp_fit'][i]]])
+        e_to_psi_dot = series(pi_block, inner_cl)
+        num, den = ss2tf(e_to_psi_dot.A, e_to_psi_dot.B, e_to_psi_dot.C, e_to_psi_dot.D)
+        data['w_e_to_psi_dot'][i], y = freqz(num[0], den)
+        data['w_e_to_psi_dot'][i] /= (dt * 2.0 * np.pi)
+        data['mag_e_to_psi_dot'][i] = 20.0 * np.log10(abs(y))
+        data['phase_e_to_psi_dot'][i] = np.unwrap(np.angle(y)) * 180.0 / np.pi
+
+
+
+
     return data
 
 def design_controller():
@@ -201,6 +215,13 @@ def form_PI_cl(data):
         data['A_yr_cl'][i] = cl.A
         data['B_yr_cl'][i] = cl.B
         data['C_yr_cl'][i] = cl.C
+        assert(cl.D == 0)
+
+        num, den = ss2tf(cl.A, cl.B, cl.C, cl.D)
+        data['w_psi_r_to_psi_dot'][i], y = freqz(num[0], den)
+        data['w_psi_r_to_psi_dot'][i] /= (dt * 2.0 * np.pi)
+        data['mag_psi_r_to_psi_dot'][i] = 20.0 * np.log10(abs(y))
+        data['phase_psi_r_to_psi_dot'][i] = np.unwrap(np.angle(y)) * 180.0 / np.pi
 
 def main():
     data = design_controller()

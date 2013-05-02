@@ -45,6 +45,14 @@ controller_t = dtype([
     ('w_r_to_psi_dot', '(512,)f8'),     # Frequencies (Hz)
     ('mag_r_to_psi_dot', '(512,)f8'),   # Magnitude (dB)
     ('phase_r_to_psi_dot', '(512,)f8'), # Phase (deg)
+    # yaw rate error to psi dot, inner loop closed, outer loop open
+    ('w_e_to_psi_dot', '(512,)f8'),     # Frequencies (Hz)
+    ('mag_e_to_psi_dot', '(512,)f8'),   # Magnitude (dB)
+    ('phase_e_to_psi_dot', '(512,)f8'), # Phase (deg)
+    # yaw rate reference to psi dot, both loops closed
+    ('w_psi_r_to_psi_dot', '(512,)f8'),     # Frequencies (Hz)
+    ('mag_psi_r_to_psi_dot', '(512,)f8'),   # Magnitude (dB)
+    ('phase_psi_r_to_psi_dot', '(512,)f8'), # Phase (deg)
     ('Kp', 'f8'),
     ('Ki', 'f8'),
     ('Kp_fit', 'f8'),
