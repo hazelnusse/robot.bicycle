@@ -97,6 +97,8 @@ msg_t SampleBuffer::write_thread(void *)
   uint8_t buffer_to_write = 0;
 
   while (1) {
+    if (chThdShouldTerminate())
+      break;
     chMtxLock(&buffer_mtx_);
       bool buffer_filled = (active_buffer_ != buffer_to_write);
     chMtxUnlock();
@@ -109,8 +111,6 @@ msg_t SampleBuffer::write_thread(void *)
       buffer_to_write = (buffer_to_write + 1) % number_of_buffers_;
     } else {
       chThdSleep(MS2ST(10));
-      if (chThdShouldTerminate())
-        break;
     }
   }
   chThdExit(write_errors);
