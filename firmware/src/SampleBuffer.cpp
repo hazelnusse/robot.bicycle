@@ -83,7 +83,17 @@ msg_t SampleBuffer::manager_thread(void * filename)
   chThdTerminate(tp_write_);        // request that write thread terminate
   msg_t write_errors = chThdWait(tp_write_);
   tp_write_ = 0;
-  f_close(&f_);
+
+  // Write last bytes of partially filled buffer, then close file
+  UINT bytes_written = 0;
+  res = f_write(&f_, &buffer_[active_buffer_][0],
+                buffer_index, &bytes_written);
+  if ((res != FR_OK))
+    ++write_errors;
+  if (bytes_written != bytes_per_buffer_)
+    ++write_errors;
+  if (f_close(&f_) != FR_OK)
+    ++write_errors;
 
   chThdExit(write_errors);
   return write_errors;
