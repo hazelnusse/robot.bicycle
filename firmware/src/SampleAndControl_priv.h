@@ -10,7 +10,7 @@ void SampleAndControl::shellcmd_(BaseSequentialStream *chp, int argc, char *argv
 inline
 void SampleAndControl::controlThread_(void * arg)
 {
-  SampleAndControl::Instance().controlThread(arg);
+  SampleAndControl::Instance().controlThread(static_cast<char *>(arg));
 }
 
 inline
