@@ -112,13 +112,21 @@ msg_t SampleBuffer::manager_thread(const char *filename)
   tp_write_ = 0;
 
   // Write last bytes of partially filled buffer, then close file
-  UINT bytes_written = 0;
-  res = f_write(&f_, &buffer_[active_buffer_][0],
-                buffer_index, &bytes_written);
-  if ((res != FR_OK))
-    ++write_errors;
-  if (bytes_written != bytes_per_buffer_)
-    ++write_errors;
+  if (buffer_index > 0) {
+    UINT bytes_written = 0;
+    uint16_t start_index = 0;
+    if (excess_bytes > 0) { // write the excess bytes from the previous buffer
+      active_buffer = ((active_buffer + number_of_buffers_ - 1) %
+                       number_of_buffers_);
+      start_index = bytes_per_buffer_;
+    }
+    res = f_write(&f_, &buffer_[active_buffer][start_index],
+                  buffer_index, &bytes_written);
+    if ((res != FR_OK))
+      ++write_errors;
+    if (bytes_written != buffer_index)
+      ++write_errors;
+  }
   if (f_close(&f_) != FR_OK)
     ++write_errors;
 
