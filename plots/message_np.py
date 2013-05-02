@@ -88,8 +88,10 @@ class Message_np:
                 m = message_type()
                 try:
                     m.ParseFromString(f.read(message_size))
-                except google.protobuf.message.DecodeError:
+                except google.protobuf.message.DecodeError as ex:
                     # TODO: Find a more graceful way to handle a DecodeError
+                    print(("DecodeError: {0}\nUnable to decode all messages " +
+                           "from file: '{1}'.").format(ex.message, filename))
                     break
                 self.messages_pb.append(m)
         self.messages_np = np.empty((len(self.messages_pb),),
