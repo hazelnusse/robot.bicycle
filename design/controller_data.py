@@ -14,8 +14,8 @@ controller_t = dtype([
     ('B', '(4,3)f8'),
     ('C_m', '(2,4)f8'),
     ('C_z', '(1,4)f8'),
-    ('plant_evals', '(4,)c16'),
-    ('plant_evals_c', '(4,)c16'),
+    ('plant_evals_c', '(4,)c16'),  # Continuous plant model eigenvalues
+    ('plant_evals_d', '(4,)c16'),  # Discrete plant model eigenvalues
     # Plant controllability and observability matrices
     ('ctrb_plant', '(4,4)f8'),  # steer torque input
     ('obsv_plant', '(8,4)f8'),  # steer angle and roll rate measured

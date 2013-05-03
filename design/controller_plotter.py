@@ -14,16 +14,29 @@ class CDataPlotter(object):
             self.d = c_data
         self.cm = plt.get_cmap('gist_rainbow')
 
-    def plant_evals(self):
+    def plant_evals_c(self):
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
-        ax.plot(self.d['plant_evals'].real,
-                self.d['plant_evals'].imag, 'k.')
+        ax.plot(-self.d['theta_R_dot'] * rear.R,
+                self.d['plant_evals_c'].real, 'k.')
+        ax.plot(-self.d['theta_R_dot'] * rear.R,
+                self.d['plant_evals_c'].imag, 'b.')
+        ax.axis('tight')
+        ax.set_xlabel('v [m / s]')
+        ax.set_ylabel('$\\lambda$')
+        ax.set_title("Plant eigenvalues (continuous)")
+    
+    def plant_evals_d(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.plot(self.d['plant_evals_d'].real,
+                self.d['plant_evals_d'].imag, 'k.')
         ax.axis('equal')
         ax.set_xlim([-1, 1])
         ax.set_ylim([-1, 1])
         ax.add_patch(Circle((0, 0), radius=1, fill=False))
-        ax.set_xlabel('$\\dot{\\theta}_R$')
+        ax.set_xlabel('real($\\lambda$)')
+        ax.set_xlabel('imag($\\lambda$)')
         ax.set_title("Plant eigenvalues (discrete)")
     
     def closed_loop_evals(self):
@@ -332,15 +345,14 @@ def main():
     x0[2] = 1e1 * np.pi/180.0  # Initial roll rate
     x0[3] = 1e1 * np.pi/180.0  # Initial steer rate
     for v in speeds:
-        #d.plant_evals()
+        d.plant_evals_c()
+        d.plant_evals_d()
         #d.bode_r_to_psi_dot(-v / rear.R)#, "cl_{0}.pdf".format(int(v)))
         d.bode_open_loop_e_to_psi_dot(-v / rear.R, "e_to_psi_dot_{0}.pdf".format(int(v)))
         #d.bode_psi_r_to_psi_dot(-v / rear.R)
         #d.step_r_to_psi_dot(-v / rear.R, x0)
         #d.lqrlqg_zero_input(-v / rear.R, x0)
         #d.step_yr_cl(-v / rear.R, np.hstack((0, x0)))
-
-        continue
 
     # Speed parameterized plots
     #d.controller_gains()

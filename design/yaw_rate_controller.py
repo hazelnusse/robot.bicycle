@@ -54,8 +54,8 @@ def compute_gains(Q, R, W, V, dt):
         # Convert the bike dynamics to discrete time using a zero order hold
         data['A'][i], data['B'][i], _, _, _ = cont2discrete(
                         (A_w[i], B_w[i, :], eye(4), zeros((4, 1))), dt)
-        data['plant_evals'][i] = la.eigvals(data['A'][i])
-        data['plant_evals_c'][i] = np.log(data['plant_evals'][i]) / dt
+        data['plant_evals_d'][i] = la.eigvals(data['A'][i])
+        data['plant_evals_c'][i] = np.log(data['plant_evals_d'][i]) / dt
         
         # Bicycle measurement matrices
         # - steer angle
