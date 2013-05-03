@@ -1,5 +1,14 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+"""Class used for plotting data of a Message_np object. 
+
+    Examples
+    ========
+    p = PlotData('sample_pb2', 'Sample', 'samples.dat')
+    p.plot('system_time', 'mpu6050', norm=True)
+    p.plot('system_time', 'mpu6050.accelerometer_x')
+    p.plot('system_time', ['estimate', 'yaw_rate_PI'])
+"""
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -16,6 +25,8 @@ SUBTYPE_SEPERATOR = '.'
 PLOTY_SEPERATOR = ', '
 
 class PlotData(object):
+    """Class used for plotting data of a Message_np object.
+    """
     def __init__(self, pb_file=None, message_type=None, datafile=None):
         self.samples_np = Message_np(pb_file, message_type, datafile)
         self.data = self.samples_np.get_messages_np()
@@ -25,6 +36,8 @@ class PlotData(object):
         self.data_c = {}
 
     def print_fields(self):
+        """Print the data fields.
+        """
         self._print_fields_util(self.dtype, "", "    ")
         if self.dtype_c.keys():
             print("\nConverted types:")
@@ -32,6 +45,10 @@ class PlotData(object):
             print("  " + type_)
 
     def _print_fields_util(self, message_type, prefix, child_prefix):
+        """Helper function for print_fields.
+
+        Prints a field and its subfields.
+        """
         for name, _ in getattr(message_type, 'fields').iteritems():
             print(prefix + name)
             if getattr(message_type[name], 'fields'):
@@ -40,8 +57,15 @@ class PlotData(object):
 
 
     def _expand_nested_data(self, data, dtype, type_):
+        """Returns a list where the single element is a tuple of
+        ('fieldname', fielddata)
+
+        If the field has subfields, a list of the tuples for each subfield
+        is returned instead. Subfields can be accessed directly using '.'
+        between the super and sub fields.
+        """
         if SUBTYPE_SEPERATOR in type_:
-            supertype, _, subtype = type.partition(SUBTYPE_SEPERATOR)
+            supertype, _, subtype = type_.partition(SUBTYPE_SEPERATOR)
             requested_data = self._expand_nested_data(data[supertype],
                                                       dtype[supertype],
                                                       subtype)
@@ -61,29 +85,39 @@ class PlotData(object):
         return [(type_, data[type_])]
 
     def _set_color_cycle(self, axes, num_colors):
+        """Set the color cycle for the plots in an axes.
+        """
         c_norm = colors.Normalize(vmin=0, vmax=num_colors-1)
         scalar_map = mplcm.ScalarMappable(norm=c_norm, cmap=self.cm)
         axes.set_color_cycle([scalar_map.to_rgba(i) for i in range(num_colors)])
 
-    def get_field(self, x):
-        if x in self.dtype_c:
-            return [(x, self.data_c[x])]
+    def get_field(self, fieldname):
+        """Returns a list where the single element is a tuple of
+        ('fieldname', fielddata).
+        """
+        if fieldname in self.dtype_c:
+            return [(fieldname, self.data_c[fieldname])]
         else:
-            return self._expand_nested_data(self.data, self.dtype, x)
+            return self._expand_nested_data(self.data, self.dtype, fieldname)
 
-    def plot(self, x, ys, norm=False, options=None):
+    def plot(self, x, y, norm=False, options=None):
+        """Returns the figure used in plotting field 'y' vs field 'x'.
+
+        'x' and 'y' are fields as shown in print_fields().  'y' can be a list of
+        fields and will result in all plots displayed on the same figure.
+        'norm' can be used to normalize each 'y'. 'options' is passed to
+        axes.plot().
+        """
         if options is None:
             options = {}
         fig, ax = plt.subplots(1)
-        datas_x = self.get_field(x)
-        type_x, data_x = datas_x[0] # get first elem if there are more than one
-        if not isinstance(ys, list):
-            ys = [ys]
+        type_x, data_x =  self.get_field(x)[0]
+        if not isinstance(y, list):
+            y = [y]
 
         plots_y = []
-        for y in ys: # get number of plots
-            datas_y = self.get_field(y)
-            for type_y, data_y in datas_y:
+        for y_ in y: # get number of plots
+            for type_y, data_y in self.get_field(y_):
                 plots_y.append((type_y, data_y))
         self._set_color_cycle(ax, len(plots_y) + 1)
         for type_y, data_y in plots_y:
@@ -91,7 +125,7 @@ class PlotData(object):
                 data_y *= 1.0/(np.amax(np.absolute(data_y)))
             ax.plot(data_x, data_y, label=type_y, **options)
 
-        ylabel = PLOTY_SEPERATOR.join(y for y in ys)
+        ylabel = PLOTY_SEPERATOR.join(y_ for y_ in y)
         ax.set_xlabel(type_x)
         ax.set_ylabel(ylabel)
         ax.set_title(ylabel + ' vs. ' + type_x)
@@ -99,8 +133,3 @@ class PlotData(object):
         plt.show()
         return fig
 
-if __name__ == '__main__':
-    p = PlotData('sample_pb2', 'Sample', 'samples.dat')
-    p.plot('system_time', 'mpu6050')
-    p.plot('system_time', 'mpu6050.accelerometer_x')
-    p.plot('system_time', ['estimate', 'yaw_rate_PI'])
