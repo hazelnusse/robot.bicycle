@@ -22,7 +22,7 @@ class Message_np:
         self._set_cpptype_map()
         self._set_cpp_to_npdtype_map()
         self._set_message_npdtype_map()
-        
+
         if message_name and filename:
             self.load_messages_from_file(message_name, filename)
 
@@ -92,6 +92,8 @@ class Message_np:
                     # TODO: Find a more graceful way to handle a DecodeError
                     print(("DecodeError: {0}\nUnable to decode all messages " +
                            "from file: '{1}'.").format(ex.message, filename))
+                    print("Last valid system_time: '{0}'".format(
+                            self.messages_pb[-1].system_time))
                     break
                 self.messages_pb.append(m)
         self.messages_np = np.empty((len(self.messages_pb),),
@@ -120,7 +122,7 @@ class Message_np:
             stored_cpptype = self.cpptype_map[cpptype_value]
             if stored_cpptype != type_:
                 raise ValueError(("CPPTYPE_VALUE '{0}': stored name" +
-                    "'{1}' does not match protobuf DESCRIPTOP name" +
+                    "'{1}' does not match protobuf DESCRIPTOR name" +
                     "'{2}'").format(cpptype_value, stored_cpptype, type_))
     
     def _get_message_field_npdtypes(self, message_name):
