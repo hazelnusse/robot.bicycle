@@ -39,7 +39,7 @@ class PlotData(object):
 
     def _expand_nested_data(self, data, dtype, type_):
         if SUBTYPE_SEPERATOR in type_:
-            supertype, _, subtype = type.partition(SUBTYPE_SEPERATOR)
+            supertype, _, subtype = type_.partition(SUBTYPE_SEPERATOR)
             requested_data = self._expand_nested_data(data[supertype],
                                                       dtype[supertype],
                                                       subtype)
