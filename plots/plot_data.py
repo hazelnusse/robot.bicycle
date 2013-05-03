@@ -8,6 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as mplcm
+import numpy as np
 from message_np import Message_np
 
 
@@ -36,6 +37,7 @@ class PlotData(object):
             if getattr(message_type[name], 'fields'):
                 self._print_fields_util(message_type[name],
                                         prefix + child_prefix, child_prefix)
+
 
     def _expand_nested_data(self, data, dtype, type_):
         if SUBTYPE_SEPERATOR in type_:
@@ -69,7 +71,7 @@ class PlotData(object):
         else:
             return self._expand_nested_data(self.data, self.dtype, x)
 
-    def plot(self, x, ys, options=None):
+    def plot(self, x, ys, norm=False, options=None):
         if options is None:
             options = {}
         fig, ax = plt.subplots(1)
@@ -85,6 +87,8 @@ class PlotData(object):
                 plots_y.append((type_y, data_y))
         self._set_color_cycle(ax, len(plots_y) + 1)
         for type_y, data_y in plots_y:
+            if norm:
+                data_y *= 1.0/(np.amax(np.absolute(data_y)))
             ax.plot(data_x, data_y, label=type_y, **options)
 
         ylabel = PLOTY_SEPERATOR.join(y for y in ys)
