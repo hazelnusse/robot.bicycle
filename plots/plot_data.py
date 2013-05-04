@@ -137,7 +137,7 @@ class PlotData(object):
 
         if self.dtype_c.keys():
             print("\nCreated fields:")
-        for field in self.dtype_c.keys():
+        for field in sorted(self.dtype_c.keys()):
             stats = print_stats(self.data_c[field])
             print(subfield_prefix + field + stats)
 
