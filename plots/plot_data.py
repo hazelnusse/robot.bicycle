@@ -37,6 +37,7 @@ class PlotData(object):
         self.cm = plt.get_cmap('gist_rainbow')
         self.dtype_c = {}
         self.data_c = {}
+        self.stats = {}
         self._set_full_fields()
 
 
@@ -104,27 +105,41 @@ class PlotData(object):
     def print_fields(self):
         """Print the data fields.
         """
-        subfield_prefix = "    "
+        def print_stats(data):
+            r = "\t"*4
+            return r + "\t".join(str(x) for x in [np.min(data), np.max(data),
+                                                  np.mean(data), np.std(data)])
+        print("\t"*6 + "min\tmax\tmean\tstd")
+
+        subfield_prefix = "\t"
         print_fields = OrderedDict()
         for ff in self.full_fields:
             superfield = ""
             for subfield in ff.split(SUBTYPE_SEP):
-                superfield = SUBTYPE_SEP.join([superfield, subfield])
+                superfield = (SUBTYPE_SEP.join([superfield, subfield])
+                              if superfield else subfield)
                 print_fields[superfield] = True
 
-        initial_offset = -2
+        initial_offset = -1
         if self.dtype_c.keys():
             print("Initial fields:")
             initial_offset += 1
+
         for pf in print_fields:
+            try:
+                stats = print_stats(self.get_field_data(pf))
+            except TypeError:
+                pass
+
             subfields = pf.split(SUBTYPE_SEP)
             print(subfield_prefix * (len(subfields) + initial_offset) +
-                  subfields[-1])
+                  subfields[-1] + stats)
 
         if self.dtype_c.keys():
             print("\nCreated fields:")
-        for type_ in self.dtype_c.keys():
-            print(subfield_prefix + type_)
+        for field in self.dtype_c.keys():
+            stats = print_stats(self.data_c[field])
+            print(subfield_prefix + field + stats)
 
     def _set_color_cycle(self, axes, num_colors):
         """Set the color cycle for the plots in an axes.
@@ -133,11 +148,12 @@ class PlotData(object):
         scalar_map = mplcm.ScalarMappable(norm=c_norm, cmap=self.cm)
         axes.set_color_cycle([scalar_map.to_rgba(i) for i in range(num_colors)])
 
-    def plot(self, x, y, norm=False, options=None):
+    def plot(self, x, y, data=[], norm=False, options=None):
         """Returns the figure used in plotting field 'y' vs field 'x'.
 
         'x' and 'y' are fields as shown in print_fields().  'y' can be a list of
         fields and will result in all plots displayed on the same figure.
+        'data' is an array of data that can be plotted against 'x'.
         'norm' can be used to normalize each 'y'. 'options' is passed to
         axes.plot().
         """
@@ -150,13 +166,15 @@ class PlotData(object):
             y = [y]
 
         y_fields = [y_field for y_ in y for y_field in self.expand_field(y_)]
-        self._set_color_cycle(ax, len(y_fields) + 1)
+        self._set_color_cycle(ax, len(y_fields) + len(data) + 1)
 
         for y_field in y_fields:
             y_data = self.get_field_data(y_field)
             if norm:
                 y_data *= 1.0/(np.amax(np.absolute(y_data)))
             ax.plot(x_data, y_data, label=y_field, **options)
+        for d in data:
+            ax.plot(x_data, d, **options)
 
         y_label = PLOTY_SEP.join(y) + " (normalized)" if norm else ""
         ax.set_xlabel(x_field)
@@ -166,3 +184,19 @@ class PlotData(object):
         plt.show()
         return fig
 
+    def hist(self, field=None, data=None, *args):
+        """Plots a histogram for the specified 'field' or with 'data' using the
+        same arguments as matplotlib.pyplot.hist().
+        """
+        if field is None and data is None:
+            return
+        fig, ax = plt.subplots(1)
+        if field:
+            efield = self.expand_field(field)[0]
+            data = self.get_field_data(efield)
+        ax.hist(data, *args)
+        ax.set_xlabel(efield)
+        ax.set_ylabel('occurances')
+        ax.set_title('histogram of {0}\nmean = {1}, stddev = {2}'.format(
+                efield, np.mean(data), np.std(data)))
+        return fig
