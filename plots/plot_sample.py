@@ -17,20 +17,17 @@ class PlotSample(PlotData):
         self.set_default_x('real_time')
 
     def _fix_system_time(self):
-        if 'system_time' not in self.dtype.fields.keys():
-            return False
         type_ = 'system_time_c'
+        st_data = self.get_field_data('system_time')
         self.dtype_c[type_] = np.uint64
-        self.data_c[type_] = np.empty(
-            self.data['system_time'].shape,
-            dtype=self.dtype_c[type_])
+        self.data_c[type_] = np.empty(st_data.shape,
+                                      dtype=self.dtype_c[type_])
         prev_t = 0
         offset = 0
-        for i, t in enumerate(self.data['system_time']):
+        for i, t in enumerate(st_data):
             if prev_t > t:
                 offset += 2**32
-            self.data_c[type_][i] = (self.data['system_time'][i] +
-                                               offset)
+            self.data_c[type_][i] = (st_data[i] + offset)
             prev_t = t
 
     def _add_real_time(self):
