@@ -1,7 +1,6 @@
 #ifndef VECTORTABLE_H
 #define VECTORTABLE_H
 
-// #include "Singleton.h"
 #include <cstdint>
 
 typedef void (*irq_vector_t)(void);
