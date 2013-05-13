@@ -8,6 +8,7 @@ datasheets
 *.tar.*
 *.jpg
 data/collected_data*
+data/*2013
 images
 __pycache__
 CopleyConfiguration/
