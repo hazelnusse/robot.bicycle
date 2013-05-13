@@ -6,25 +6,23 @@
 #include "MPU6050.h"
 #include "RearWheel.h"
 #include "YawRateController.h"
-#include "pb_encode.h"
+#include "SampleBuffer.h"
 #include "SystemState.h"
 
-
-const uint16_t SampleAndControl::buffer_size_;
-const uint16_t SampleAndControl::write_size_;
-
 SampleAndControl::SampleAndControl()
-  : tp_control(0), tp_write(0), state_(0)
+  : tp_control_(0), state_(0)
 {
 }
 
-void SampleAndControl::controlThread()
+void SampleAndControl::controlThread(const char * filename)
 {
   chRegSetThreadName("Control");
   enableSensorsMotors();
   MPU6050 & imu = MPU6050::Instance();
   RearWheel & rwc = RearWheel::Instance();
   YawRateController & yrc = YawRateController::Instance();
+  SampleBuffer & sb = SampleBuffer::Instance();
+  sb.initialize(filename);
   
   // zero out wheel encoders and system timer
   STM32_TIM4->CNT = STM32_TIM5->CNT = STM32_TIM8->CNT = 0;
@@ -57,14 +55,19 @@ void SampleAndControl::controlThread()
     s.system_state |= systemstate::CollectionEnabled;
     // End post control data collection
 
-    chMsgSend(tp_write, reinterpret_cast<msg_t>(&s));
+    // Put the sample in to the buffer
+    bool encode_failure = false;
+    if (!sb.insert(s))
+      encode_failure = true;
 
     // Clear the sample for the next iteration
     // The first time through the loop, computation_time will be logged as zero,
     // subsequent times will be accurate but delayed by one sample period
-    uint32_t temp = s.system_time;
+    uint32_t ti = s.system_time;
     memset(&s, 0, sizeof(s));
-    s.computation_time= STM32_TIM5->CNT - temp;
+    s.computation_time = STM32_TIM5->CNT - ti;
+    if (encode_failure) 
+      s.system_state |= systemstate::SampleBufferEncodeError;
 
     // Go to sleep until next interval
     chSysLock();
@@ -76,9 +79,10 @@ void SampleAndControl::controlThread()
   
   // Clean up
   disableSensorsMotors();
+  msg_t write_errors = sb.deinitialize();
   // End cleanup
-
-  chThdExit(0);
+ 
+  chThdExit(write_errors);
 }
 
 // Caller: Shell thread
@@ -90,7 +94,7 @@ void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[
   }
 
   msg_t m;
-  if (tp_control) {
+  if (tp_control_) {
     m = Stop();
     if (argc == 0) {
       chprintf(chp, "Data collection and control terminated with %d errors.\r\n", m);
@@ -110,114 +114,24 @@ void SampleAndControl::shellcmd(BaseSequentialStream *chp, int argc, char *argv[
   chprintf(chp, "Errors starting threads with error:  %d.\r\n", m);
 }
 
-void SampleAndControl::writeThread(char* filename)
+msg_t SampleAndControl::Start(const char * filename)
 {
-  chRegSetThreadName("WriteThread");
-  FRESULT res = FR_OK;
-  res = f_open(&f_, filename, FA_CREATE_ALWAYS | FA_WRITE);
-  if (res != FR_OK) {
-    chSysHalt(); while (1) {}   // couldn't properly open the file!
-  }
+  tp_control_ = chThdCreateStatic(SampleAndControl::waControlThread,
+                                 sizeof(waControlThread),
+                                 NORMALPRIO + 3,
+                                 reinterpret_cast<tfunc_t>(controlThread_),
+                                 const_cast<char *>(filename));
+  if (!tp_control_)
+    return 1;
 
-  std::array<uint8_t, buffer_size_> *buffer = &buffer0_;
-  std::array<uint8_t, buffer_size_> *inactive_buffer = &buffer1_;
-  pb_ostream_t stream = pb_ostream_from_buffer(buffer->data(),
-                                               buffer->size());
-
-  uint16_t bytes = 0;
-  uint16_t extra_bytes;
-  uint16_t message_size;
-  uint32_t write_errors = 0;
-  UINT bytes_written;
-  Sample *sp;
-  while (1) {
-    Thread *calling_thread = chMsgWait();
-    sp = reinterpret_cast<Sample*>(chMsgGet(calling_thread));
-    if (sp == 0) {
-      chMsgRelease(calling_thread, res);
-      break;
-    } else {
-      message_size = getMessageSize(*sp);
-      pb_write(&stream, reinterpret_cast<uint8_t*>(&message_size), sizeof(message_size));
-      pb_encode(&stream, Sample_fields, sp);
-      bytes += sizeof(message_size) + message_size;
-      chMsgRelease(calling_thread, res);
-    }
-
-    if (bytes < write_size_)
-        continue;
-
-    res = f_write(&f_, buffer->data(), write_size_, &bytes_written);
-    extra_bytes = bytes - write_size_;
-    bytes = 0;
-
-    if (extra_bytes > 0) /* copy over bytes not written to disk */
-        memcpy(inactive_buffer->data(), buffer->data() + write_size_, extra_bytes);
-
-    /* swap buffers */
-    inactive_buffer = buffer;
-    if (buffer == &buffer0_)
-        buffer = &buffer1_;
-    else
-        buffer = &buffer0_;
-    stream = pb_ostream_from_buffer(buffer->data(), buffer->size());
-
-    if (res != FR_OK)
-      ++write_errors;
-  }
-
-  f_close(&f_);           // close the file
-  chThdExit(write_errors);
-}
-
-msg_t SampleAndControl::Start(const char* filename)
-{
-  msg_t m = 0;
-  tp_write = chThdCreateStatic(SampleAndControl::waWriteThread,
-                          sizeof(waWriteThread),
-                          NORMALPRIO + 1,
-                          reinterpret_cast<tfunc_t>(writeThread_),
-                          const_cast<char*>(filename));
-  if (!tp_write) {
-    m = (1 << 0);
-    return m;
-  }
-
-  while (tp_write->p_state != THD_STATE_WTMSG)
-    chThdYield();
-
-  tp_control = chThdCreateStatic(SampleAndControl::waControlThread,
-                          sizeof(waControlThread),
-                          NORMALPRIO + 2,
-                          reinterpret_cast<tfunc_t>(controlThread_),
-                          0);
-  if (!tp_control)
-    m |= (1 << 1);
-
-  return m;
+  return 0;
 }
 
 msg_t SampleAndControl::Stop()
 {
-  msg_t m;
-
-  chThdTerminate(tp_control);
-  //chThdWait(tp_control);
-  //while(tp_control->p_state != THD_STATE_FINAL)
-    //chThdYield();
-  tp_control = 0;
-
-  chMsgSend(tp_write, 0); // send a message to end the write thread.
-  m = chThdWait(tp_write);
-  tp_write = 0;
-
+  chThdTerminate(tp_control_);
+  msg_t m = chThdWait(tp_control_);
+  tp_control_ = 0;
   return m;
-}
-
-size_t SampleAndControl::getMessageSize(const Sample & s)
-{
-  pb_ostream_t sizestream = PB_OSTREAM_SIZING;
-  pb_encode(&sizestream, Sample_fields, &s);
-  return sizestream.bytes_written;
 }
 

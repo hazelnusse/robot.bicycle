@@ -44,7 +44,7 @@ inline
 void YawRateController::Reset()
 {
   estimation_triggered_ = control_triggered_ = false; 
-  r_ = u_ = x_[0] = x_[1] = x_[2] = x_[3] = x_pi_ = 0.0f;
+  u_ = x_[0] = x_[1] = x_[2] = x_[3] = x_pi_ = 0.0f;
   SystemTime_prev_ = 0;
   PWM_CCR(0);
   setCurrentDirNegative();// negative rotation direction is to the left
@@ -179,7 +179,7 @@ void YawRateController::saveEstimatorState(Sample & s) const
   s.estimate.phi_dot = x_[2];
   s.estimate.delta_dot = x_[3];
   s.estimate.theta_R_dot_lower = ar_[0]->theta_R_dot;
-  s.estimate.theta_R_dot_lower = ar_[1]->theta_R_dot;
+  s.estimate.theta_R_dot_upper = ar_[1]->theta_R_dot;
 }
 
 inline

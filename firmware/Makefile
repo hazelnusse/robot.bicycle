@@ -99,6 +99,7 @@ CPPSRC = src/main.cpp \
 				 src/PeripheralInit.cpp \
 				 src/RearWheel.cpp \
 				 src/SampleAndControl.cpp \
+				 src/SampleBuffer.cpp \
 				 src/YawRateController.cpp \
 				 src/stubs.cpp \
 				 src/SystemCommands.cpp \

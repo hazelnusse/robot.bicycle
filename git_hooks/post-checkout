@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # If run as a post-checkout script hook, and the previous and current
 # HEAD are the same or if its a file checkout, don't proceed

@@ -6,7 +6,6 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "ff.h"
 
 #include "sample.pb.h"
 #include "Singleton.h"
@@ -27,7 +26,6 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   static void enableSensorsMotors();
   static void disableSensorsMotors();
 
-  static void controlThread_(void* arg);
   static void shellcmd_(BaseSequentialStream *chp, int argc, char *argv[]);
 
  private:
@@ -36,28 +34,16 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   SampleAndControl & operator=(const SampleAndControl &) = delete;
 
   void shellcmd(BaseSequentialStream *chp, int argc, char *argv[]);
-  void controlThread();
-  static void writeThread_(char* filename);
-  void writeThread(char* filename);
+  static void controlThread_(void * arg);
+  void controlThread(const char * filename);
 
   // Data collection related
   static void sampleTimers(Sample & s);
   void sampleSetPoints(Sample & s);
 
-  // Data writing related
-  static size_t getMessageSize(const Sample & s);
-
   WORKING_AREA(waControlThread, 4096);
-  WORKING_AREA(waWriteThread, 4096);
   
-  static const uint16_t write_size_ = 512;
-  static const uint16_t buffer_size_ = write_size_ + sizeof(Sample);
-  std::array<uint8_t, buffer_size_> buffer0_;
-  std::array<uint8_t, buffer_size_> buffer1_;
-
-  FIL f_;
-  Thread * tp_control;
-  Thread * tp_write;
+  Thread * tp_control_;
   uint32_t state_;
 };
 
