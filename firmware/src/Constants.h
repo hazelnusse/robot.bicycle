@@ -42,10 +42,6 @@ class constants {
 
   static constexpr T Rate_Timer_Frequency = 4.0e6;
   static constexpr T Rate_Timer_sec_per_count = 1.0 / Rate_Timer_Frequency;
-  static constexpr T Wheel_rad_counts_per_sec = Rate_Timer_Frequency * Wheel_rad_per_count;
-  static constexpr T Wheel_rad_halfquad_counts_per_sec = Rate_Timer_Frequency * Wheel_rad_per_halfquad_count;
-  static constexpr T Wheel_rad_quad_counts_per_sec = Rate_Timer_Frequency * Wheel_rad_per_quad_count;
-  static constexpr T Steer_rad_counts_per_sec = Rate_Timer_Frequency * Steer_rad_per_count;
 
   // Current command constants
   static constexpr T Current_max_rw = 12.0;     //  Copley ADP-090-36
