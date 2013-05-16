@@ -25,10 +25,6 @@ Motor::Motor(GPIO_TypeDef * gpio_port,
     dir_negative_(reverse_polarity ? 1 : 0),
     dir_positive_(reverse_polarity ? 0 : 1)
 {
-//  if (reverse_polarity) {
-//    dir_negative_ = 1;
-//    dir_positive_ = 0;
-//  }
   set_ccr(0);              
   set_direction_positive();
   enable();

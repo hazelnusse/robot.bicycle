@@ -14,9 +14,9 @@ class MotorStatus {
 class Motor {
  public:
   Motor(GPIO_TypeDef * gpio_port,
-        uint8_t direction,
-        uint8_t enable,
-        uint8_t fault,
+        uint8_t direction_pin,
+        uint8_t enable_pin,
+        uint8_t fault_pin,
         stm32_tim_t * pwm_timer,
         uint8_t ccr_channel,
         float max_current,          // Amps
