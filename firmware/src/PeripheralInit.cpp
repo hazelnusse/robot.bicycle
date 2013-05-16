@@ -1,7 +1,8 @@
 #include "ch.h"
 #include "hal.h"
 #include "PeripheralInit.h"
-#include "Constants.h"
+// #include "Constants.h"
+#include "constants.h"
 
 
 // For all peripheral initialization, the following apprach is taken:
@@ -67,7 +68,7 @@ void configureEncoderTimers(void)
   for (auto timer : encoderTimers) {
     timer->SMCR = 3;          // Encoder mode 3
     timer->CCER = 0;          // rising edge polarity
-    timer->ARR = reg::ENC_ARR;// count from 0-ARR or ARR-0
+    timer->ARR = constants::ENC_ARR;// count from 0-ARR or ARR-0
     timer->CCMR1 = 0xC1C1;    // f_DTS/16, N=8, IC1->TI1, IC2->TI2
     timer->CNT = 0;           // Initialize counter
     timer->EGR = 1;           // Generate an update event
@@ -106,7 +107,7 @@ static void configureMotorPWM()
   // TIM1 Frequency = TIM1 counter clock / (ARR + 1)
   //                = 168 MHz / (2^16 - 1)
   //                = 2563.52 Hz
-  STM32_TIM1->ARR = reg::PWM_ARR; // 2^16 - 2
+  STM32_TIM1->ARR = constants::PWM_ARR; // 2^16 - 2
 
   // Select PWM1 mode for OC1 and OC2 (OCX inactive when CNT<CCRX)
   STM32_TIM1->CCMR1 = (0b110 << 12) | (0b110 << 4);
