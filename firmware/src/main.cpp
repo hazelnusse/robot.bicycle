@@ -12,6 +12,10 @@
 #include "VectorTable.h"
 #include "YawRateController.h"
 
+#if defined(BUILD_TEST)
+#include "test.h"
+#endif
+
 /*===========================================================================*/
 /* Card insertion monitor.                                                   */
 /*===========================================================================*/
@@ -174,6 +178,11 @@ static void RemoveHandler(__attribute__((unused)) eventid_t id)
  */
 int main()
 {
+#if defined(BUILD_TEST)
+  if (!test_all())
+    while(1){}
+#endif
+
   VectorTable v;
   v.Relocate();
   static const evhandler_t evhndl[] = { InsertHandler, RemoveHandler };

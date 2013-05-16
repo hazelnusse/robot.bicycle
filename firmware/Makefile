@@ -106,8 +106,15 @@ CPPSRC = src/main.cpp \
 				 src/textutilities.cpp \
 				 src/VectorTable.cpp \
 				 src/Interrupts.cpp \
+				 src/constants.cpp \
 				 src/YawRateController_gains.cpp
 
+
+# Enable this if you want to build tests and have them run in main
+ifeq ($(BUILD_TEST), YES)
+	BUILD_TEST = YES
+	CPPSRC += src/test.cpp
+endif
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -182,6 +189,10 @@ CPPWARN = -Wall -Wextra
 
 # List all default C defines here, like -D_DEBUG=1
 DDEFS =
+# Enable this if you want to build tests and have them run in main
+ifeq ($(BUILD_TEST), YES)
+	DDEFS = -DBUILD_TEST=TRUE
+endif
 
 # List all default ASM defines here, like -D_DEBUG=1
 DADEFS =
