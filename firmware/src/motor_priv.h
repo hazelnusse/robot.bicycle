@@ -25,16 +25,14 @@ Motor::Motor(GPIO_TypeDef * gpio_port,
     dir_negative_(reverse_polarity ? 1 : 0),
     dir_positive_(reverse_polarity ? 0 : 1)
 {
-  set_ccr(0);              
-  set_direction_positive();
+  set_torque(0.0f);
   enable();
 }
 
 Motor::~Motor()
 {
   disable();
-  set_direction_positive();
-  set_ccr(0);
+  set_torque(0.0f);
 }
 
 inline
