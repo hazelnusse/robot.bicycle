@@ -4,7 +4,7 @@
 #include "bitband.h"
 #include "constants.h"
 
-Encoder::Encoder(stm32_tim_t * timer, int counts_per_revolution)
+Encoder::Encoder(stm32_tim_t * timer, uint16_t counts_per_revolution)
   : timer_(timer),
     rad_per_count_(constants::two_pi / counts_per_revolution)
 {

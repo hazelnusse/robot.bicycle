@@ -6,8 +6,7 @@
 
 class Encoder {
  public:
-
-  Encoder(stm32_tim_t * timer, int counts_per_revolution);
+  Encoder(stm32_tim_t * timer, uint16_t counts_per_revolution);
   float get_angle() const;
   void set_count(uint32_t count);
   uint32_t get_count() const;
