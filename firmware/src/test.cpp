@@ -14,7 +14,7 @@ bool test_encoder()
 
 bool test_motor()
 {
-  Motor steer_motor(GPIOF, GPIOF_RW_DIR, GPIOF_RW_ENABLE, GPIOF_RW_FAULT,
+  Motor steer_motor(GPIOF, GPIOF_STEER_DIR, GPIOF_STEER_ENABLE, GPIOF_STEER_FAULT,
                     STM32_TIM1, 0, 6.0f, 1.0f);
   steer_motor.set_torque(1.0f);
   steer_motor.enable();
