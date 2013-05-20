@@ -18,5 +18,9 @@ const uint32_t ENC_ARR = 0xFFFF;
 const uint32_t T_ms = 5;
 const uint32_t RW_N = 10;
 const uint32_t YC_N = 1;
+
+const float Nm_per_ozfin = 0.00706155182175f;
+
+
 }
 
