@@ -21,7 +21,7 @@ extern const uint32_t T_ms;  // main loop update rate in ms
 extern const uint32_t RW_N;  // rear wheel control update prescalar
 extern const uint32_t YC_N;  // yaw rate control update prescalar
 
-const float Nm_per_ozfin;
+extern const float Nm_per_ozfin;
 
 } // namespace constants
 
