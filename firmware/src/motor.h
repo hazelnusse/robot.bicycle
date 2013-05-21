@@ -4,6 +4,8 @@
 #include <cstdint>
 #include "hal.h"
 
+namespace hardware {
+
 class MotorStatus {
  public:
   bool direction;
@@ -48,7 +50,7 @@ class Motor {
   const uint8_t dir_positive_;
 };
 
-#include "motor_priv.h"
+} // namespace hardware
 
 #endif
 

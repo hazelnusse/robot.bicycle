@@ -1,8 +1,8 @@
-#ifndef MOTOR_PRIV_H
-#define MOTOR_PRIV_H
-
 #include "bitband.h"
 #include "constants.h"
+#include "motor.h"
+
+namespace hardware {
 
 Motor::Motor(GPIO_TypeDef * gpio_port,
              uint8_t direction_pin,
@@ -35,7 +35,6 @@ Motor::~Motor()
   set_torque(0.0f);
 }
 
-inline
 bool Motor::set_torque(float torque)
 {
   bool saturated = false;
@@ -55,45 +54,39 @@ bool Motor::set_torque(float torque)
   return saturated;
 }
 
-inline
 void Motor::disable()
 {
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(gpio_port_->ODR)),
                    enable_pin_)) = 1;
 }
 
-inline
 void Motor::enable()
 {
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(gpio_port_->ODR)),
                    enable_pin_)) = 0;
 }
 
-inline
 uint32_t Motor::current_to_ccr(float current) const
 {
   return static_cast<uint32_t>((((constants::PWM_ARR + 1) / max_current_)) * current);
 }
 
-inline
 void Motor::set_ccr(uint32_t ccr)
 {
   pwm_timer_->CCR[ccr_channel_] = ccr;
 }
 
-inline 
 void Motor::set_direction_negative()
 {
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(gpio_port_->ODR)),
                    direction_pin_)) = dir_negative_;
 }
 
-inline 
 void Motor::set_direction_positive()
 {
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(gpio_port_->ODR)),
                    direction_pin_)) = dir_positive_;
 }
 
-#endif
+} // namespace hardware
 
