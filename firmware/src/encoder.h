@@ -4,6 +4,8 @@
 #include <cstdint>
 #include "hal.h"
 
+namespace hardware {
+
 class Encoder {
  public:
   Encoder(stm32_tim_t * timer, uint16_t counts_per_revolution);
@@ -16,7 +18,7 @@ class Encoder {
   const float rad_per_count_;
 };
 
-#include "encoder_priv.h"
+} // namespace hardware
 
 #endif
 

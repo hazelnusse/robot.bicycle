@@ -1,8 +1,8 @@
-#ifndef ENCODER_PRIV_H
-#define ENCODER_PRIV_H
-
 #include "bitband.h"
 #include "constants.h"
+#include "encoder.h"
+
+namespace hardware {
 
 Encoder::Encoder(stm32_tim_t * timer, uint16_t counts_per_revolution)
   : timer_(timer),
@@ -10,20 +10,20 @@ Encoder::Encoder(stm32_tim_t * timer, uint16_t counts_per_revolution)
 {
 }
 
-inline float Encoder::get_angle() const
+float Encoder::get_angle() const
 {
   return static_cast<int16_t>(timer_->CNT) * rad_per_count_;
 }
 
-inline void Encoder::set_count(uint32_t count)
+void Encoder::set_count(uint32_t count)
 {
   timer_->CNT = count;
 }
 
-inline uint32_t Encoder::get_count() const
+uint32_t Encoder::get_count() const
 {
   return timer_->CNT;
 }
 
-#endif
+} // namespace hardware
 
