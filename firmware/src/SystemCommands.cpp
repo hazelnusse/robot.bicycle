@@ -7,25 +7,19 @@
 #include "SampleAndControl.h"
 #include "RearWheel.h"
 #include "YawRateController.h"
+#include "motor_controller.h"
 
-void SystemCommands::disablemotors(BaseSequentialStream*, int, char**)
+void SystemCommands::disable_controllers(BaseSequentialStream*, int, char**)
 {
-  RearWheel::Instance().turnOff();
-  YawRateController::Instance().turnOff();
+  using namespace hardware;
+  if (instances[rear_wheel])
+    instances[rear_wheel]->disable();
+  if (instances[fork])
+    instances[fork]->disable();
 }
 
 void SystemCommands::reset(BaseSequentialStream*, int, char**)
 {
   NVIC_SystemReset();
-}
-
-void SystemCommands::status(BaseSequentialStream *chp, int, char**)
-{
-  uint32_t state = SampleAndControl::Instance().systemState();
-  float rw_sp = RearWheel::Instance().RateCommanded(),
-        yr_sp = YawRateController::Instance().RateCommanded();
-
-
-  chprintf(chp, "%u,%f,%f\r\n", state, rw_sp, yr_sp);
 }
 
