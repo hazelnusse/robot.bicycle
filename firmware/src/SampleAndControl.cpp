@@ -4,8 +4,8 @@
 #include "chprintf.h"
 
 #include "MPU6050.h"
-#include "RearWheel.h"
-#include "YawRateController.h"
+#include "rear_motor_controller.h"
+#include "fork_motor_controller.h"
 #include "SampleBuffer.h"
 #include "SystemState.h"
 
@@ -19,13 +19,16 @@ void SampleAndControl::controlThread(const char * filename)
   chRegSetThreadName("Control");
   enableSensorsMotors();
   MPU6050 & imu = MPU6050::Instance();
-  RearWheel & rwc = RearWheel::Instance();
-  YawRateController & yrc = YawRateController::Instance();
+  hardware::RearMotorController rear_motor_controller;
+  hardware::ForkMotorController fork_motor_controller;
+  hardware::Encoder front_wheel_encoder(STM32_TIM4, 800);
+  front_wheel_encoder.set_count(0);
+
   SampleBuffer & sb = SampleBuffer::Instance();
   sb.initialize(filename);
   
-  // zero out wheel encoders and system timer
-  STM32_TIM4->CNT = STM32_TIM5->CNT = STM32_TIM8->CNT = 0;
+  // zero out system timer
+  STM32_TIM5->CNT = 0;
 
   // Create a sample to populate
   Sample s;
@@ -43,11 +46,10 @@ void SampleAndControl::controlThread(const char * filename)
     // End pre control data collection
 
     // Begin control
-    if (rwc.isEnabled() && (i % con::RW_N == 0))
-      rwc.Update(s);
-
-    if (yrc.isEnabled() && (i % con::YC_N == 0))
-      yrc.Update(s);
+    // if (rwc.isEnabled() && (i % con::RW_N == 0))
+    rear_motor_controller.update(s);
+    // if (yrc.isEnabled() && (i % con::YC_N == 0))
+    fork_motor_controller.update(s);
     // End control
 
     // Begin post control data collection
