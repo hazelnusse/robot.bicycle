@@ -11,6 +11,7 @@
 #include "SystemCommands.h"
 #include "VectorTable.h"
 #include "YawRateController.h"
+#include "motor_controller.h"
 
 #if defined(BUILD_TEST)
 #include "test.h"
@@ -119,18 +120,19 @@ static void cmd_threads(BaseSequentialStream *chp, int argc, char *argv[]) {
 }
 
 static const ShellCommand commands[] = {
-  {"rw", RearWheel::shellcmd_},             // select rear wheel rate set point
-  {"yr", YawRateController::shellcmd_},     // select yaw rate set point
+//  {"rw", RearWheel::shellcmd_},             // select rear wheel rate set point
+//  {"yr", YawRateController::shellcmd_},     // select yaw rate set point
   {"calibrate", YawRateController::calibrateSteerEncoder_},     // select yaw rate set point
   {"homefork", YawRateController::homeFork_},     // select yaw rate set point
   {"collect", SampleAndControl::shellcmd_}, // enable/disable data collection and control
-  {"disable", SystemCommands::disablemotors},
+  {"disable", SystemCommands::disable_controllers},
   {"reset", SystemCommands::reset},
-  {"status", SystemCommands::status},
   {"threads", cmd_threads},
   {"e_thresh", YawRateController::setEstimationThreshold},
   {"c_thresh", YawRateController::setControlThreshold},
   {"pi", YawRateController::togglePI},
+  {"yaw_rate", hardware::set_reference_shell<hardware::fork>},
+  {"speed", hardware::set_reference_shell<hardware::rear_wheel>},
   {NULL, NULL}
 };
 
