@@ -107,6 +107,11 @@ CPPSRC = src/main.cpp \
 				 src/VectorTable.cpp \
 				 src/Interrupts.cpp \
 				 src/constants.cpp \
+				 src/motor.cpp \
+				 src/encoder.cpp \
+				 src/motor_controller.cpp \
+				 src/fork_motor_controller.cpp \
+				 src/rear_motor_controller.cpp \
 				 src/YawRateController_gains.cpp
 
 
