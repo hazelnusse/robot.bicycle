@@ -9,6 +9,8 @@ message Sample {
   optional InvensenseMPU6050 mpu6050 = 7;    // 28 bytes
   optional Estimator estimate = 8;           // 24 bytes
   optional PIController yaw_rate_pi = 9;     // 16 bytes
+
+  required uint32 loop_count = 10;           // loop count
                                    // Total:   116 bytes
   // ** The following fields store information from the previous time step:
   //   - computation_time
