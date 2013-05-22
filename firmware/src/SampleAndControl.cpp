@@ -40,20 +40,21 @@ void SampleAndControl::controlThread(const char * filename)
     time += MS2ST(con::T_ms);       // Next deadline
 
     // Begin pre control data collection
-    sampleTimers(s);  // sample system time/encoder counts/PWM duty cycle
-    imu.Acquire(s);   // sample rate gyro, accelerometer and temperature sensors
-    sampleSetPoints(s); // sample rear wheel and yaw rate commands
+    s.loop_count = i;
+    s.system_time = STM32_TIM5->CNT;
+    s.encoder.front_wheel = front_wheel_encoder.get_angle();
+    imu.Acquire(s);     // acquire gyro, accelerometer, and temperature data
     // End pre control data collection
 
     // Begin control
-    // if (rwc.isEnabled() && (i % con::RW_N == 0))
     rear_motor_controller.update(s);
-    // if (yrc.isEnabled() && (i % con::YC_N == 0))
     fork_motor_controller.update(s);
     // End control
 
     // Begin post control data collection
-    sampleMotorState(s);
+    // TODO: Push sampleMotorState functionality down into motor_controller
+    // class or subclasses.
+    // sampleMotorState(s);
     s.system_state |= systemstate::CollectionEnabled;
     // End post control data collection
 
@@ -80,7 +81,9 @@ void SampleAndControl::controlThread(const char * filename)
   } // for
   
   // Clean up
-  disableSensorsMotors();
+  // disableSensorsMotors();
+  // TODO: change samplebuffer to be a non-singleton class and implement
+  // cleanup in destructor
   msg_t write_errors = sb.deinitialize();
   // End cleanup
  
