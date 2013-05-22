@@ -13,7 +13,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='sample.proto',
   package='',
-  serialized_pb='\n\x0csample.proto\"\x93\x02\n\x06Sample\x12\x13\n\x0bsystem_time\x18\x01 \x02(\r\x12\x18\n\x10\x63omputation_time\x18\x02 \x02(\r\x12\x14\n\x0csystem_state\x18\x03 \x02(\r\x12\x19\n\x07\x65ncoder\x18\x04 \x02(\x0b\x32\x08.Encoder\x12\x1c\n\tset_point\x18\x05 \x02(\x0b\x32\t.SetPoint\x12$\n\rmotor_current\x18\x06 \x02(\x0b\x32\r.MotorCurrent\x12#\n\x07mpu6050\x18\x07 \x01(\x0b\x32\x12.InvensenseMPU6050\x12\x1c\n\x08\x65stimate\x18\x08 \x01(\x0b\x32\n.Estimator\x12\"\n\x0byaw_rate_pi\x18\t \x01(\x0b\x32\r.PIController\"\xb2\x01\n\x11InvensenseMPU6050\x12\x17\n\x0f\x61\x63\x63\x65lerometer_x\x18\x01 \x02(\x02\x12\x17\n\x0f\x61\x63\x63\x65lerometer_y\x18\x02 \x02(\x02\x12\x17\n\x0f\x61\x63\x63\x65lerometer_z\x18\x03 \x02(\x02\x12\x13\n\x0btemperature\x18\x04 \x02(\x02\x12\x13\n\x0bgyroscope_x\x18\x05 \x02(\x02\x12\x13\n\x0bgyroscope_y\x18\x06 \x02(\x02\x12\x13\n\x0bgyroscope_z\x18\x07 \x02(\x02\"[\n\x07\x45ncoder\x12\x18\n\x10rear_wheel_count\x18\x01 \x02(\r\x12\x12\n\nrear_wheel\x18\x02 \x02(\x02\x12\r\n\x05steer\x18\x03 \x02(\x02\x12\x13\n\x0b\x66ront_wheel\x18\x04 \x02(\x02\"1\n\x0cMotorCurrent\x12\x12\n\nrear_wheel\x18\x01 \x02(\x02\x12\r\n\x05steer\x18\x02 \x02(\x02\"0\n\x08SetPoint\x12\x13\n\x0btheta_R_dot\x18\x01 \x02(\x02\x12\x0f\n\x07psi_dot\x18\x02 \x02(\x02\"\x81\x01\n\tEstimator\x12\x0b\n\x03phi\x18\x01 \x02(\x02\x12\r\n\x05\x64\x65lta\x18\x02 \x02(\x02\x12\x0f\n\x07phi_dot\x18\x03 \x02(\x02\x12\x11\n\tdelta_dot\x18\x04 \x02(\x02\x12\x19\n\x11theta_R_dot_lower\x18\x05 \x02(\x02\x12\x19\n\x11theta_R_dot_upper\x18\x06 \x02(\x02\"<\n\x0cPIController\x12\t\n\x01\x65\x18\x01 \x02(\x02\x12\n\n\x02Kp\x18\x02 \x02(\x02\x12\n\n\x02Ki\x18\x03 \x02(\x02\x12\t\n\x01x\x18\x04 \x02(\x02')
+  serialized_pb='\n\x0csample.proto\"\xa7\x02\n\x06Sample\x12\x13\n\x0bsystem_time\x18\x01 \x02(\r\x12\x18\n\x10\x63omputation_time\x18\x02 \x02(\r\x12\x14\n\x0csystem_state\x18\x03 \x02(\r\x12\x19\n\x07\x65ncoder\x18\x04 \x02(\x0b\x32\x08.Encoder\x12\x1c\n\tset_point\x18\x05 \x02(\x0b\x32\t.SetPoint\x12$\n\rmotor_current\x18\x06 \x02(\x0b\x32\r.MotorCurrent\x12#\n\x07mpu6050\x18\x07 \x01(\x0b\x32\x12.InvensenseMPU6050\x12\x1c\n\x08\x65stimate\x18\x08 \x01(\x0b\x32\n.Estimator\x12\"\n\x0byaw_rate_pi\x18\t \x01(\x0b\x32\r.PIController\x12\x12\n\nloop_count\x18\n \x02(\r\"\xb2\x01\n\x11InvensenseMPU6050\x12\x17\n\x0f\x61\x63\x63\x65lerometer_x\x18\x01 \x02(\x02\x12\x17\n\x0f\x61\x63\x63\x65lerometer_y\x18\x02 \x02(\x02\x12\x17\n\x0f\x61\x63\x63\x65lerometer_z\x18\x03 \x02(\x02\x12\x13\n\x0btemperature\x18\x04 \x02(\x02\x12\x13\n\x0bgyroscope_x\x18\x05 \x02(\x02\x12\x13\n\x0bgyroscope_y\x18\x06 \x02(\x02\x12\x13\n\x0bgyroscope_z\x18\x07 \x02(\x02\"[\n\x07\x45ncoder\x12\x18\n\x10rear_wheel_count\x18\x01 \x02(\r\x12\x12\n\nrear_wheel\x18\x02 \x02(\x02\x12\r\n\x05steer\x18\x03 \x02(\x02\x12\x13\n\x0b\x66ront_wheel\x18\x04 \x02(\x02\"1\n\x0cMotorCurrent\x12\x12\n\nrear_wheel\x18\x01 \x02(\x02\x12\r\n\x05steer\x18\x02 \x02(\x02\"0\n\x08SetPoint\x12\x13\n\x0btheta_R_dot\x18\x01 \x02(\x02\x12\x0f\n\x07psi_dot\x18\x02 \x02(\x02\"\x81\x01\n\tEstimator\x12\x0b\n\x03phi\x18\x01 \x02(\x02\x12\r\n\x05\x64\x65lta\x18\x02 \x02(\x02\x12\x0f\n\x07phi_dot\x18\x03 \x02(\x02\x12\x11\n\tdelta_dot\x18\x04 \x02(\x02\x12\x19\n\x11theta_R_dot_lower\x18\x05 \x02(\x02\x12\x19\n\x11theta_R_dot_upper\x18\x06 \x02(\x02\"<\n\x0cPIController\x12\t\n\x01\x65\x18\x01 \x02(\x02\x12\n\n\x02Kp\x18\x02 \x02(\x02\x12\n\n\x02Ki\x18\x03 \x02(\x02\x12\t\n\x01x\x18\x04 \x02(\x02')
 
 
 
@@ -88,6 +88,13 @@ _SAMPLE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='loop_count', full_name='Sample.loop_count', index=9,
+      number=10, type=13, cpp_type=3, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -98,7 +105,7 @@ _SAMPLE = _descriptor.Descriptor(
   is_extendable=False,
   extension_ranges=[],
   serialized_start=17,
-  serialized_end=292,
+  serialized_end=312,
 )
 
 
@@ -167,8 +174,8 @@ _INVENSENSEMPU6050 = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=295,
-  serialized_end=473,
+  serialized_start=315,
+  serialized_end=493,
 )
 
 
@@ -216,8 +223,8 @@ _ENCODER = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=475,
-  serialized_end=566,
+  serialized_start=495,
+  serialized_end=586,
 )
 
 
@@ -251,8 +258,8 @@ _MOTORCURRENT = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=568,
-  serialized_end=617,
+  serialized_start=588,
+  serialized_end=637,
 )
 
 
@@ -286,8 +293,8 @@ _SETPOINT = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=619,
-  serialized_end=667,
+  serialized_start=639,
+  serialized_end=687,
 )
 
 
@@ -349,8 +356,8 @@ _ESTIMATOR = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=670,
-  serialized_end=799,
+  serialized_start=690,
+  serialized_end=819,
 )
 
 
@@ -398,8 +405,8 @@ _PICONTROLLER = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=801,
-  serialized_end=861,
+  serialized_start=821,
+  serialized_end=881,
 )
 
 _SAMPLE.fields_by_name['encoder'].message_type = _ENCODER
