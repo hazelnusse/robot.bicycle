@@ -20,7 +20,7 @@ class RearMotorController : public MotorController {
  private:
   Encoder e_;
   Motor m_;
-  float speed_command_;
+  float theta_R_dot_command_;
 };
 
 } // namespace hardware

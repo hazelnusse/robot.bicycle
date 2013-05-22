@@ -14,7 +14,7 @@ RearMotorController::RearMotorController()
   e_(STM32_TIM3, counts_per_revolution),
   m_(GPIOF, GPIOF_RW_DIR, GPIOF_RW_ENABLE, GPIOF_RW_FAULT,
      STM32_TIM1, ccr_channel, max_current, torque_constant, true),
-  speed_command_(0.0f)
+  theta_R_dot_command_{0.0f}
 {
   instances[rear_wheel] = this;
   e_.set_count(0);
@@ -27,7 +27,7 @@ RearMotorController::~RearMotorController()
   
 void RearMotorController::set_reference(float speed)
 {
-  speed_command_ = speed;
+  theta_R_dot_command_ = speed / constants::wheel_radius;
 }
 
 void RearMotorController::disable()
@@ -44,6 +44,10 @@ void RearMotorController::update(Sample & s)
 {
   s.encoder.rear_wheel_count = e_.get_count();
   s.encoder.rear_wheel = e_.get_angle();
+  s.set_point.theta_R_dot = theta_R_dot_command_;
+  // TODO:
+  //  implement rate divider
+  //  determine motor current command, save it in s.motor_current
 }
 
 } // namespace hardware
