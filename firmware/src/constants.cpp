@@ -21,6 +21,7 @@ const uint32_t YC_N = 1;
 
 const float Nm_per_ozfin = 0.00706155182175f;
 
+const float wheel_radius = 0.3359f;
 
 }
 

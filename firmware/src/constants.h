@@ -23,6 +23,8 @@ extern const uint32_t YC_N;  // yaw rate control update prescalar
 
 extern const float Nm_per_ozfin;
 
+extern const float wheel_radius;
+
 } // namespace constants
 
 #endif
