@@ -41,6 +41,10 @@ void ForkMotorController::enable()
 void ForkMotorController::update(Sample & s)
 {
   s.encoder.steer = e_.get_angle();
+  s.set_point.psi_dot = yaw_rate_command_;
+  // TODO:
+  //  implement rate divider
+  //  determine motor current command, save it in s.motor_current
 }
 
 } // namespace hardware
