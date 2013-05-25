@@ -95,14 +95,11 @@ CSRC = $(PORTSRC) \
 # setting.
 CPPSRC = src/main.cpp \
 				 src/MPU6050.cpp \
-				 src/MPU6050_calibration.cpp \
 				 src/PeripheralInit.cpp \
-				 src/RearWheel.cpp \
 				 src/SampleAndControl.cpp \
 				 src/SampleBuffer.cpp \
-				 src/YawRateController.cpp \
 				 src/stubs.cpp \
-				 src/SystemCommands.cpp \
+				 src/system_commands.cpp \
 				 src/textutilities.cpp \
 				 src/VectorTable.cpp \
 				 src/Interrupts.cpp \
@@ -111,9 +108,7 @@ CPPSRC = src/main.cpp \
 				 src/encoder.cpp \
 				 src/motor_controller.cpp \
 				 src/fork_motor_controller.cpp \
-				 src/rear_motor_controller.cpp \
-				 src/YawRateController_gains.cpp
-
+				 src/rear_motor_controller.cpp
 
 # Enable this if you want to build tests and have them run in main
 ifeq ($(BUILD_TEST), YES)
@@ -203,7 +198,7 @@ endif
 DADEFS =
 
 # List all default directories to look for include files here
-DINCDIR = Singleton nanopb src
+DINCDIR = Singleton nanopb src $(HOME)/usr/include/eigen3
 
 # List the default directory to look for the libraries here
 DLIBDIR =

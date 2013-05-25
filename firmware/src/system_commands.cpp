@@ -1,12 +1,6 @@
 #include <cstdint>
 #include <cstring>
-#include "SystemCommands.h"
-
-#include "chprintf.h"
-
-#include "SampleAndControl.h"
-#include "RearWheel.h"
-#include "YawRateController.h"
+#include "system_commands.h"
 #include "motor_controller.h"
 
 void SystemCommands::disable_controllers(BaseSequentialStream*, int, char**)

@@ -2,6 +2,7 @@
 #define SYSTEMCOMMANDS_H
 
 #include "ch.h"
+#include "chprintf.h"
 
 class SystemCommands {
  public:
