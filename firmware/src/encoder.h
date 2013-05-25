@@ -12,6 +12,7 @@ class Encoder {
   float get_angle() const;
   void set_count(uint32_t count);
   uint32_t get_count() const;
+  float get_rad_per_count() const { return rad_per_count_; }
 
  private:
   stm32_tim_t * const timer_;
