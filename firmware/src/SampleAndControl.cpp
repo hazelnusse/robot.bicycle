@@ -3,6 +3,7 @@
 #include "SampleAndControl.h"
 #include "chprintf.h"
 
+#include "constants.h"
 #include "MPU6050.h"
 #include "rear_motor_controller.h"
 #include "fork_motor_controller.h"
@@ -17,8 +18,13 @@ SampleAndControl::SampleAndControl()
 void SampleAndControl::controlThread(const char * filename)
 {
   chRegSetThreadName("Control");
-  enableSensorsMotors();
-  MPU6050 & imu = MPU6050::Instance();
+  // TODO: verify that functionality here has been moved to motor_controller
+  // subclasses
+  // enableSensorsMotors();
+  MPU6050 imu;
+  if (!imu.is_initialized())
+    chThdExit(-1); // TODO: figure what to do here
+
   hardware::RearMotorController rear_motor_controller;
   hardware::ForkMotorController fork_motor_controller;
   hardware::Encoder front_wheel_encoder(STM32_TIM4, 800);
@@ -37,13 +43,13 @@ void SampleAndControl::controlThread(const char * filename)
   systime_t time = chTimeNow();     // Initial time
   systime_t sleep_time;
   for (uint32_t i = 0; !chThdShouldTerminate(); ++i) {
-    time += MS2ST(con::T_ms);       // Next deadline
+    time += MS2ST(constants::loop_period_ms);       // Next deadline
 
     // Begin pre control data collection
     s.loop_count = i;
     s.system_time = STM32_TIM5->CNT;
     s.encoder.front_wheel = front_wheel_encoder.get_angle();
-    imu.Acquire(s);     // acquire gyro, accelerometer, and temperature data
+    imu.acquire_data(s);     // acquire gyro, accelerometer, and temperature data
     // End pre control data collection
 
     // Begin control
