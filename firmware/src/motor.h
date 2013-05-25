@@ -27,6 +27,8 @@ class Motor {
   ~Motor();
 
   bool set_torque(float torque);
+  float get_torque() const { return torque_; }
+  float get_current() const { return current_; }
 
   void disable();
   void enable();
@@ -37,6 +39,8 @@ class Motor {
   void set_direction_negative();
   void set_direction_positive();
 
+  float current_;
+  float torque_;
   GPIO_TypeDef * const gpio_port_;
   stm32_tim_t * const pwm_timer_;
   const float inv_torque_constant_; // Amps per Newton meter

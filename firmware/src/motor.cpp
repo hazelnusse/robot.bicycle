@@ -13,17 +13,19 @@ Motor::Motor(GPIO_TypeDef * gpio_port,
              float max_current,          // Amps
              float torque_constant,      // Newton meters per amp
              bool reverse_polarity)
-  : gpio_port_(gpio_port),
-    pwm_timer_(pwm_timer),
-    inv_torque_constant_(1.0f / torque_constant),
-    max_current_(max_current),
-    max_torque_(max_current * torque_constant),
-    direction_pin_(direction_pin),
-    enable_pin_(enable_pin),
-    fault_pin_(fault_pin),
-    ccr_channel_(ccr_channel),
-    dir_negative_(reverse_polarity ? 1 : 0),
-    dir_positive_(reverse_polarity ? 0 : 1)
+  : current_{0.0f},
+    torque_{0.0f},
+    gpio_port_{gpio_port},
+    pwm_timer_{pwm_timer},
+    inv_torque_constant_{1.0f / torque_constant},
+    max_current_{max_current},
+    max_torque_{max_current * torque_constant},
+    direction_pin_{direction_pin},
+    enable_pin_{enable_pin},
+    fault_pin_{fault_pin},
+    ccr_channel_{ccr_channel},
+    dir_negative_{reverse_polarity ? 1 : 0},
+    dir_positive_{reverse_polarity ? 0 : 1}
 {
   set_torque(0.0f);
   enable();
@@ -37,7 +39,7 @@ Motor::~Motor()
 
 bool Motor::set_torque(float torque)
 {
-  bool saturated = false;
+  bool torque_set = true;
   if (torque < 0.0f) {
     set_direction_negative();
     torque = -torque;
@@ -47,11 +49,13 @@ bool Motor::set_torque(float torque)
 
   if (torque > max_torque_) {
     torque = max_torque_;
-    saturated = true;
+    torque_set = false;
   }
 
-  set_ccr(current_to_ccr(torque * inv_torque_constant_));
-  return saturated;
+  torque_ = torque;
+  current_ = torque * inv_torque_constant_;
+  set_ccr(current_to_ccr(current_));
+  return torque_set;
 }
 
 void Motor::disable()
