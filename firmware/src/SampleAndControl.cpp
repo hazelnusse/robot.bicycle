@@ -21,7 +21,7 @@ void SampleAndControl::controlThread(const char * filename)
   // TODO: verify that functionality here has been moved to motor_controller
   // subclasses
   // enableSensorsMotors();
-  MPU6050 imu;
+  hardware::MPU6050 imu;
   if (!imu.is_initialized())
     chThdExit(-1); // TODO: figure what to do here
 
@@ -30,6 +30,7 @@ void SampleAndControl::controlThread(const char * filename)
   hardware::Encoder front_wheel_encoder(STM32_TIM4, 800);
   front_wheel_encoder.set_count(0);
 
+  // TODO: make SampleBuffer non-singleton
   SampleBuffer & sb = SampleBuffer::Instance();
   sb.initialize(filename);
   
@@ -46,10 +47,11 @@ void SampleAndControl::controlThread(const char * filename)
     time += MS2ST(constants::loop_period_ms);       // Next deadline
 
     // Begin pre control data collection
-    s.loop_count = i;
     s.system_time = STM32_TIM5->CNT;
+    s.loop_count = i;
+    imu.acquire_data(s);
     s.encoder.front_wheel = front_wheel_encoder.get_angle();
-    imu.acquire_data(s);     // acquire gyro, accelerometer, and temperature data
+    s.system_state |= systemstate::CollectionEnabled;
     // End pre control data collection
 
     // Begin control
@@ -57,12 +59,9 @@ void SampleAndControl::controlThread(const char * filename)
     fork_motor_controller.update(s);
     // End control
 
-    // Begin post control data collection
     // TODO: Push sampleMotorState functionality down into motor_controller
     // class or subclasses.
     // sampleMotorState(s);
-    s.system_state |= systemstate::CollectionEnabled;
-    // End post control data collection
 
     // Put the sample in to the buffer
     bool encode_failure = false;
@@ -71,10 +70,13 @@ void SampleAndControl::controlThread(const char * filename)
 
     // Clear the sample for the next iteration
     // The first time through the loop, computation_time will be logged as zero,
-    // subsequent times will be accurate but delayed by one sample period
+    // subsequent times will be accurate but delayed by one sample period. This
+    // is done to ensure that encoding computation is part of timing
+    // measurement.
     uint32_t ti = s.system_time;
     memset(&s, 0, sizeof(s));
     s.computation_time = STM32_TIM5->CNT - ti;
+    // Similarly, encode failures will be delayed by one sample.
     if (encode_failure) 
       s.system_state |= systemstate::SampleBufferEncodeError;
 
@@ -87,12 +89,14 @@ void SampleAndControl::controlThread(const char * filename)
   } // for
   
   // Clean up
+  // TODO:
   // disableSensorsMotors();
   // TODO: change samplebuffer to be a non-singleton class and implement
   // cleanup in destructor
   msg_t write_errors = sb.deinitialize();
   // End cleanup
  
+  // TODO: possibly just return...
   chThdExit(write_errors);
 }
 

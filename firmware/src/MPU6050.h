@@ -5,8 +5,9 @@
 #include "ch.h"
 #include "hal.h"
 
-#include "Singleton.h"
 #include "sample.pb.h"
+
+namespace hardware {
 
 class MPU6050 {
  public:
@@ -32,5 +33,8 @@ class MPU6050 {
   uint8_t ACCEL_XOUT_ADDR;
   bool initialized_;
 };
+
+} // namespace hardware
+
 #endif
 

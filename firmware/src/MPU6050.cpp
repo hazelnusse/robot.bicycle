@@ -18,6 +18,8 @@
 #include "constants.h"
 #include "SystemState.h"
 
+namespace hardware {
+
 MPU6050::MPU6050()
   : i2c_{&I2CD2},
     i2cfg_{OPMODE_I2C, 400000, FAST_DUTY_CYCLE_2},
@@ -150,3 +152,4 @@ float MPU6050::psi_dot(const Sample & s)
   return s.mpu6050.gyroscope_z;
 }
 
+} // namespace hardware
