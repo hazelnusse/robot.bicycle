@@ -2,6 +2,7 @@
 #define FORK_MOTOR_CONTROLLER_H
 
 #include "encoder.h"
+#include "gain_schedule.h"
 #include "motor.h"
 #include "motor_controller.h"
 #include "sample.pb.h"
@@ -18,13 +19,20 @@ class ForkMotorController : public MotorController {
   virtual void update(Sample & s);
 
  private:
+  bool activate_estimation();
+  bool activate_control();
   Encoder e_;
   Motor m_;
+  GainSchedule fork_sch_ = control::fork_gain_schedule;
 
   float yaw_rate_command_;
+  float x_pi_;
+  float estimation_threshold_; // in terms of rear wheel rate
+  float control_threshold_; // in terms of rear wheel rate
+  const float max_steer_angle_ = 45; //degrees
 };
 
 } // namespace hardware
 
-#endif
+#endif // FORK_MOTOR_CONTROLLER_H
 

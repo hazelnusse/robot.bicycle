@@ -22,7 +22,7 @@ ForkMotorController::~ForkMotorController()
 {
   instances[fork] = 0;
 }
-  
+
 void ForkMotorController::set_reference(float yaw_rate)
 {
   yaw_rate_command_ = yaw_rate;
@@ -30,21 +30,39 @@ void ForkMotorController::set_reference(float yaw_rate)
 
 void ForkMotorController::disable()
 {
-
+  m_.disable();
 }
 
 void ForkMotorController::enable()
 {
-
+  m_.enable();
 }
 
 void ForkMotorController::update(Sample & s)
 {
   s.encoder.steer = e_.get_angle();
   s.set_point.psi_dot = yaw_rate_command_;
-  // TODO:
-  //  implement rate divider
-  //  determine motor current command, save it in s.motor_current
+  s.yaw_rate_pi.e = s.set_point.psi_dot - MPU6050::psi_dot(s);
+  x_pi_ += s.yaw_rate_pi.e;
+  s.yaw_rate_pi.x = x_pi_;
+
+  if (activate_estimation()) {
+    const float torque = fork_sch_.update_estimate_output(m_.get_torque());
+    if (activate_control())
+      m_.set_torque(torque);
+  } else {
+    m_.set_torque(0.0f);
+  }
+  s.motor_current.steer = m_.get_current();
+}
+
+bool ForkMotorController::activate_estimation() {
+  return s.encoder.rear_wheel_rate < estimation_threshold_;
+}
+
+bool ForkMotorController::activate_control() {
+  return (s.encoder.rear_wheel_rate < control_threshold_ &&
+          std::fabs(s.encoder.steer) < max_steer_angle_);
 }
 
 } // namespace hardware
