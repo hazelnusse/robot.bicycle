@@ -7,10 +7,10 @@
 #include "sample.pb.h"
 
 namespace control {
-const uint32_t num_gains = 101;
-const uint32_t state_size = 4;
-const uint32_t input_size = 3;
-const uint32_t output_size = 1;
+const uint32_t num_gains = {{ NUMGAINS }};
+const uint32_t state_size = {{ STATESIZE }};
+const uint32_t input_size = {{ INPUTSIZE }};
+const uint32_t output_size = {{ OUTPUTSIZE }};
 
 template <int M, int N>
 using matrix_t = Matrix<float, int M, int N>;
@@ -65,3 +65,4 @@ class GainSchedule {
 } // namespace control
 
 #endif // GAIN_SCHEDULE_H
+

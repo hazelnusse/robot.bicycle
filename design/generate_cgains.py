@@ -15,28 +15,28 @@ def generate(ccinfile, hinfile):
     c_data = yrc.design_controller()
     c_data_sorted = sorted(c_data, key=lambda c: c['theta_R_dot'])
     render_dict = {'NUMGAINS' : len(c_data_sorted),
-                   'AROWS' : 4,
-                   'ACOLS' : 4,
-                   'BROWS' : 4,
-                   'BCOLS' : 3,
-                   'CROWS' : 1,
-                   'CCOLS' : 4}
-    GAINS = []
+                   'STATESIZE' : 4,
+                   'INPUTSIZE' : 3,
+                   'OUTPUTSIZE' : 1}
     SPEED = []
+    A = []
+    B = []
+    C = []
     KP = []
     KI = []
     for i in range(render_dict['NUMGAINS']):
         SPEED.append(c_data_sorted[i]['theta_R_dot'])
         KP.append(c_data_sorted[i]['Kp_fit'])
         KI.append(c_data_sorted[i]['Ki_fit'])
-        A = c_data_sorted[i]['A_e']
-        B = c_data_sorted[i]['B_e']
-        C = c_data_sorted[i]['K_c']
-        GAINS.append({'A_c' : A, 'B_c' : B, 'C_c' : C})
-    render_dict['GAINS'] = GAINS
+        A.append(c_data_sorted[i]['A_e'])
+        B.append(c_data_sorted[i]['B_e'])
+        C.append(c_data_sorted[i]['K_c'])
     render_dict['SPEED'] = SPEED
-    render_dict['KP'] = KP 
-    render_dict['KI'] = KI 
+    render_dict['A'] = A
+    render_dict['B'] = B
+    render_dict['C'] = C
+    render_dict['KP'] = KP
+    render_dict['KI'] = KI
     generate_file(ccinfile, render_dict, '.cpp')
     generate_file(hinfile, render_dict, '.h')
 
@@ -66,5 +66,6 @@ def name_outfile(infile, ext):
 
 
 if __name__ == '__main__':
-    generate('YawRateController_gains.cpp.in', 'ControllerGains.h.in');
+    generate('../firmware/src/fork_schedule.cpp.in',
+             '../firmware/src/gain_schedule.h.in');
     sys.exit(0)
