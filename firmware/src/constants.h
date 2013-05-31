@@ -1,44 +1,48 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <cmath>
 #include <cstdint>
 
 namespace constants {
 
-extern const float pi;
-extern const float pi_2;
-extern const float pi_4;
-extern const float two_pi;
-extern const float rad_per_degree;
-extern const float degree_per_rad;
-extern const float e;
-extern const float g;
+constexpr float pi = 4.0f * std::atan(1.0f);
+constexpr float pi_2 = 2.0f * std::atan(1.0f);
+constexpr float pi_4 = std::atan(1.0f);
+constexpr float two_pi = 2.0f * pi;
+constexpr float rad_per_degree = pi / 180.0f;
+constexpr float degree_per_rad = 180.0f / pi;
+constexpr float e = std::exp(1.0f);
+constexpr float g = 9.81f;
 
-extern const uint32_t PWM_ARR;
-extern const uint32_t ENC_ARR;
+constexpr uint32_t PWM_ARR = 0xFFFE;
+constexpr uint32_t ENC_ARR = 0xFFFF;
 
-constexpr uint8_t loop_period_ms = 5;  // main loop update rate in ms
-extern const float system_timer_frequency;
-extern const float system_timer_period;
-// TODO: Move to fork motor controller
-extern const uint32_t YC_N;  // yaw rate control update prescalar
+constexpr float system_timer_counts_per_second = 4.0e6f;
+constexpr float system_timer_seconds_per_count = 1.0f / system_timer_counts_per_second;
 
-extern const float Nm_per_ozfin;
+constexpr float Nm_per_ozfin = 0.00706155182175f;
 
-extern const float wheel_radius;
+constexpr float wheel_radius = 0.3359f;
 
-extern const float accelerometer_sensitivity;
-extern const float gyroscope_sensitivity;
-extern const float thermometer_offset;
-extern const float thermometer_sensitivity;
+// Accelerometer constexprants
+constexpr float accelerometer_sensitivity = g / 16384.0f;
+constexpr float gyroscope_sensitivity = rad_per_degree / 131.0f;
+constexpr float thermometer_offset = 36.53f;
+constexpr float thermometer_sensitivity = 1.0f / 340.0f;
 
-extern const float gyro_x_bias;
-extern const float gyro_y_bias;
-extern const float gyro_z_bias;
-extern const float dcm[6];
+constexpr float gyro_x_bias = -0.12831133410801182f;
+constexpr float gyro_y_bias = 0.032857218962598515f;
+constexpr float gyro_z_bias = 0.010641128707006363f;
+constexpr float dcm[6] = {-0.894519492243436f,
+                      -0.0635181679465503f,
+                      0.0608731305741522f,
+                      0.446568482938378f,
+                      0.997939373875708f,
+                      0.0202846750691697f};
 
-// Unity gain low pass filter
-constexpr float lpf_pole = -100.0f;  // 1 / (s/-100 + 1)
+constexpr uint8_t loop_period_ms = 5;
+constexpr float loop_period_s = loop_period_ms * 0.001f;
 
 } // namespace constants
 

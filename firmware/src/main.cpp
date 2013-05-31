@@ -6,7 +6,7 @@
 
 #include "ff.h"
 
-#include "SampleAndControl.h"
+#include "control_loop.h"
 #include "system_commands.h"
 #include "VectorTable.h"
 #include "motor_controller.h"
@@ -118,7 +118,7 @@ static void cmd_threads(BaseSequentialStream *chp, int argc, char *argv[]) {
 }
 
 static const ShellCommand commands[] = {
-  {"collect", SampleAndControl::shellcmd_}, // enable/disable data collection and control
+  {"collect", hardware::ControlLoop::shell_command}, // enable/disable data collection and control
   {"disable", SystemCommands::disable_controllers},
   {"reset", SystemCommands::reset},
   {"threads", cmd_threads},

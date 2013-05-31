@@ -1,5 +1,3 @@
-#include "bitband.h"
-#include "constants.h"
 #include "motor.h"
 
 namespace hardware {
@@ -24,8 +22,8 @@ Motor::Motor(GPIO_TypeDef * gpio_port,
     enable_pin_{enable_pin},
     fault_pin_{fault_pin},
     ccr_channel_{ccr_channel},
-    dir_negative_{reverse_polarity ? 1 : 0},
-    dir_positive_{reverse_polarity ? 0 : 1}
+    dir_negative_{reverse_polarity ? uint8_t(1) : uint8_t(0)},
+    dir_positive_{reverse_polarity ? uint8_t(0) : uint8_t(1)}
 {
   set_torque(0.0f);
   enable();
@@ -56,40 +54,6 @@ bool Motor::set_torque(float torque)
   current_ = torque * inv_torque_constant_;
   set_ccr(current_to_ccr(current_));
   return torque_set;
-}
-
-void Motor::disable()
-{
-  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(gpio_port_->ODR)),
-                   enable_pin_)) = 1;
-}
-
-void Motor::enable()
-{
-  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(gpio_port_->ODR)),
-                   enable_pin_)) = 0;
-}
-
-uint32_t Motor::current_to_ccr(float current) const
-{
-  return static_cast<uint32_t>((((constants::PWM_ARR + 1) / max_current_)) * current);
-}
-
-void Motor::set_ccr(uint32_t ccr)
-{
-  pwm_timer_->CCR[ccr_channel_] = ccr;
-}
-
-void Motor::set_direction_negative()
-{
-  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(gpio_port_->ODR)),
-                   direction_pin_)) = dir_negative_;
-}
-
-void Motor::set_direction_positive()
-{
-  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(gpio_port_->ODR)),
-                   direction_pin_)) = dir_positive_;
 }
 
 } // namespace hardware

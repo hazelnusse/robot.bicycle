@@ -5,7 +5,7 @@ namespace systemstate {
 
 enum StateFlags {RearWheelMotorEnable     = 0x00000001,
                  SteerMotorEnable         = 0x00000002,
-                 HubMotorFault            = 0x00000004,
+                 RearWheelMotorFault      = 0x00000004,
                  SteerMotorFault          = 0x00000008,
                  RearWheelEncoderDir      = 0x00000010,
                  SteerEncoderDir          = 0x00000020,

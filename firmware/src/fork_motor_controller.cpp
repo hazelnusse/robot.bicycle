@@ -1,6 +1,7 @@
 #include <cstdint>
 #include "constants.h"
 #include "fork_motor_controller.h"
+#include "SystemState.h"
 
 namespace hardware {
 
@@ -54,6 +55,15 @@ void ForkMotorController::update(Sample & s)
     m_.set_torque(0.0f);
   }
   s.motor_current.steer = m_.get_current();
+
+  if (e_.rotation_direction())
+    s.system_state |= systemstate::SteerEncoderDir;
+  if (m_.is_enabled())
+    s.system_state |= systemstate::SteerMotorEnable;
+  if (m_.has_fault())
+    s.system_state |= systemstate::SteerMotorFault;
+  if (m_.current_direction())
+    s.system_state |= systemstate::SteerMotorCurrentDir;
 }
 
 bool ForkMotorController::activate_estimation() {

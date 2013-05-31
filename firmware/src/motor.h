@@ -33,6 +33,10 @@ class Motor {
   void disable();
   void enable();
 
+  bool is_enabled() const;
+  bool has_fault() const;
+  bool current_direction() const;
+
  private:
   uint32_t current_to_ccr(float current) const;
   void set_ccr(uint32_t ccr);
@@ -55,6 +59,8 @@ class Motor {
 };
 
 } // namespace hardware
+
+#include "motor-inl.h"
 
 #endif
 

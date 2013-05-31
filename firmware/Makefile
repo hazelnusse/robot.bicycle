@@ -96,16 +96,14 @@ CSRC = $(PORTSRC) \
 CPPSRC = src/main.cpp \
 				 src/MPU6050.cpp \
 				 src/PeripheralInit.cpp \
-				 src/SampleAndControl.cpp \
+				 src/control_loop.cpp \
 				 src/SampleBuffer.cpp \
 				 src/stubs.cpp \
 				 src/system_commands.cpp \
 				 src/textutilities.cpp \
 				 src/VectorTable.cpp \
 				 src/Interrupts.cpp \
-				 src/constants.cpp \
 				 src/motor.cpp \
-				 src/encoder.cpp \
 				 src/motor_controller.cpp \
 				 src/fork_motor_controller.cpp \
 				 src/rear_motor_controller.cpp
@@ -198,7 +196,7 @@ endif
 DADEFS =
 
 # List all default directories to look for include files here
-DINCDIR = Singleton nanopb src $(HOME)/usr/include/eigen3
+DINCDIR = Singleton nanopb src
 
 # List the default directory to look for the libraries here
 DLIBDIR =
