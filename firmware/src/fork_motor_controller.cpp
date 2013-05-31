@@ -1,6 +1,7 @@
 #include <cstdint>
 #include "constants.h"
 #include "fork_motor_controller.h"
+#include "SystemState.h"
 
 namespace hardware {
 
@@ -42,9 +43,24 @@ void ForkMotorController::update(Sample & s)
 {
   s.encoder.steer = e_.get_angle();
   s.set_point.psi_dot = yaw_rate_command_;
+
   // TODO:
-  //  implement rate divider
-  //  determine motor current command, save it in s.motor_current
+  // 1) get rear wheel rate from sample
+  // 2) update state estimate
+  // 3) update lqr output
+  // 4) update PI output
+  // 5) compute & set steer torque
+  
+  s.motor_current.steer = m_.get_current();
+
+  if (e_.rotation_direction())
+    s.system_state |= systemstate::SteerEncoderDir;
+  if (m_.is_enabled())
+    s.system_state |= systemstate::SteerMotorEnable;
+  if (m_.has_fault())
+    s.system_state |= systemstate::SteerMotorFault;
+  if (m_.current_direction())
+    s.system_state |= systemstate::SteerMotorCurrentDir;
 }
 
 } // namespace hardware
