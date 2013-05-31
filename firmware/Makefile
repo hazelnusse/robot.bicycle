@@ -97,7 +97,7 @@ CPPSRC = src/main.cpp \
 				 src/MPU6050.cpp \
 				 src/PeripheralInit.cpp \
 				 src/control_loop.cpp \
-				 src/SampleBuffer.cpp \
+				 src/sample_buffer.cpp \
 				 src/stubs.cpp \
 				 src/system_commands.cpp \
 				 src/textutilities.cpp \
