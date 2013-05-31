@@ -60,8 +60,8 @@ void GainSchedule::state_estimate(float torque_prev)
     return;
   state_estimate_time_ = s_.loop.count;
   vector_t<input_size> input {torque_prev, s_.encoder.steer, MPU6050::phi_dot(s_)};
-  auto state0 = std::get<estimator>(ss0_).update(state_, input);
-  auto state1 = std::get<estimator>(ss1_).update(state_, input);
+  auto state0 = ss0_.estimator.update(state_, input);
+  auto state1 = ss1_.estimator.update(state_, input);
   state_ = alpha_ * (state1 - state0) + state0;
   s_.estimator.phi = state_(0, 0);
   s_.estimator.delta = state_(1, 0);
@@ -70,16 +70,16 @@ void GainSchedule::state_estimate(float torque_prev)
 }
 
 const float GainSchedule::lqr_output() {
-  const float t0 = std::get<lqr>(ss0_).update(state_)(0, 0);
-  const float t1 = std::get<lqr>(ss1_).update(state_)(0, 0);
+  const float t0 = ss0_.lqr.update(state_)(0, 0);
+  const float t1 = ss1_.lqr.update(state_)(0, 0);
   return alpha_ * (t1 - t0) + t0;
 }
 
 const float GainSchedule::pi_output() {
   vector_t<output_size> x {s.pi.x};
   vector_t<output_size> e {s.pi.e};
-  const float t0 = std::get<pi>(ss0_).update(x, e)(0, 0);
-  const float t1 = std::get<pi>(ss1_).update(x, e)(0, 0);
+  const float t0 = ss0_.pi.update(x, e)(0, 0);
+  const float t1 = ss1_.pi.update(x, e)(0, 0);
   return alpha_ * (t1 - t0) + t0;
 }
 

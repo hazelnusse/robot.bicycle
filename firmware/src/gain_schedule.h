@@ -1,7 +1,6 @@
 #ifndef GAIN_SCHEDULE_H
 #define GAIN_SCHEDULE_H
 #include <map>
-#include <utility>
 
 #include "matrix.h"
 #include "sample.pb.h"
@@ -36,7 +35,11 @@ struct PIController {
                                vector_t<output_size> e);
 };
 
-typedef std::tuple<StateEstimator, LQRController, PIController> ss_tuple_t;
+struct ss_tuple_t {
+  StateEstimator estimator;
+  LQRController lqr;
+  PIController pi;
+};
 
 class GainSchedule {
  public:
@@ -57,9 +60,6 @@ class GainSchedule {
   vector_t<state_size> state_ {};
   ss_tuple_t ss0_, ss1_;
   const std::map<float, ss_tuple_t> schedule_;
-  enum state_space_t {estimator = 0,
-                      lqr = 1;
-                      pi = 2;};
 };
 
 } // namespace control
