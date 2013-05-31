@@ -13,24 +13,15 @@ struct Matrix {
   T & operator()(int i, int j) { return data[N * i + j]; }
 
   Matrix<T, M, N> & operator+=(const Matrix<T, M, N> & B);
+  Matrix<T, M, N> & operator-=(const Matrix<T, M, N> & B);
 
   T data[M * N];
 };
 
-template <typename T, int M, int N>
-Matrix<T, M, N> & Matrix<T, M, N>::operator+=(const Matrix<T, M, N> & B)
-{
-  for (int i = 0; i < M; ++i)
-    for (int j = 0; j < N; ++j)
-      (*this)(i, j) += B(i, j);
-
-  return *this;
-}
-
 template <typename T, int M, int N, int O>
 Matrix<T, M, N> operator*(const Matrix<T, M, O> & A, const Matrix<T, O, N> & B)
 {
-  Matrix<T, M, N> result{};     // entries are zero-initialized
+  Matrix<T, M, N> result{{}};     // entries are zero-initialized
 
   for (int i = 0; i < M; ++i)
     for (int j = 0; j < N; ++j)
@@ -38,6 +29,24 @@ Matrix<T, M, N> operator*(const Matrix<T, M, O> & A, const Matrix<T, O, N> & B)
         result(i, j) += A(i, k) * B(k, j);
 
   return result;
+}
+
+template <typename T, int M, int N>
+Matrix<T, M, N> operator*(T a, const Matrix<T, M, N> & B)
+{
+  Matrix<T, M, N> result{{}};     // entries are zero-initialized
+
+  for (int i = 0; i < M; ++i)
+    for (int j = 0; j < N; ++j)
+      result(i, j) = a * B(i, j);
+
+  return result;
+}
+
+template <typename T, int M, int N, int O>
+Matrix<T, M, N> operator*(const Matrix<T, O, N> & B, T a)
+{
+  return (a * B);
 }
 
 template <typename T, int M, int N>
@@ -50,6 +59,28 @@ Matrix<T, M, N> operator+(const Matrix<T, M, N> & A, const Matrix<T, M, N> & B)
       result(i, j) = A(i, j) + B(i, j);
 
   return result;
+}
+
+template <typename T, int M, int N>
+Matrix<T, M, N> operator-(const Matrix<T, M, N> & A, const Matrix<T, M, N> & B)
+{
+  return A + (T(-1) * B);
+}
+
+template <typename T, int M, int N>
+Matrix<T, M, N> & Matrix<T, M, N>::operator+=(const Matrix<T, M, N> & B)
+{
+  for (int i = 0; i < M; ++i)
+    for (int j = 0; j < N; ++j)
+      (*this)(i, j) += B(i, j);
+
+  return *this;
+}
+
+template <typename T, int M, int N>
+Matrix<T, M, N> & Matrix<T, M, N>::operator-=(const Matrix<T, M, N> & B)
+{
+  return this->operator+=(T(-1) * B);
 }
 
 }
