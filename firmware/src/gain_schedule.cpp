@@ -76,8 +76,7 @@ void GainSchedule::state_estimate(float torque_prev)
                                hardware::MPU6050::phi_dot(s_)}};
   auto state0 = ss0_.estimator.update(state_, input);
   auto state1 = ss1_.estimator.update(state_, input);
-  //state_ = alpha_ * (state1 - state0) + state0; // TODO
-  state_ = state0 + state1;
+  state_ = alpha_ * (state1 - state0) + state0;
   s_.estimate.phi = state_(0, 0);
   s_.estimate.delta = state_(1, 0);
   s_.estimate.phi_dot = state_(2, 0);
