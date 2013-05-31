@@ -19,11 +19,11 @@ class ForkMotorController : public MotorController {
   virtual void update(Sample & s);
 
  private:
-  bool activate_estimation();
-  bool activate_control();
+  bool activate_estimation(const Sample& s) const;
+  bool activate_control(const Sample& s) const;
   Encoder e_;
   Motor m_;
-  GainSchedule fork_sch_ = control::fork_gain_schedule;
+  control::GainSchedule fork_sch_;
 
   float yaw_rate_command_;
   float x_pi_;

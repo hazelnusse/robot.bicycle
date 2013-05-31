@@ -12,27 +12,27 @@ const uint32_t input_size = 3;
 const uint32_t output_size = 1;
 
 template <int M, int N>
-using matrix_t = Matrix<float, int M, int N>;
+using matrix_t = Matrix<float, M, N>;
 template <int M>
-using vector_t = matrix_t<int M, 1>;
+using vector_t = matrix_t<M, 1>;
 
 struct StateEstimator {
   matrix_t<state_size, state_size> A;
   matrix_t<state_size, input_size> B;
   vector_t<state_size> update(vector_t<state_size> x,
-                              vector_t<input_size> u);
+                              vector_t<input_size> u) const;
 };
 
 struct LQRController {
   matrix_t<output_size, state_size> C;
-  vector_t<output_size> update(vector_t<output_size> x);
+  vector_t<output_size> update(vector_t<state_size> x) const;
 };
 
 struct PIController {
   matrix_t<output_size, output_size> Kp;
   matrix_t<output_size, output_size> Ki;
   vector_t<output_size> update(vector_t<output_size> x,
-                               vector_t<output_size> e);
+                               vector_t<output_size> e) const;
 };
 
 struct ss_tuple_t {
@@ -43,23 +43,25 @@ struct ss_tuple_t {
 
 class GainSchedule {
  public:
-  GainSchedule(Sample& s);
-  bool set_rate(float rate);
-  const float rate();
+  GainSchedule();
+  float rate() const;
+  Sample& sample();
+  bool set_sample(Sample& s);
   void set_state(const vector_t<state_size>& state);
   float update_estimate_output(float torque_prev);
  private:
+  bool set_rate(float rate);
   void state_estimate(float torque_prev);
-  const float lqr_output();
-  const float pi_output();
+  float lqr_output() const;
+  float pi_output() const;
 
   Sample s_;
   float rate_;
   float alpha_;
   uint32_t state_estimate_time_;
-  vector_t<state_size> state_ {};
+  vector_t<state_size> state_;
   ss_tuple_t ss0_, ss1_;
-  const std::map<float, ss_tuple_t> schedule_;
+  static const std::map<float, ss_tuple_t> schedule_;
 };
 
 } // namespace control

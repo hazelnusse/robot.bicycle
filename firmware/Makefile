@@ -106,7 +106,9 @@ CPPSRC = src/main.cpp \
 				 src/motor.cpp \
 				 src/motor_controller.cpp \
 				 src/fork_motor_controller.cpp \
-				 src/rear_motor_controller.cpp
+				 src/rear_motor_controller.cpp \
+				 src/gain_schedule.cpp \
+				 src/fork_schedule.cpp
 
 # Enable this if you want to build tests and have them run in main
 ifeq ($(BUILD_TEST), YES)
