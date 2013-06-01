@@ -19,20 +19,20 @@ using vector_t = matrix_t<M, 1>;
 struct StateEstimator {
   matrix_t<state_size, state_size> A;
   matrix_t<state_size, input_size> B;
-  vector_t<state_size> update(vector_t<state_size> x,
-                              vector_t<input_size> u) const;
+  vector_t<state_size> update(const vector_t<state_size>& x,
+                              const vector_t<input_size>& u) const;
 };
 
 struct LQRController {
   matrix_t<output_size, state_size> C;
-  vector_t<output_size> update(vector_t<state_size> x) const;
+  vector_t<output_size> update(const vector_t<state_size>& x) const;
 };
 
 struct PIController {
   matrix_t<output_size, output_size> Kp;
   matrix_t<output_size, output_size> Ki;
-  vector_t<output_size> update(vector_t<output_size> x,
-                               vector_t<output_size> e) const;
+  vector_t<output_size> update(const vector_t<output_size>& x,
+                               const vector_t<output_size>& e) const;
 };
 
 struct ss_tuple_t {
@@ -60,7 +60,7 @@ class GainSchedule {
   float alpha_;
   uint32_t state_estimate_time_;
   vector_t<state_size> state_;
-  ss_tuple_t ss0_, ss1_;
+  ss_tuple_t *ss_lower_, *ss_upper_;
   static const std::map<float, ss_tuple_t> schedule_;
 };
 
