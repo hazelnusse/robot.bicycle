@@ -48,10 +48,9 @@ void ForkMotorController::update(Sample & s)
   x_pi_ += s.yaw_rate_pi.e;
   s.yaw_rate_pi.x = x_pi_;
 
-  if (activate_estimation(s) && fork_sch_.set_sample(s)) {
-    // updating estimate requires previous torque
-    const float torque = fork_sch_.update_estimate_output(m_.get_torque());
-    if (activate_control(s))
+  if (should_estimate(s) && fork_control_.set_sample(s)) {
+    const float torque = fork_control_.compute_updated_torque(m_.get_torque());
+    if (should_control(s))
       m_.set_torque(torque);
   } else {
     m_.set_torque(0.0f);
@@ -68,11 +67,11 @@ void ForkMotorController::update(Sample & s)
     s.system_state |= systemstate::SteerMotorCurrentDir;
 }
 
-bool ForkMotorController::activate_estimation(const Sample& s) const {
+bool ForkMotorController::should_estimate(const Sample& s) const {
   return s.encoder.rear_wheel_rate < estimation_threshold_;
 }
 
-bool ForkMotorController::activate_control(const Sample& s) const {
+bool ForkMotorController::should_control(const Sample& s) const {
   return (s.encoder.rear_wheel_rate < control_threshold_ &&
           std::fabs(s.encoder.steer) < max_steer_angle_);
 }

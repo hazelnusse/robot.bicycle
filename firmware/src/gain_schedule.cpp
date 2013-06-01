@@ -94,7 +94,7 @@ float GainSchedule::pi_output() const {
   return alpha_ * (t1 - t0) + t0;
 }
 
-float GainSchedule::update_estimate_output(float torque_prev) {
+float GainSchedule::compute_updated_torque(float torque_prev) {
   state_estimate(torque_prev);
   return lqr_output() + pi_output();
 }

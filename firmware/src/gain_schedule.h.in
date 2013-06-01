@@ -48,7 +48,7 @@ class GainSchedule {
   Sample& sample();
   bool set_sample(Sample& s);
   void set_state(const vector_t<state_size>& state);
-  float update_estimate_output(float torque_prev);
+  float compute_updated_torque(float torque_prev);
  private:
   bool set_rate(float rate);
   void state_estimate(float torque_prev);
