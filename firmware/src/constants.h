@@ -41,8 +41,13 @@ constexpr float dcm[6] = {-0.894519492243436f,
                       0.997939373875708f,
                       0.0202846750691697f};
 
+constexpr int32_t fork_encoder_index_offset = -402;
+
 constexpr uint8_t loop_period_ms = 5;
 constexpr float loop_period_s = loop_period_ms * 0.001f;
+
+constexpr uint16_t fork_counts_per_revolution = 20000;
+constexpr uint16_t wheel_counts_per_revolution = 800;
 
 } // namespace constants
 

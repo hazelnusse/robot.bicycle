@@ -6,6 +6,7 @@
 
 #include "ff.h"
 
+#include "calibration.h"
 #include "control_loop.h"
 #include "system_commands.h"
 #include "VectorTable.h"
@@ -122,9 +123,9 @@ static const ShellCommand commands[] = {
   {"disable", SystemCommands::disable_controllers},
   {"reset", SystemCommands::reset},
   {"threads", cmd_threads},
+  {"calibrate", calibration::fork_encoder_calibration},
+  {"homefork", calibration::fork_encoder_home},
   // TODO: move all YawRateController static functions elsehwere
-//  {"calibrate", YawRateController::calibrateSteerEncoder_},     // select yaw rate set point
-//  {"homefork", YawRateController::homeFork_},     // select yaw rate set point
 //  {"e_thresh", YawRateController::setEstimationThreshold},
 //  {"c_thresh", YawRateController::setControlThreshold},
 //  {"pi", YawRateController::togglePI},

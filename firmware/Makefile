@@ -96,6 +96,7 @@ CSRC = $(PORTSRC) \
 CPPSRC = src/main.cpp \
 				 src/MPU6050.cpp \
 				 src/PeripheralInit.cpp \
+				 src/calibration.cpp \
 				 src/control_loop.cpp \
 				 src/sample_buffer.cpp \
 				 src/stubs.cpp \
