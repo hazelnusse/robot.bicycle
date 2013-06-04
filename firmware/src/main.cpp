@@ -6,11 +6,7 @@
 
 #include "ff.h"
 
-#include "RearWheel.h"
-#include "SampleAndControl.h"
-#include "SystemCommands.h"
 #include "VectorTable.h"
-#include "YawRateController.h"
 
 /*===========================================================================*/
 /* Card insertion monitor.                                                   */
@@ -114,19 +110,45 @@ static void cmd_threads(BaseSequentialStream *chp, int argc, char *argv[]) {
   } while (tp != NULL);
 }
 
+WORKING_AREA(waThreadA, 128);
+WORKING_AREA(waThreadB, 128);
+Thread * tp_ThreadA, * tp_ThreadB;
+
+msg_t ThreadA(void *)
+{
+  while (!chThdShouldTerminate()) {
+    chThdSleep(chTimeNow() + MS2ST(5));
+  }
+
+  chThdTerminate(tp_ThreadB);
+  msg_t res = chThdWait(tp_ThreadB);
+  tp_ThreadA = tp_ThreadB = 0;
+  return res;
+}
+
+msg_t ThreadB(void *)
+{
+  while (!chThdShouldTerminate()) {
+    chThdSleep(chTimeNow() + MS2ST(5));
+  }
+  return 0;
+}
+
+static void cmd_start(BaseSequentialStream *, int, char **)
+{
+  tp_ThreadA = chThdCreateStatic(waThreadA, sizeof(waThreadA), NORMALPRIO + 2, ThreadA, NULL);
+  tp_ThreadB = chThdCreateStatic(waThreadB, sizeof(waThreadB), NORMALPRIO + 1, ThreadB, NULL);
+}
+
+static void cmd_stop(BaseSequentialStream *, int, char **)
+{
+  chThdTerminate(tp_ThreadA);
+}
+
 static const ShellCommand commands[] = {
-  {"rw", RearWheel::shellcmd_},             // select rear wheel rate set point
-  {"yr", YawRateController::shellcmd_},     // select yaw rate set point
-  {"calibrate", YawRateController::calibrateSteerEncoder_},     // select yaw rate set point
-  {"homefork", YawRateController::homeFork_},     // select yaw rate set point
-  {"collect", SampleAndControl::shellcmd_}, // enable/disable data collection and control
-  {"disable", SystemCommands::disablemotors},
-  {"reset", SystemCommands::reset},
-  {"status", SystemCommands::status},
+  {"start", cmd_start},
+  {"stop", cmd_stop},
   {"threads", cmd_threads},
-  {"e_thresh", YawRateController::setEstimationThreshold},
-  {"c_thresh", YawRateController::setControlThreshold},
-  {"pi", YawRateController::togglePI},
   {NULL, NULL}
 };
 
