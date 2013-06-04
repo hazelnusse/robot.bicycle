@@ -67,9 +67,7 @@ msg_t SampleBuffer::flush_and_close()
 {
   if (tp_write_thread_) {
     chThdTerminate(tp_write_thread_);
-    msg_t write_errors = chThdWait(tp_write_thread_);
-    tp_write_thread_ = 0;
-    return write_errors;
+    return chThdWait(tp_write_thread_);
   }
   return -1;
 }
@@ -91,7 +89,7 @@ msg_t SampleBuffer::exec(const char * filename)
     if (chThdShouldTerminate())
       break;
     if (buffer_to_write == active_buffer_) {
-      chThdSleep(chTimeNow() + MS2ST(constants::loop_period_ms));
+      chThdSleepMilliseconds(constants::loop_period_ms);
       continue;
     }
     res = f_write(&f, &buffer[buffer_to_write][0],
@@ -101,7 +99,7 @@ msg_t SampleBuffer::exec(const char * filename)
   }
 
   res = f_write(&f, &buffer[active_buffer_][0], buffer_index_, &bytes_written);
-  write_errors += (res != FR_OK) || (bytes_written != bytes_per_buffer);
+  write_errors += (res != FR_OK) || (bytes_written != buffer_index_);
   res = f_close(&f);
   write_errors += (res != FR_OK);
 

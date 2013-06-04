@@ -20,6 +20,7 @@ inline
 SampleBuffer::~SampleBuffer()
 {
   instance_ = 0;
+  tp_write_thread_ = 0;
 }
 
 }

@@ -18,7 +18,7 @@ msg_t ControlLoop::start(const char * filename)
 {
   tp_control_ = chThdCreateStatic(waControlThread,
                                   sizeof(waControlThread),
-                                  chThdGetPriority() + 2,
+                                  chThdGetPriority() + 3,
                                   ControlLoop::thread_function, 
                                   const_cast<char *>(filename));
   if (!tp_control_)
