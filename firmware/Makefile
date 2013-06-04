@@ -103,7 +103,6 @@ CPPSRC = src/main.cpp \
 				 src/system_commands.cpp \
 				 src/textutilities.cpp \
 				 src/VectorTable.cpp \
-				 src/Interrupts.cpp \
 				 src/motor.cpp \
 				 src/motor_controller.cpp \
 				 src/fork_motor_controller.cpp \
