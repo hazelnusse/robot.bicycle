@@ -1,32 +1,50 @@
-from control import tf, bode_plot
-from matplotlib.pyplot import show
-from scipy import pi
-from scipy.signal import cont2discrete, tf2ss
-from numpy import logspace
+"""
+Given a continuous time first order transfer function of the form:
 
-def astrom_derivative_filter(Td, N):
-    num = [Td, 0]
-    den = [Td/N, 1]
-    return tf(num, den), num, den
+    n1 * s + n0
+    -----------
+      s + d0
 
-omega = logspace(-1, 3, num=100) * 2 * pi
+Compute the Tustin approximation and return a state space realization of this
+discrete time transfer function.
+"""
+from sympy import symbols, Poly, ccode, S, sqrt
 
-num = [1]
-den = [0.01, 1]
+def discrete_realization(n0, n1, d0, T):
+    z = symbols('z')
+    s = 2/T*(z-1)/(z+1)
+    num = ((n1*s + n0)*T*(z + 1)).simplify()
+    den = ((s + d0)*T*(z + 1)).simplify()
+    num_poly = Poly(num, z)
+    den_poly = Poly(den, z)
 
-lpf = tf(num, den)
-mag, phase, f = bode_plot(lpf, omega=omega, dB=True, Hz=True)
-print(mag)
-print(phase)
-print(f)
+    n1_z, n0_z = num_poly.coeffs()
+    d1_z, d0_z = den_poly.coeffs()
 
-delay = phase / (360.0 * f)
+    # Make denominator monic and divide numerator appropriately
+    n1_z /= d1_z
+    n0_z /= d1_z
+    d0_z /= d1_z
 
-lpf_ss = tf2ss(num, den)
-print(lpf_ss)
-lpf_ss_d = cont2discrete(lpf_ss, dt=0.05)
-print(lpf_ss_d)
+    a = -d0_z
+    b_times_c = (n0_z - n1_z * d0_z).simplify()
+    d = n1_z
+
+    return a, b_times_c, d
 
 
-show()
+n0, n1, d0, T = symbols('n0 n1 d0 T')
+#T = 0.0013
+#n0 = 1.23
+#n1 = 4.56
+#d0 = 7.89
+a, b_times_c, d = discrete_realization(n0, n1, d0, T)
+
+a_str = ccode(a)
+b_times_c_str = ccode(b_times_c)
+d_str = ccode(d)
+
+print(a_str)
+print(b_times_c_str)
+print(d_str)
 
