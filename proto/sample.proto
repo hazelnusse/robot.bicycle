@@ -35,6 +35,7 @@ message Encoder {
   required float rear_wheel = 2;
   required float steer = 3;
   required float front_wheel = 4;
+  required float rear_wheel_rate = 5;
 }
 
 // Size: 2 * 4 = 8 bytes
