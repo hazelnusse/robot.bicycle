@@ -99,7 +99,6 @@ CPPSRC = src/main.cpp \
 				 src/calibration.cpp \
 				 src/control_loop.cpp \
 				 src/sample_buffer.cpp \
-				 src/stubs.cpp \
 				 src/system_commands.cpp \
 				 src/textutilities.cpp \
 				 src/VectorTable.cpp \
