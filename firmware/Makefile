@@ -93,19 +93,19 @@ CSRC = $(PORTSRC) \
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CPPSRC = src/main.cpp \
-				 src/MPU6050.cpp \
-				 src/initialization.cpp \
-				 src/calibration.cpp \
+CPPSRC = src/calibration.cpp \
 				 src/control_loop.cpp \
+				 src/fork_motor_controller.cpp \
+				 src/initialization.cpp \
+				 src/main.cpp \
+				 src/motor.cpp \
+				 src/motor_controller.cpp \
+				 src/MPU6050.cpp \
+				 src/rear_motor_controller.cpp \
 				 src/sample_buffer.cpp \
 				 src/system_commands.cpp \
 				 src/textutilities.cpp \
-				 src/VectorTable.cpp \
-				 src/motor.cpp \
-				 src/motor_controller.cpp \
-				 src/fork_motor_controller.cpp \
-				 src/rear_motor_controller.cpp
+				 src/VectorTable.cpp
 
 # Enable this if you want to build tests and have them run in main
 ifeq ($(BUILD_TEST), YES)
