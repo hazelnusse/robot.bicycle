@@ -182,7 +182,7 @@ class PlotData(object):
         for d in data:
             ax.plot(x_data, d, **options)
 
-        y_label = PLOTY_SEP.join(y) + " (normalized)" if norm else ""
+        y_label = PLOTY_SEP.join(y) + (" (normalized)" if norm else "")
         ax.set_xlabel(x_field)
         ax.set_ylabel(y_label)
         ax.set_title(y_label + ' vs. ' + x_field)
