@@ -104,6 +104,9 @@ void ForkMotorController::update(Sample & s)
     s.system_state |= systemstate::SteerMotorCurrentDir;
 }
 
+// estimation/control thresholds are in terms of wheel rate, which is defined
+// to be negative when the speed of the bicycle is positive. estimation/control
+// should occur when speed > threshold which is equivalent to rate < threshold.
 bool ForkMotorController::should_estimate(const Sample& s) const {
   return s.encoder.rear_wheel_rate < estimation_threshold_;
 }
