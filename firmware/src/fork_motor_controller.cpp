@@ -31,14 +31,14 @@ void ForkMotorController::set_reference(float yaw_rate)
   yaw_rate_command_ = yaw_rate;
 }
 
-void ForkMotorController::set_estimation_threshold(float wheel_rate)
+void ForkMotorController::set_estimation_threshold(float speed)
 {
-  estimation_threshold_  = wheel_rate;
+  estimation_threshold_  = -1.0f * speed / constants::wheel_radius;
 }
 
-void ForkMotorController::set_control_threshold(float wheel_rate)
+void ForkMotorController::set_control_threshold(float speed)
 {
-  control_threshold_ = wheel_rate;
+  control_threshold_ = -1.0f * speed / constants::wheel_radius;
 }
 
 void ForkMotorController::disable()
@@ -104,6 +104,9 @@ void ForkMotorController::update(Sample & s)
     s.system_state |= systemstate::SteerMotorCurrentDir;
 }
 
+// estimation/control thresholds are in terms of wheel rate, which is defined
+// to be negative when the speed of the bicycle is positive. estimation/control
+// should occur when speed > threshold which is equivalent to rate < threshold.
 bool ForkMotorController::should_estimate(const Sample& s) const {
   return s.encoder.rear_wheel_rate < estimation_threshold_;
 }

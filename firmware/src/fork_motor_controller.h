@@ -27,8 +27,8 @@ class ForkMotorController : public MotorController {
                                           int argc, char * argv[]);
 
  private:
-  void set_estimation_threshold(float wheel_rate);
-  void set_control_threshold(float wheel_rate);
+  void set_estimation_threshold(float speed);
+  void set_control_threshold(float speed);
   bool should_estimate(const Sample& s) const;
   bool should_control(const Sample& s) const;
 
