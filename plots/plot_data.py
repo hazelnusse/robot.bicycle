@@ -100,7 +100,10 @@ class PlotData(object):
         if field in self.dtype_c:
             return [field]
 
-        return [ff for ff in self.full_fields if ff.startswith(field)]
+        subfields = self.get_field_type(field).fields
+        if subfields:
+            return [ff for ff in self.full_fields if ff.startswith(field)]
+        return [field]
 
     def print_fields(self):
         """Print the data fields.
