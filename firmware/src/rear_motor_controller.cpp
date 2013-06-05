@@ -30,7 +30,7 @@ RearMotorController::~RearMotorController()
 {
   instances[rear_wheel] = 0;
 }
-  
+
 void RearMotorController::set_reference(float speed)
 {
   theta_R_dot_command_ = speed / constants::wheel_radius;

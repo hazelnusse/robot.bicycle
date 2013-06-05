@@ -31,14 +31,14 @@ void ForkMotorController::set_reference(float yaw_rate)
   yaw_rate_command_ = yaw_rate;
 }
 
-void ForkMotorController::set_estimation_threshold(float wheel_rate)
+void ForkMotorController::set_estimation_threshold(float speed)
 {
-  estimation_threshold_  = wheel_rate;
+  estimation_threshold_  = speed / constants::wheel_radius;
 }
 
-void ForkMotorController::set_control_threshold(float wheel_rate)
+void ForkMotorController::set_control_threshold(float speed)
 {
-  control_threshold_ = wheel_rate;
+  control_threshold_ = speed / constants::wheel_radius;
 }
 
 void ForkMotorController::disable()
