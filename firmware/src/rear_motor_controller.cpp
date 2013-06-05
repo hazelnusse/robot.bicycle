@@ -33,7 +33,7 @@ RearMotorController::~RearMotorController()
 
 void RearMotorController::set_reference(float speed)
 {
-  theta_R_dot_command_ = speed / constants::wheel_radius;
+  theta_R_dot_command_ = -1.0f * speed / constants::wheel_radius;
 }
 
 void RearMotorController::disable()
