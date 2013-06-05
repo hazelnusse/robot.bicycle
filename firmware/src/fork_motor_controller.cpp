@@ -9,6 +9,7 @@ namespace hardware {
 const uint8_t ccr_channel = 2;                 // PWM Channel 2
 const float max_current = 6.0f;                // Copley Controls ACJ-055-18
 const float torque_constant = 106.459f * constants::Nm_per_ozfin;
+const float max_steer_angle = 45.0f * constants::rad_per_degree;
 
 ForkMotorController::ForkMotorController()
   : MotorController("Fork"),
@@ -113,7 +114,7 @@ bool ForkMotorController::should_estimate(const Sample& s) const {
 
 bool ForkMotorController::should_control(const Sample& s) const {
   return (s.encoder.rear_wheel_rate < control_threshold_ &&
-          std::fabs(s.encoder.steer) < max_steer_angle_);
+          std::fabs(s.encoder.steer) < max_steer_angle);
 }
 
 } // namespace hardware
