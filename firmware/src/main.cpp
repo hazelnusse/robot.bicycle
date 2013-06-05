@@ -9,7 +9,7 @@
 #include "calibration.h"
 #include "control_loop.h"
 #include "system_commands.h"
-#include "VectorTable.h"
+#include "vector_table.h"
 #include "motor_controller.h"
 
 #if defined(BUILD_TEST)
@@ -184,7 +184,7 @@ int main()
 #endif
 
   VectorTable v;
-  v.Relocate();
+  v.relocate();
   static const evhandler_t evhndl[] = { InsertHandler, RemoveHandler };
   Thread * shelltp = NULL;
   static struct EventListener el0, el1;

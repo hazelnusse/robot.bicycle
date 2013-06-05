@@ -105,7 +105,7 @@ CPPSRC = src/calibration.cpp \
 				 src/sample_buffer.cpp \
 				 src/system_commands.cpp \
 				 src/textutilities.cpp \
-				 src/VectorTable.cpp
+				 src/vector_table.cpp
 
 # Enable this if you want to build tests and have them run in main
 ifeq ($(BUILD_TEST), YES)

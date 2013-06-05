@@ -6,7 +6,7 @@
 
 #include "constants.h"
 #include "encoder.h"
-#include "VectorTable.h"
+#include "vector_table.h"
 
 #include "calibration.h"
 
@@ -70,8 +70,8 @@ void fork_encoder_calibration(BaseSequentialStream * chp, int, char **)
              encoder_counts.size()/4);
 
     VectorTable v;
-    irq_vector_t vec40 = v.GetISR(EXTI15_10_IRQn);
-    v.SetISR(EXTI15_10_IRQn, fork_encoder_calibration_ISR);
+    irq_vector_t vec40 = v.get_ISR(EXTI15_10_IRQn);
+    v.set_ISR(EXTI15_10_IRQn, fork_encoder_calibration_ISR);
     uint16_t tmp = SYSCFG->EXTICR[2];
     SYSCFG->EXTICR[2] = SYSCFG_EXTICR3_EXTI11_PF;
     nvicEnableVector(EXTI15_10_IRQn, CORTEX_PRIORITY_MASK(7));
@@ -88,7 +88,7 @@ void fork_encoder_calibration(BaseSequentialStream * chp, int, char **)
     EXTI->FTSR = 0;
     SYSCFG->EXTICR[2] = tmp;
     nvicDisableVector(EXTI15_10_IRQn);
-    v.SetISR(EXTI15_10_IRQn, vec40);
+    v.set_ISR(EXTI15_10_IRQn, vec40);
 
     float sum = 0.0f;
     for (const auto & count : encoder_counts) {
@@ -113,8 +113,8 @@ void fork_encoder_home(BaseSequentialStream * chp, int, char **)
 {
   chprintf(chp, "Move fork past index position.\r\n");
   VectorTable v;
-  irq_vector_t vec40 = v.GetISR(EXTI15_10_IRQn);
-  v.SetISR(EXTI15_10_IRQn, fork_encoder_home_ISR);
+  irq_vector_t vec40 = v.get_ISR(EXTI15_10_IRQn);
+  v.set_ISR(EXTI15_10_IRQn, fork_encoder_home_ISR);
   uint16_t tmp = SYSCFG->EXTICR[2];
   SYSCFG->EXTICR[2] = SYSCFG_EXTICR3_EXTI11_PF;
   nvicEnableVector(EXTI15_10_IRQn, CORTEX_PRIORITY_MASK(7));
@@ -130,7 +130,7 @@ void fork_encoder_home(BaseSequentialStream * chp, int, char **)
   EXTI->FTSR = 0;
   SYSCFG->EXTICR[2] = tmp;
   nvicDisableVector(EXTI15_10_IRQn);
-  v.SetISR(EXTI15_10_IRQn, vec40);
+  v.set_ISR(EXTI15_10_IRQn, vec40);
   
   chprintf(chp, "Fork has been successfully homed.\r\n");
 }

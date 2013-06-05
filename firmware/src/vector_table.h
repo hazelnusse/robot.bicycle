@@ -24,17 +24,16 @@ struct vectors_t {
   irq_vector_t  vectors[82];
 };
 
+
+extern vectors_t _vectors;
+
 class VectorTable {
  public:
-  VectorTable();
-  void Relocate();
-  void SetISR(uint32_t N, irq_vector_t ISR) { vtable_.vectors[N] = ISR; }
-  irq_vector_t GetISR(uint32_t N) const { return vtable_.vectors[N]; }
+  void relocate() { vtable_ = _vectors; };
+  void set_ISR(uint32_t N, irq_vector_t ISR) { vtable_.vectors[N] = ISR; }
+  irq_vector_t get_ISR(uint32_t N) const { return vtable_.vectors[N]; }
 
  private:
-  VectorTable(const VectorTable&) = delete;
-  VectorTable & operator=(const VectorTable&) = delete;
-
   static vectors_t vtable_;
 };
 
