@@ -1,37 +1,53 @@
+#include <algorithm>
 #include <cmath>
 
 #include "gain_schedule.h"
 #include "MPU6050.h"
 
 namespace control {
+
 vector_t<state_size> StateEstimator::update(const vector_t<state_size>& x,
-                                            const vector_t<input_size>& u) const {
+                                            const vector_t<input_size>& u) const
+{
   return A * x + B * u;
 }
-vector_t<output_size> LQRController::update(const vector_t<state_size>& x) const {
+
+vector_t<output_size> LQRController::update(const vector_t<state_size>& x) const
+{
   return C * x;
 }
+
 vector_t<output_size> PIController::update(const vector_t<output_size>& x,
-                                           const vector_t<output_size>& e) const {
+                                           const vector_t<output_size>& e) const
+{
   return Kp * x + Ki * e;
+}
+
+bool rt_controller_t::operator<(const rt_controller_t& rhs) const
+{
+  return rate < rhs.rate;
 }
 
 GainSchedule::GainSchedule() : state_{{}} { };
 
-float GainSchedule::rate() const {
+float GainSchedule::rate() const
+{
   return rate_;
 }
 
-Sample& GainSchedule::sample() {
+Sample& GainSchedule::sample()
+{
   return s_;
 }
 
-bool GainSchedule::set_sample(Sample& s) {
+bool GainSchedule::set_sample(Sample& s)
+{
   s_ = s;
   return set_rate(s.encoder.rear_wheel_rate);
 }
 
-void GainSchedule::set_state(const vector_t<state_size>& state) {
+void GainSchedule::set_state(const vector_t<state_size>& state)
+{
   state_ = state;
 }
 
@@ -40,22 +56,23 @@ bool GainSchedule::set_rate(float rate)
   bool valid = true;
   rate_ = rate;
 
-  auto it = schedule_.upper_bound(rate);
+  r.rate = rate;
+  auto it = std::upper_bound(schedule_.begin(), schedule_.end(), r);
   if (it == schedule_.begin() || it == schedule_.end()) {
     valid = false;
     if (it == schedule_.begin()) {
-      s_.estimate.theta_R_dot_upper = it->first;
+      s_.estimate.theta_R_dot_upper = it->rate;
       s_.estimate.theta_R_dot_lower = NAN;
     } else {
       s_.estimate.theta_R_dot_upper = NAN;
-      s_.estimate.theta_R_dot_lower = (--it)->first;
+      s_.estimate.theta_R_dot_lower = (--it)->rate;
     }
   } else {
     valid = true;
-    s_.estimate.theta_R_dot_upper = it->first;
-    ss_upper_ = const_cast<ss_tuple_t*>(&(it->second));
-    s_.estimate.theta_R_dot_lower = (--it)->first;
-    ss_lower_ = const_cast<ss_tuple_t*>(&(it->second));
+    s_.estimate.theta_R_dot_upper = it->rate;
+    ss_upper_ = const_cast<controller_t*>(&(it->controller));
+    s_.estimate.theta_R_dot_lower = (--it)->rate;
+    ss_lower_ = const_cast<controller_t*>(&(it->controller));
 
     alpha_ = (rate - s_.estimate.theta_R_dot_lower) /
              (s_.estimate.theta_R_dot_upper - s_.estimate.theta_R_dot_lower);
