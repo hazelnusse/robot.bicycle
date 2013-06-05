@@ -6,8 +6,8 @@
 
 namespace hardware {
 
-const uint8_t ccr_channel = 0;                 // PWM Channel 0
-const float max_current = 6.0;                 // Copley Controls ACJ-055-18
+const uint8_t ccr_channel = 2;                 // PWM Channel 2
+const float max_current = 6.0f;                // Copley Controls ACJ-055-18
 const float torque_constant = 106.459f * constants::Nm_per_ozfin;
 
 ForkMotorController::ForkMotorController()
