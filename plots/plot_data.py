@@ -170,9 +170,10 @@ class PlotData(object):
 
         for y_field in y_fields:
             y_data = self.get_field_data(y_field)
+            mag = 1
             if norm:
-                y_data *= 1.0/(np.amax(np.absolute(y_data)))
-            ax.plot(x_data, y_data, label=y_field, **options)
+                mag = np.amax(np.absolute(y_data))
+            ax.plot(x_data, y_data / mag, label=y_field, **options)
         for d in data:
             ax.plot(x_data, d, **options)
 
