@@ -1,8 +1,7 @@
 #include "ch.h"
 #include "hal.h"
-#include "PeripheralInit.h"
+#include "initialization.h"
 #include "constants.h"
-
 
 // For all peripheral initialization, the following apprach is taken:
 // -- on reset, all inputs are input floating by default
@@ -13,19 +12,19 @@
 //    the enable lines that go to the motor controller.
 
 // Private functions
-static void configureRCC();
-static void configureEncoderTimers();
-static void configureMotorPWM();
+static void configure_RCC();
+static void configure_encoder_timers();
+static void configure_motor_PWM();
 
 // This function is called in boardInit(), which is called during halInit()
-void PeripheralInit()
+void peripheral_initialization()
 {
-  configureRCC();           // Enable peripheral clocks
-  configureEncoderTimers();        // Configure Timers
-  configureMotorPWM();      // Configure Motor PWM
-}
+  configure_RCC();           // Enable peripheral clocks
+  configure_encoder_timers();        // Configure Timers
+  configure_motor_PWM();      // Configure Motor PWM
+} // peripheral_initialization()
 
-static void configureRCC()
+static void configure_RCC()
 {
   // SYSCLOCK is at 168.0 MHz
   // APB1 timers are clocked at  84.0 MHz
@@ -50,9 +49,9 @@ static void configureRCC()
                |   (1 << 10)  // ADC3  --  Battery monitor
                |   (1 <<  1)  // TIM8  --  Rear wheel angle measurement
                |   (1 <<  0));// TIM1  --  PWM Output
-} // configureRCC
+} // configure_RCC()
 
-void configureEncoderTimers(void)
+void configure_encoder_timers(void)
 {
   // Position encoder timers are all 16-bit
   // TIM3 and TIM4 are APB1@84.0MHz, TIM8 is APB2@168.0MHz.
@@ -93,9 +92,9 @@ void configureEncoderTimers(void)
 
   // Enable timer 
   STM32_TIM5->CR1 = 1;
-} // configureEncoderTimers()
+} // configure_encoder_timers()
 
-static void configureMotorPWM()
+static void configure_motor_PWM()
 {
   // Disable the timer and enable auto preload register
   STM32_TIM1->CR1 = (1 << 7);
@@ -131,4 +130,5 @@ static void configureMotorPWM()
 
   // TIM1 Main Output Enable
   STM32_TIM1->BDTR = (1 << 15);
-} // configureMotorPWM()
+} // configure_motor_PWM()
+
