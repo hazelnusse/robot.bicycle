@@ -126,8 +126,8 @@ static const ShellCommand commands[] = {
   {"calibrate", calibration::fork_encoder_calibration},
   {"homefork", calibration::fork_encoder_home},
   // TODO: move all YawRateController static functions elsehwere
-//  {"e_thresh", YawRateController::setEstimationThreshold},
-//  {"c_thresh", YawRateController::setControlThreshold},
+  {"e_thresh", hardware::ForkMotorController::set_estimation_threshold_shell},
+  {"c_thresh", hardware::ForkMotorController::set_control_threshold_shell},
 //  {"pi", YawRateController::togglePI},
   {"yaw_rate", hardware::set_reference_shell<hardware::fork>},
   {"speed", hardware::set_reference_shell<hardware::rear_wheel>},

@@ -1,11 +1,14 @@
 #ifndef FORK_MOTOR_CONTROLLER_H
 #define FORK_MOTOR_CONTROLLER_H
 
+#include "ch.h"
+#include "chprintf.h"
 #include "encoder.h"
 #include "gain_schedule.h"
 #include "motor.h"
 #include "motor_controller.h"
 #include "sample.pb.h"
+#include "textutilities.h"
 
 namespace hardware {
 
@@ -18,9 +21,17 @@ class ForkMotorController : public MotorController {
   virtual void enable();
   virtual void update(Sample & s);
 
+  static void set_estimation_threshold_shell(BaseSequentialStream * chp,
+                                             int argc, char * argv[]);
+  static void set_control_threshold_shell(BaseSequentialStream * chp,
+                                          int argc, char * argv[]);
+
  private:
+  void set_estimation_threshold(float wheel_rate);
+  void set_control_threshold(float wheel_rate);
   bool should_estimate(const Sample& s) const;
   bool should_control(const Sample& s) const;
+
   Encoder e_;
   Motor m_;
   control::GainSchedule fork_control_;

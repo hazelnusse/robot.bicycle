@@ -14,7 +14,9 @@ ForkMotorController::ForkMotorController()
   : MotorController("Fork"),
   e_(STM32_TIM3, constants::fork_counts_per_revolution),
   m_(GPIOF, GPIOF_STEER_DIR, GPIOF_STEER_ENABLE, GPIOF_STEER_FAULT,
-     STM32_TIM1, ccr_channel, max_current, torque_constant)
+     STM32_TIM1, ccr_channel, max_current, torque_constant),
+  estimation_threshold_(0.0f),
+  control_threshold_(0.0f)
 {
   instances[fork] = this;
 }
@@ -29,6 +31,16 @@ void ForkMotorController::set_reference(float yaw_rate)
   yaw_rate_command_ = yaw_rate;
 }
 
+void ForkMotorController::set_estimation_threshold(float wheel_rate)
+{
+  estimation_threshold_  = wheel_rate;
+}
+
+void ForkMotorController::set_control_threshold(float wheel_rate)
+{
+  control_threshold_ = wheel_rate;
+}
+
 void ForkMotorController::disable()
 {
   m_.disable();
@@ -37,6 +49,32 @@ void ForkMotorController::disable()
 void ForkMotorController::enable()
 {
   m_.enable();
+}
+
+void ForkMotorController::set_estimation_threshold_shell(BaseSequentialStream *chp,
+                                                         int argc, char *argv[])
+{
+  if (argc == 1) {
+      ForkMotorController* fmc = reinterpret_cast<ForkMotorController*>(instances[fork]);
+      fmc->set_estimation_threshold(tofloat(argv[0]));
+      chprintf(chp, "%s estimation threshold set to %f.\r\n", fmc->name(),
+               fmc->estimation_threshold_);
+  } else {
+    chprintf(chp, "Invalid usage.\r\n");
+  }
+}
+
+void ForkMotorController::set_control_threshold_shell(BaseSequentialStream *chp,
+                                                      int argc, char *argv[])
+{
+  if (argc == 1) {
+      ForkMotorController* fmc = reinterpret_cast<ForkMotorController*>(instances[fork]);
+      fmc->set_control_threshold(tofloat(argv[0]));
+      chprintf(chp, "%s control threshold set to %f.\r\n", fmc->name(),
+               fmc->control_threshold_);
+  } else {
+    chprintf(chp, "Invalid usage.\r\n");
+  }
 }
 
 void ForkMotorController::update(Sample & s)
