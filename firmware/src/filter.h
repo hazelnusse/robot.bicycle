@@ -20,7 +20,7 @@ class first_order_discrete_filter {
   /** \brief Constructor
    *
    * \description Continuous time filter is assumed to have form:
-   *    
+   *
    *    H(s) = (n1 * s + n0) / (s + d0)
    *
    * \param[in] n0 Zero order numerator coefficient.
@@ -28,7 +28,7 @@ class first_order_discrete_filter {
    * \param[in] d0 Zero order denominator coefficient.
    * \param[in] T  Sample time.
    *
-   */ 
+   */
   first_order_discrete_filter(Real n0, Real n1, Real d0, Real T) :
     a{-(T*d0 - 2)/(T*d0 + 2)},
     c{signum(4*T*(-d0*n1 + n0)/(std::pow(T, Real(2))*std::pow(d0, Real(2)) + 4*T*d0 + 4))
