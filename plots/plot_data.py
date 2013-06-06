@@ -172,7 +172,7 @@ class PlotData(object):
             y_data = self.get_field_data(y_field)
             mag = 1.0
             if norm:
-                mag = np.amax(np.absolute(y_data))
+                mag = np.float(np.amax(np.absolute(y_data)))
                 if mag < 1e-12:
                     mag = 1.0
             ax.plot(x_data, y_data / mag, label=y_field, *args, **kwargs)
