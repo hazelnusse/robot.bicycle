@@ -150,7 +150,7 @@ class PlotData(object):
         scalar_map = mplcm.ScalarMappable(norm=c_norm, cmap=self.cm)
         axes.set_color_cycle([scalar_map.to_rgba(i) for i in range(num_colors)])
 
-    def plot(self, x, y, data=[], norm=False, *args, **kwargs):
+    def plot(self, x, y=None, data=None, norm=False, *args, **kwargs):
         """Returns the figure used in plotting field 'y' vs field 'x'.
 
         'x' and 'y' are fields as shown in print_fields().  'y' can be a list of
@@ -159,11 +159,20 @@ class PlotData(object):
         'norm' can be used to normalize each 'y'.
         'args' and 'kwargs' are passed to axes.plot().
         """
+        if y is None and data is None:
+            return
+        if y is None:
+            y = []
+        if data is None:
+            data = []
+
         fig, ax = plt.subplots(1)
         x_field = self.expand_field(x)[0]
         x_data = self.get_field_data(x_field)
         if not isinstance(y, list):
             y = [y]
+        if not isinstance(data, list):
+            data= [data]
 
         y_fields = [y_field for y_ in y for y_field in self.expand_field(y_)]
         self._set_color_cycle(ax, len(y_fields) + len(data) + 1)
@@ -176,8 +185,8 @@ class PlotData(object):
                 if mag < 1e-12:
                     mag = 1.0
             ax.plot(x_data, y_data / mag, label=y_field, *args, **kwargs)
-        for d in data:
-            ax.plot(x_data, d, *args, **kwargs)
+        for i, d in enumerate(data):
+            ax.plot(x_data, d, label="additional data {0}".format(i), *args, **kwargs)
 
         y_label = PLOTY_SEP.join(y) + (" (normalized)" if norm else "")
         ax.set_xlabel(x_field)
