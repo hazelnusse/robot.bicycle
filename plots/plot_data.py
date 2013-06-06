@@ -31,15 +31,13 @@ class PlotData(object):
     """
     def __init__(self, pb_file=None, message_type=None, datafile=None):
         self.samples_np = Message_np(pb_file, message_type, datafile)
-        self.data = self.samples_np.get_messages_np()
+        self.data = np.ma.array(self.samples_np.get_messages_np())
         self.dtype = self.samples_np.message_npdtype_map[message_type]
         self.full_fields = []
         self.cm = plt.get_cmap('gist_rainbow')
         self.dtype_c = {}
         self.data_c = {}
-        self.stats = {}
         self._set_full_fields()
-
 
     def _get_field_type_data(self, field):
         """Returns the datatype and data for the specified field.
@@ -66,7 +64,7 @@ class PlotData(object):
 
     def _set_full_fields(self):
         """Set the list of full field names.
-        
+
         Sets a list of the field names for the message type. If a field has
         subfields, the an entry is added for each subfield, where the field and
         subfield with a seperator between the two. The superfield is excluded
@@ -100,7 +98,10 @@ class PlotData(object):
         if field in self.dtype_c:
             return [field]
 
-        return [ff for ff in self.full_fields if ff.startswith(field)]
+        subfields = self.get_field_type(field).fields
+        if subfields:
+            return [ff for ff in self.full_fields if ff.startswith(field)]
+        return [field]
 
     def print_fields(self):
         """Print the data fields.
@@ -126,10 +127,11 @@ class PlotData(object):
             initial_offset += 1
 
         for pf in print_fields:
-            try:
+            subfields = self.get_field_type(pf).fields
+            if subfields:
+                stats = ""
+            else:
                 stats = print_stats(self.get_field_data(pf))
-            except TypeError:
-                pass
 
             subfields = pf.split(SUBTYPE_SEP)
             print(subfield_prefix * (len(subfields) + initial_offset) +
@@ -170,13 +172,16 @@ class PlotData(object):
 
         for y_field in y_fields:
             y_data = self.get_field_data(y_field)
+            mag = 1.0
             if norm:
-                y_data *= 1.0/(np.amax(np.absolute(y_data)))
-            ax.plot(x_data, y_data, label=y_field, **options)
+                mag = np.amax(np.absolute(y_data))
+                if mag < 1e-12:
+                    mag = 1.0
+            ax.plot(x_data, y_data / mag, label=y_field, **options)
         for d in data:
             ax.plot(x_data, d, **options)
 
-        y_label = PLOTY_SEP.join(y) + " (normalized)" if norm else ""
+        y_label = PLOTY_SEP.join(y) + (" (normalized)" if norm else "")
         ax.set_xlabel(x_field)
         ax.set_ylabel(y_label)
         ax.set_title(y_label + ' vs. ' + x_field)
@@ -184,7 +189,7 @@ class PlotData(object):
         plt.show()
         return fig
 
-    def hist(self, field=None, data=None, *args):
+    def hist(self, field=None, data=None, *args, **kwargs):
         """Plots a histogram for the specified 'field' or with 'data' using the
         same arguments as matplotlib.pyplot.hist().
         """
@@ -194,9 +199,10 @@ class PlotData(object):
         if field:
             efield = self.expand_field(field)[0]
             data = self.get_field_data(efield)
-        ax.hist(data, *args)
+        ax.hist(data, *args, **kwargs)
         ax.set_xlabel(efield)
         ax.set_ylabel('occurances')
         ax.set_title('histogram of {0}\nmean = {1}, stddev = {2}'.format(
                 efield, np.mean(data), np.std(data)))
+        plt.show()
         return fig
