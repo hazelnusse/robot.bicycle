@@ -31,15 +31,13 @@ class PlotData(object):
     """
     def __init__(self, pb_file=None, message_type=None, datafile=None):
         self.samples_np = Message_np(pb_file, message_type, datafile)
-        self.data = self.samples_np.get_messages_np()
+        self.data = np.ma.array(self.samples_np.get_messages_np())
         self.dtype = self.samples_np.message_npdtype_map[message_type]
         self.full_fields = []
         self.cm = plt.get_cmap('gist_rainbow')
         self.dtype_c = {}
         self.data_c = {}
-        self.stats = {}
         self._set_full_fields()
-
 
     def _get_field_type_data(self, field):
         """Returns the datatype and data for the specified field.

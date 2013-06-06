@@ -17,6 +17,7 @@ class PlotSample(PlotData):
         self.default_x = None
         self._correct_system_time()
         self._add_sample_period()
+        self._mask_fields(['computation_time', 'sample_period'])
         self._convert_clocks_to_seconds(['system_time_c', 'computation_time',
                                          'sample_period'])
         self.set_default_x('system_time_s')
@@ -25,7 +26,7 @@ class PlotSample(PlotData):
         field = 'system_time_c'
         systime_data = self.get_field_data('system_time')
         self.dtype_c[field] = np.uint64
-        self.data_c[field] = np.empty(systime_data.shape,
+        self.data_c[field] = np.ma.empty(systime_data.shape,
                                       dtype=self.dtype_c[field])
         prev_t = 0
         offset = 0
@@ -40,9 +41,14 @@ class PlotSample(PlotData):
         systime_data = self.get_field_data('system_time_c')
         systime_delay = np.roll(systime_data, 1)
         systime_dt = systime_data - systime_delay
-        systime_dt[0] = 0;
         self.data_c[field] = systime_dt
         self.dtype_c[field] = type(self.data_c[field][0])
+
+    def _mask_fields(self, field_list):
+        """Mask the first element in the given fields since they are invalid.
+        """
+        for field in field_list:
+            self.get_field_data(field)[0] = np.ma.masked
 
     def _convert_clocks_to_seconds(self, fields):
         for field in fields:
