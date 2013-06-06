@@ -39,8 +39,7 @@ class ForkMotorController : public MotorController {
   float yaw_rate_command_;
   float x_pi_;
   float estimation_threshold_; // in terms of rear wheel rate
-  float control_threshold_; // in terms of rear wheel rate
-  const float max_steer_angle_ = 45; //degrees
+  float control_threshold_;    // in terms of rear wheel rate
 };
 
 } // namespace hardware

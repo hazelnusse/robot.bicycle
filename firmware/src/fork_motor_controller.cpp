@@ -6,17 +6,18 @@
 
 namespace hardware {
 
-const uint8_t ccr_channel = 0;                 // PWM Channel 0
-const float max_current = 6.0;                 // Copley Controls ACJ-055-18
+const uint8_t ccr_channel = 2;                 // PWM Channel 2
+const float max_current = 6.0f;                // Copley Controls ACJ-055-18
 const float torque_constant = 106.459f * constants::Nm_per_ozfin;
+const float max_steer_angle = 45.0f * constants::rad_per_degree;
 
 ForkMotorController::ForkMotorController()
   : MotorController("Fork"),
   e_(STM32_TIM3, constants::fork_counts_per_revolution),
   m_(GPIOF, GPIOF_STEER_DIR, GPIOF_STEER_ENABLE, GPIOF_STEER_FAULT,
      STM32_TIM1, ccr_channel, max_current, torque_constant),
-  estimation_threshold_(0.0f),
-  control_threshold_(0.0f)
+  estimation_threshold_{-1.0f / constants::wheel_radius},
+  control_threshold_{-2.0f / constants::wheel_radius}
 {
   instances[fork] = this;
 }
@@ -33,12 +34,12 @@ void ForkMotorController::set_reference(float yaw_rate)
 
 void ForkMotorController::set_estimation_threshold(float speed)
 {
-  estimation_threshold_  = -1.0f * speed / constants::wheel_radius;
+  estimation_threshold_  = speed / -constants::wheel_radius;
 }
 
 void ForkMotorController::set_control_threshold(float speed)
 {
-  control_threshold_ = -1.0f * speed / constants::wheel_radius;
+  control_threshold_ = speed / -constants::wheel_radius;
 }
 
 void ForkMotorController::disable()
@@ -113,7 +114,7 @@ bool ForkMotorController::should_estimate(const Sample& s) const {
 
 bool ForkMotorController::should_control(const Sample& s) const {
   return (s.encoder.rear_wheel_rate < control_threshold_ &&
-          std::fabs(s.encoder.steer) < max_steer_angle_);
+          std::fabs(s.encoder.steer) < max_steer_angle);
 }
 
 } // namespace hardware

@@ -9,7 +9,7 @@ namespace hardware {
 const uint8_t ccr_channel = 1;              // PWM Channel 1
 const float max_current = 12.0f;            // Copley Controls ACJ-090-36
 const float torque_constant = 6.654987675770698f;  // Experimentally determined
-const float d0 = 100.0f;                    // filter pole at - d0 rad / s
+const float d0 = 10.0f * constants::two_pi; // filter pole at -d0 rad / s
 const float n0 = d0;
 const float n1 = 0.0f;
 
@@ -33,7 +33,7 @@ RearMotorController::~RearMotorController()
 
 void RearMotorController::set_reference(float speed)
 {
-  theta_R_dot_command_ = -1.0f * speed / constants::wheel_radius;
+  theta_R_dot_command_ = speed / -constants::wheel_radius;
 }
 
 void RearMotorController::disable()

@@ -29,7 +29,7 @@ uint32_t Motor::current_to_ccr(float current) const
 inline
 void Motor::set_ccr(uint32_t ccr)
 {
-  pwm_timer_->CCR[ccr_channel_] = ccr;
+  pwm_timer_->CCR[ccr_channel_ - 1] = ccr;
 }
 
 inline
