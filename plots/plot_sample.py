@@ -63,6 +63,9 @@ class PlotSample(PlotData):
         self.default_x = field;
 
     def plot_d(self, *args, **kwargs):
+        """Calls plot(), using self.default_x as the x axis.
+        Refer to plot() for use of options.
+        """
         self.plot(self.default_x, *args, **kwargs)
 
     def fft_window(self, field, start=None, stop=None, step=None):

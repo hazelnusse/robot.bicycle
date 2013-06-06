@@ -150,17 +150,15 @@ class PlotData(object):
         scalar_map = mplcm.ScalarMappable(norm=c_norm, cmap=self.cm)
         axes.set_color_cycle([scalar_map.to_rgba(i) for i in range(num_colors)])
 
-    def plot(self, x, y, data=[], norm=False, options=None):
+    def plot(self, x, y, data=[], norm=False, *args, **kwargs):
         """Returns the figure used in plotting field 'y' vs field 'x'.
 
         'x' and 'y' are fields as shown in print_fields().  'y' can be a list of
         fields and will result in all plots displayed on the same figure.
         'data' is an array of data that can be plotted against 'x'.
-        'norm' can be used to normalize each 'y'. 'options' is passed to
-        axes.plot().
+        'norm' can be used to normalize each 'y'.
+        'args' and 'kwargs' are passed to axes.plot().
         """
-        if options is None:
-            options = {}
         fig, ax = plt.subplots(1)
         x_field = self.expand_field(x)[0]
         x_data = self.get_field_data(x_field)
@@ -177,9 +175,9 @@ class PlotData(object):
                 mag = np.amax(np.absolute(y_data))
                 if mag < 1e-12:
                     mag = 1.0
-            ax.plot(x_data, y_data / mag, label=y_field, **options)
+            ax.plot(x_data, y_data / mag, label=y_field, *args, **kwargs)
         for d in data:
-            ax.plot(x_data, d, **options)
+            ax.plot(x_data, d, *args, **kwargs)
 
         y_label = PLOTY_SEP.join(y) + (" (normalized)" if norm else "")
         ax.set_xlabel(x_field)
