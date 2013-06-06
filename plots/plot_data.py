@@ -190,7 +190,7 @@ class PlotData(object):
         plt.show()
         return fig
 
-    def hist(self, field=None, data=None, *args):
+    def hist(self, field=None, data=None, *args, **kwargs):
         """Plots a histogram for the specified 'field' or with 'data' using the
         same arguments as matplotlib.pyplot.hist().
         """
@@ -200,9 +200,10 @@ class PlotData(object):
         if field:
             efield = self.expand_field(field)[0]
             data = self.get_field_data(efield)
-        ax.hist(data, *args)
+        ax.hist(data, *args, **kwargs)
         ax.set_xlabel(efield)
         ax.set_ylabel('occurances')
         ax.set_title('histogram of {0}\nmean = {1}, stddev = {2}'.format(
                 efield, np.mean(data), np.std(data)))
+        plt.show()
         return fig

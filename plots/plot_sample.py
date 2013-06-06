@@ -55,6 +55,5 @@ class PlotSample(PlotData):
     def set_default_x(self, field):
         self.default_x = field;
 
-    def plot_d(self, *arg):
-        print(arg)
-        self.plot(self.default_x, *arg)
+    def plot_d(self, *args, **kwargs):
+        self.plot(self.default_x, *args, **kwargs)
