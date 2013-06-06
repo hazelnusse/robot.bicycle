@@ -66,7 +66,7 @@ class PlotData(object):
 
     def _set_full_fields(self):
         """Set the list of full field names.
-        
+
         Sets a list of the field names for the message type. If a field has
         subfields, the an entry is added for each subfield, where the field and
         subfield with a seperator between the two. The superfield is excluded
@@ -129,10 +129,11 @@ class PlotData(object):
             initial_offset += 1
 
         for pf in print_fields:
-            try:
+            subfields = self.get_field_type(pf).fields
+            if subfields:
+                stats = ""
+            else:
                 stats = print_stats(self.get_field_data(pf))
-            except TypeError:
-                pass
 
             subfields = pf.split(SUBTYPE_SEP)
             print(subfield_prefix * (len(subfields) + initial_offset) +
