@@ -53,7 +53,6 @@ class GainSchedule {
  public:
   GainSchedule();
   float rate() const;
-  Sample& sample();
   bool set_sample(Sample& s);
   void set_state(const vector_t<state_size>& state);
   float compute_updated_torque(float torque_prev);
@@ -63,13 +62,14 @@ class GainSchedule {
   float lqr_output() const;
   float pi_output() const;
 
-  Sample s_;
+  Sample * s_;
   float rate_;
   float alpha_;
   uint32_t state_estimate_time_;
   vector_t<state_size> state_;
   controller_t *ss_lower_, *ss_upper_;
   rt_controller_t r;
+  bool pi_control_enabled_;
   static const std::array<rt_controller_t, num_gains> schedule_;
 };
 
