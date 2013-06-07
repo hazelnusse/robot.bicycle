@@ -1,6 +1,8 @@
 #ifndef REAR_MOTOR_CONTROLLER_H
 #define REAR_MOTOR_CONTROLLER_H
 
+#include <array>
+
 #include "encoder.h"
 #include "filter.h"
 #include "motor.h"
@@ -19,6 +21,7 @@ class RearMotorController : public MotorController {
   virtual void update(Sample & s);
 
  private:
+  float sg_smoother(float dthetadt);
   Encoder e_;
   Motor m_;
   float theta_R_dot_command_;
@@ -28,6 +31,8 @@ class RearMotorController : public MotorController {
   uint32_t system_time_prev_;
   uint32_t rear_wheel_count_prev_;
   control::first_order_discrete_filter<float> low_pass_filter_;
+  std::array<float, 5> sg_data_;
+  uint8_t sg_insert_index_;
 };
 
 } // namespace hardware
