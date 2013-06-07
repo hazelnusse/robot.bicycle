@@ -57,7 +57,7 @@ bool GainSchedule::set_rate(float rate)
   r.rate = rate;
   auto it = std::upper_bound(schedule_.begin(), schedule_.end(), r);
   if (it == schedule_.begin() || it == schedule_.end()) {
-    valid = false;
+    valid = s_->has_estimate = false;
     if (it == schedule_.begin()) {
       s_->estimate.theta_R_dot_upper = it->rate;
       s_->estimate.theta_R_dot_lower = NAN;
@@ -66,7 +66,7 @@ bool GainSchedule::set_rate(float rate)
       s_->estimate.theta_R_dot_lower = (--it)->rate;
     }
   } else {
-    valid = true;
+    valid = s_->has_estimate = true;
     s_->estimate.theta_R_dot_upper = it->rate;
     ss_upper_ = const_cast<controller_t*>(&(it->controller));
     s_->estimate.theta_R_dot_lower = (--it)->rate;
@@ -114,7 +114,7 @@ float GainSchedule::pi_output() const
 float GainSchedule::compute_updated_torque(float torque_prev)
 {
   state_estimate(torque_prev);
-  return lqr_output() + pi_output();
+  return lqr_output(); //  + pi_output();
 }
 
 } // namespace control
