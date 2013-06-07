@@ -5,5 +5,5 @@ protoc -I/usr/include -Inanopb/generator -I../proto -o sample.pb --python_out=..
 python2 ./nanopb/generator/nanopb_generator.py sample.pb
 mv sample.pb.h sample.pb.c ./src
 make -j8 USE_FPU=yes USE_VERBOSE_COMPILE=YES BUILD_TEST=YES TRGT=~/toolchain/bin/arm-none-eabi-
-rm ./src/sample.pb.c ./src/sample.pb.h ./sample.pb
+#rm ./src/sample.pb.c ./src/sample.pb.h ./sample.pb
 
