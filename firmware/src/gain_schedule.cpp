@@ -81,8 +81,6 @@ bool GainSchedule::set_rate(float rate)
 
 void GainSchedule::state_estimate(float torque_prev)
 {
-  if (state_estimate_time_ == s_->loop_count)
-    return;
   state_estimate_time_ = s_->loop_count;
   vector_t<input_size> input {{torque_prev, s_->encoder.steer,
                                hardware::MPU6050::phi_dot(*s_)}};
