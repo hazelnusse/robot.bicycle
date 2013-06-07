@@ -25,6 +25,8 @@ class ForkMotorController : public MotorController {
                                              int argc, char * argv[]);
   static void set_control_threshold_shell(BaseSequentialStream * chp,
                                           int argc, char * argv[]);
+  static void set_thresholds_shell(BaseSequentialStream * chp,
+                                   int argc, char * argv[]);
 
  private:
   void set_estimation_threshold(float speed);

@@ -78,6 +78,22 @@ void ForkMotorController::set_control_threshold_shell(BaseSequentialStream *chp,
   }
 }
 
+void ForkMotorController::set_thresholds_shell(BaseSequentialStream *chp,
+                                               int argc, char *argv[])
+{
+  if (argc == 2) {
+      ForkMotorController* fmc = reinterpret_cast<ForkMotorController*>(instances[fork]);
+      fmc->set_estimation_threshold(tofloat(argv[0]));
+      fmc->set_control_threshold(tofloat(argv[1]));
+      chprintf(chp, "%s estimation threshold set to %f.\r\n", fmc->name(),
+               fmc->estimation_threshold_);
+      chprintf(chp, "%s control threshold set to %f.\r\n", fmc->name(),
+               fmc->control_threshold_);
+  } else {
+    chprintf(chp, "Invalid usage.\r\n");
+  }
+}
+
 void ForkMotorController::update(Sample & s)
 {
   s.encoder.steer = e_.get_angle();
