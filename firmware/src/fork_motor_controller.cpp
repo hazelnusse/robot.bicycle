@@ -16,7 +16,7 @@ ForkMotorController::ForkMotorController()
   e_(STM32_TIM3, constants::fork_counts_per_revolution),
   m_(GPIOF, GPIOF_STEER_DIR, GPIOF_STEER_ENABLE, GPIOF_STEER_FAULT,
      STM32_TIM1, ccr_channel, max_current, torque_constant),
-  estimation_threshold_{-1.0f / constants::wheel_radius},
+  estimation_threshold_{0.0f},
   control_threshold_{-2.0f / constants::wheel_radius}
 {
   instances[fork] = this;
@@ -57,9 +57,13 @@ void ForkMotorController::set_estimation_threshold_shell(BaseSequentialStream *c
 {
   if (argc == 1) {
       ForkMotorController* fmc = reinterpret_cast<ForkMotorController*>(instances[fork]);
-      fmc->set_estimation_threshold(tofloat(argv[0]));
-      chprintf(chp, "%s estimation threshold set to %f.\r\n", fmc->name(),
-               fmc->estimation_threshold_);
+      if (fmc) {
+        fmc->set_estimation_threshold(tofloat(argv[0]));
+        chprintf(chp, "%s estimation threshold set to %f.\r\n", fmc->name(),
+                 fmc->estimation_threshold_);
+      } else {
+        chprintf(chp, "Enable collection before setting estimation threshold.\r\n");
+      }
   } else {
     chprintf(chp, "Invalid usage.\r\n");
   }
@@ -70,9 +74,13 @@ void ForkMotorController::set_control_threshold_shell(BaseSequentialStream *chp,
 {
   if (argc == 1) {
       ForkMotorController* fmc = reinterpret_cast<ForkMotorController*>(instances[fork]);
-      fmc->set_control_threshold(tofloat(argv[0]));
-      chprintf(chp, "%s control threshold set to %f.\r\n", fmc->name(),
-               fmc->control_threshold_);
+      if (fmc) {
+        fmc->set_control_threshold(tofloat(argv[0]));
+        chprintf(chp, "%s control threshold set to %f.\r\n", fmc->name(),
+                 fmc->control_threshold_);
+      } else {
+        chprintf(chp, "Enable collection before setting control threshold.\r\n");
+      }
   } else {
     chprintf(chp, "Invalid usage.\r\n");
   }
@@ -90,6 +98,8 @@ void ForkMotorController::update(Sample & s)
     const float torque = fork_control_.compute_updated_torque(m_.get_torque());
     if (should_control(s))
       m_.set_torque(torque);
+    else
+      m_.set_torque(0.0f);
   } else {
     m_.set_torque(0.0f);
   }
@@ -112,9 +122,10 @@ bool ForkMotorController::should_estimate(const Sample& s) const {
   return s.encoder.rear_wheel_rate < estimation_threshold_;
 }
 
-bool ForkMotorController::should_control(const Sample& s) const {
-  return (s.encoder.rear_wheel_rate < control_threshold_ &&
-          std::fabs(s.encoder.steer) < max_steer_angle);
+bool ForkMotorController::should_control(const Sample& s) const
+{
+  return s.encoder.rear_wheel_rate < control_threshold_ &&
+         std::fabs(s.encoder.steer) < max_steer_angle;
 }
 
 } // namespace hardware
