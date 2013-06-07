@@ -80,6 +80,7 @@ msg_t ControlLoop::exec(const char * file_name)
 {
   logging::SampleBuffer sample_buffer(file_name);
   Sample s;
+  memset(&s, 0, sizeof(s));
 
   systime_t time = chTimeNow();     // Initial time
   systime_t sleep_time;
