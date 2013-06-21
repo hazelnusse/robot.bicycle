@@ -6,29 +6,32 @@
 
 namespace control {
 
-vector_t<state_size> StateEstimator::update(const vector_t<state_size>& x,
-                                            const vector_t<input_size>& u) const
+vector_t<observer_state_size> StateEstimator::update(const vector_t<observer_state_size>& x,
+                                            const vector_t<observer_input_size>& u) const
 {
-  return A * x + B * u;
+  return C * (A * x + B * u) + D * u;
 }
 
-vector_t<output_size> LQRController::update(const vector_t<state_size>& x) const
+vector_t<plant_model_input_size> LQRController::update(const vector_t<plant_model_state_size>& x) const
 {
   return C * x;
 }
 
-vector_t<output_size> PIController::update(const vector_t<output_size>& x,
-                                           const vector_t<output_size>& e) const
-{
-  return Kp * x + Ki * e;
-}
+//vector_t<output_size> PIController::update(const vector_t<output_size>& x,
+//                                           const vector_t<output_size>& e) const
+//{
+//  return Kp * x + Ki * e;
+//}
 
 bool rt_controller_t::operator<(const rt_controller_t& rhs) const
 {
   return rate < rhs.rate;
 }
 
-GainSchedule::GainSchedule() : state_{{}}, pi_control_enabled_{false}
+GainSchedule::GainSchedule()
+  : state_{{}}, pi_control_enabled_{false},
+    derivative_filter_{0, 50*2*constants::pi,
+                       50*2*constants::pi, constants::loop_period_s}
 {
 
 }
@@ -44,7 +47,7 @@ bool GainSchedule::set_sample(Sample& s)
   return set_rate(s.encoder.rear_wheel_rate);
 }
 
-void GainSchedule::set_state(const vector_t<state_size>& state)
+void GainSchedule::set_state(const vector_t<plant_model_state_size>& state)
 {
   state_ = state;
 }
@@ -82,15 +85,22 @@ bool GainSchedule::set_rate(float rate)
 void GainSchedule::state_estimate(float torque_prev)
 {
   state_estimate_time_ = s_->loop_count;
-  vector_t<input_size> input {{torque_prev, s_->encoder.steer,
-                               hardware::MPU6050::phi_dot(*s_)}};
-  auto state_lower = ss_lower_->estimator.update(state_, input);
-  auto state_upper = ss_upper_->estimator.update(state_, input);
-  state_ = alpha_ * (state_upper - state_lower) + state_lower;
-  s_->estimate.phi = state_(0, 0);
-  s_->estimate.delta = state_(1, 0);
-  s_->estimate.phi_dot = state_(2, 0);
-  s_->estimate.delta_dot = state_(3, 0);
+  s_->estimate.delta = s_->encoder.steer;
+  s_->estimate.phi = hardware::MPU6050::phi_dot(*s_);
+  s_->estimate.delta_dot = derivative_filter_.output(s_->encoder.steer);
+  derivative_filter_.update(s_->encoder.steer);
+
+  vector_t<observer_state_size> st {{state_(0, 3)}}; // previous phi_dot estimate
+  vector_t<observer_input_size> in {{s_->estimate.delta, s_->estimate.phi,
+                                     s_->estimate.delta_dot, torque_prev}};
+
+  auto state_lower = ss_lower_->estimator.update(st, in);
+  auto state_upper = ss_upper_->estimator.update(st, in);
+  s_->estimate.phi_dot = (alpha_ * (state_upper - state_lower) + state_lower)(0, 0);
+  state_(0, 0) = s_->estimate.delta;
+  state_(0, 1) = s_->estimate.phi;
+  state_(0, 2) = s_->estimate.delta_dot;
+  state_(0, 3) = s_->estimate.phi_dot;
 }
 
 float GainSchedule::lqr_output() const
@@ -102,10 +112,14 @@ float GainSchedule::lqr_output() const
 
 float GainSchedule::pi_output() const
 {
-  vector_t<output_size> x {{s_->yaw_rate_pi.x}};
-  vector_t<output_size> e {{s_->yaw_rate_pi.e}};
-  const float t0 = ss_lower_->pi.update(x, e)(0, 0);
-  const float t1 = ss_upper_->pi.update(x, e)(0, 0);
+//  vector_t<output_size> x {{s_->yaw_rate_pi.x}};
+//  vector_t<output_size> e {{s_->yaw_rate_pi.e}};
+  float x = s_->yaw_rate_pi.x;
+  float e = s_->yaw_rate_pi.e;
+//  const float t0 = ss_lower_->pi.update(x, e)(0, 0);
+//  const float t1 = ss_upper_->pi.update(x, e)(0, 0);
+  const float t0 = ss_lower_->pi.update(x, e);
+  const float t1 = ss_upper_->pi.update(x, e);
   return alpha_ * (t1 - t0) + t0;
 }
 
