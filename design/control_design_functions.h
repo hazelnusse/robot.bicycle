@@ -30,6 +30,7 @@ struct model_data {
   Eigen::MatrixXd A_obs;
   Eigen::MatrixXd B_obs;
   Eigen::MatrixXd C_obs;
+  Eigen::MatrixXd D_obs;
 
   bool operator<(const model_data & other) const {
       return theta_R_dot < other.theta_R_dot;

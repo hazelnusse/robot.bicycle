@@ -12,6 +12,7 @@
 
 
 Eigen::IOFormat matlabfmt(Eigen::FullPrecision, 0, ", ", ";\n", "", "", "[", "]");
+Eigen::IOFormat printfmt(Eigen::FullPrecision, 0, ", ", ", ", "", "", "{{", "}}");
 
 void compute_state_space_matrices(const design_parameters & params,
                                   bicycle::Bicycle & bike,
@@ -161,26 +162,28 @@ void compute_observer_gains(const design_parameters & params,
   data.K_obs(2, 0) = k2;
   data.K_obs(3, 0) = k3;
 
-  data.A_obs = Eigen::MatrixXd::Zero(1, 4);
+  data.A_obs = Eigen::MatrixXd::Zero(1, 1);
   data.A_obs(0, 0) = (a20*k2 + a30*k3)/params.k0;                            // w coefficient
-  data.A_obs(0, 1) = a21*k2 + a31*k3 - k1*(a20*k2 + a30*k3)/params.k0;       // delta coefficient
-  data.A_obs(0, 2) = a22*k2 + a32*k3 + params.k0 - k2*(a20*k2 + a30*k3)/params.k0;  // phi dot coefficent
-  data.A_obs(0, 3) = a23*k2 + a33*k3 + k1 - k3*(a20*k2 + a30*k3)/params.k0;  // delta dot coefficient
-  
-  if (std::abs(data.A_obs(0, 1) - N * data.A_obs(0, 3)) > 1e-10) {    // verify ratio
-    std::cout << "A(0, 1) = " << data.A_obs(0, 1) << std::endl;
-    std::cout << "N * A(0, 3) = " << N * data.A_obs(0, 3) << std::endl;
+
+  data.B_obs = Eigen::MatrixXd::Zero(1, 4);
+  data.B_obs(0, 0) = a21*k2 + a31*k3 - k1*(a20*k2 + a30*k3)/params.k0;       // delta coefficient
+  data.B_obs(0, 1) = a22*k2 + a32*k3 + params.k0 - k2*(a20*k2 + a30*k3)/params.k0;  // phi dot coefficent
+  data.B_obs(0, 2) = a23*k2 + a33*k3 + k1 - k3*(a20*k2 + a30*k3)/params.k0;  // delta dot coefficient
+  data.B_obs(0, 3) = b20*k2 + b30*k3;                                 // T_delta coefficient
+  if (std::abs(data.B_obs(0, 0) - N * data.B_obs(0, 2)) > 1e-10) {    // verify ratio
+    std::cout << "B(0, 0) = " << data.B_obs(0, 0) << std::endl;
+    std::cout << "N * B(0, 2) = " << N * data.B_obs(0, 2) << std::endl;
     throw std::runtime_error("Ratio calculation failed.");
   }
-  
-  data.B_obs = Eigen::MatrixXd::Zero(1, 1);
-  data.B_obs(0, 0) = b20*k2 + b30*k3;                                 // T_delta coefficient
 
-  data.C_obs = Eigen::MatrixXd::Zero(1, 4);
+  data.C_obs = Eigen::MatrixXd::Zero(1, 1);
   data.C_obs(0, 0) = 1 / params.k0;
-  data.C_obs(0, 1) = -k1 / params.k0;
-  data.C_obs(0, 2) = -k2 / params.k0;
-  data.C_obs(0, 3) = -k3 / params.k0;
+
+  data.D_obs = Eigen::MatrixXd::Zero(1, 4);
+  data.D_obs(0, 0) = -k1 / params.k0;
+  data.D_obs(0, 1) = -k2 / params.k0;
+  data.D_obs(0, 2) = -k3 / params.k0;
+  data.D_obs(0, 3) = 0;
 
   std::cout << "observer time constant = " << -1/data.A_obs(0, 0) << " seconds\n";
   std::cout << "observer characteristic frequency = " << -data.A_obs(0, 0) << " rad / s"
@@ -188,6 +191,7 @@ void compute_observer_gains(const design_parameters & params,
   std::cout << "A_obs = " << data.A_obs.format(matlabfmt) << std::endl;
   std::cout << "B_obs = " << data.B_obs.format(matlabfmt) << std::endl;
   std::cout << "C_obs = " << data.C_obs.format(matlabfmt) << std::endl;
+  std::cout << "D_obs = " << data.D_obs.format(matlabfmt) << std::endl;
 }
 
 std::vector<model_data> design_controller(const design_parameters & params,
