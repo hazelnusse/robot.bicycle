@@ -1,5 +1,6 @@
 project(ROBOT_BICYCLE_HOST CXX C)
 cmake_minimum_required(VERSION 2.8.8)
+set(CMAKE_MODULE_PATH ${ROBOT_BICYCLE_HOST_SOURCE_DIR}/cmake/Modules)
 
 # Pass in PYTHON_EXECUTABLE, PROTO_FILES, PROTO_OUTPUT_DIR
 if(NOT PYTHON_EXECUTABLE OR NOT PROTO_FILES OR NOT PROTO_OUTPUT_DIR)
@@ -7,6 +8,8 @@ if(NOT PYTHON_EXECUTABLE OR NOT PROTO_FILES OR NOT PROTO_OUTPUT_DIR)
 endif()
 
 find_package(Protobuf REQUIRED)
+find_package(Eigen3 3.1.2)
+
 set(NANOPB_DIR "${ROBOT_BICYCLE_HOST_SOURCE_DIR}/firmware/nanopb")
 set(NANOPB_GENERATOR_EXECUTABLE "${NANOPB_DIR}/generator/nanopb_generator.py")
 
@@ -45,24 +48,22 @@ endforeach()
 add_custom_target(generate_proto_sources ALL
     DEPENDS ${PROTO_SRCS} ${PROTO_HDRS})
 
-## Set g++ compiler flags if GNU C++ compiler is being used
-#if(CMAKE_COMPILER_IS_GNUCXX)
-#    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
-#    if(GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7)
-#        set(ENABLE_CXX11 "-std=c++11")
-#    elseif(GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
-#        set(ENABLE_CXX11 "-std=c++0x")
-#    else()
-#        message(FATAL_ERROR "C++ compiler does not support C++11")
-#    endif()
-#    set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-local-typedefs ${ENABLE_CXX11}")
-#    set(CMAKE_CXX_FLAGS_DEBUG "-O0 -ggdb3")
-#    set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-#endif()
+# Set g++ compiler flags if GNU C++ compiler is being used
+if(CMAKE_COMPILER_IS_GNUCXX)
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+    if(GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7)
+        set(ENABLE_CXX11 "-std=c++11")
+    elseif(GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
+        set(ENABLE_CXX11 "-std=c++0x")
+    else()
+        message(FATAL_ERROR "C++ compiler does not support C++11")
+    endif()
+    set(CMAKE_CXX_FLAGS "-Wall ${CMAKE_CXX_FLAGS} ${ENABLE_CXX11}")
+endif()
 
 #include_directories(${ROBOT_BICYCLE_SOURCE_DIR}/inc
 #                    ${ROBOT_BICYCLE_SOURCE_DIR}/firmware)
 
 #add_subdirectory(${ROBOT_BICYCLE_SOURCE_DIR}/src)
-#add_subdirectory(${ROBOT_BICYCLE_SOURCE_DIR}/design)
+add_subdirectory(design)
 
