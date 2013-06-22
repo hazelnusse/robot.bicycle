@@ -75,7 +75,6 @@ class GainSchedule {
   float rate_;
   float alpha_;
   uint32_t state_estimate_time_;
-  vector_t<plant_model_state_size> state_;
   vector_t<observer_state_size> w_;
   controller_t *ss_lower_, *ss_upper_;
   rt_controller_t r;
