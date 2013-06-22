@@ -176,6 +176,9 @@ void compute_observer_gains(const design_parameters & params,
     throw std::runtime_error("Ratio calculation failed.");
   }
 
+  // Convert observer from continuous to discrete time
+  std::tie(data.A_obs_d, data.B_obs_d) = control::continuous_to_discrete(data.A_obs, data.B_obs, params.Ts);
+
   data.C_obs = Eigen::MatrixXd::Zero(1, 1);
   data.C_obs(0, 0) = 1 / params.k0;
 
@@ -192,6 +195,8 @@ void compute_observer_gains(const design_parameters & params,
   std::cout << "B_obs = " << data.B_obs.format(matlabfmt) << std::endl;
   std::cout << "C_obs = " << data.C_obs.format(matlabfmt) << std::endl;
   std::cout << "D_obs = " << data.D_obs.format(matlabfmt) << std::endl;
+  std::cout << "A_obs_d = " << data.A_obs_d.format(matlabfmt) << std::endl;
+  std::cout << "B_obs_d = " << data.B_obs_d.format(matlabfmt) << std::endl;
 }
 
 std::vector<model_data> design_controller(const design_parameters & params,
