@@ -51,11 +51,6 @@ bool GainSchedule::set_sample(Sample& s)
   return set_rate(s.encoder.rear_wheel_rate);
 }
 
-void GainSchedule::set_state(const vector_t<plant_model_state_size>& state)
-{
-  state_ = state;
-}
-
 bool GainSchedule::set_rate(float rate)
 {
   bool valid = true;
