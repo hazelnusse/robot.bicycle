@@ -9,7 +9,13 @@ namespace control {
 vector_t<observer_state_size> StateEstimator::update(const vector_t<observer_state_size>& x,
                                             const vector_t<observer_input_size>& u) const
 {
-  return C * (A * x + B * u) + D * u;
+  return A * x + B * u;
+}
+
+vector_t<observer_output_size> StateEstimator::output(const vector_t<observer_state_size>& x,
+                                            const vector_t<observer_input_size>& u) const
+{
+  return C * x + D * u;
 }
 
 vector_t<plant_model_input_size> LQRController::update(const vector_t<plant_model_state_size>& x) const
@@ -86,21 +92,25 @@ void GainSchedule::state_estimate(float torque_prev)
 {
   state_estimate_time_ = s_->loop_count;
   s_->estimate.delta = s_->encoder.steer;
-  s_->estimate.phi = hardware::MPU6050::phi_dot(*s_);
+  s_->estimate.phi_dot = hardware::MPU6050::phi_dot(*s_);
   s_->estimate.delta_dot = derivative_filter_.output(s_->encoder.steer);
-  derivative_filter_.update(s_->encoder.steer);
+  derivative_filter_.update(s_->encoder.steer); // update for next iteration
 
-  vector_t<observer_state_size> st {{state_(0, 3)}}; // previous phi_dot estimate
-  vector_t<observer_input_size> in {{s_->estimate.delta, s_->estimate.phi,
-                                     s_->estimate.delta_dot, torque_prev}};
+  vector_t<observer_input_size> input {{s_->estimate.delta, s_->estimate.phi_dot,
+                                        s_->estimate.delta_dot, torque_prev}};
 
-  auto state_lower = ss_lower_->estimator.update(st, in);
-  auto state_upper = ss_upper_->estimator.update(st, in);
-  s_->estimate.phi_dot = (alpha_ * (state_upper - state_lower) + state_lower)(0, 0);
-  state_(0, 0) = s_->estimate.delta;
-  state_(0, 1) = s_->estimate.phi;
-  state_(0, 2) = s_->estimate.delta_dot;
-  state_(0, 3) = s_->estimate.phi_dot;
+  // estimator output and interpolation (roll angle)
+  auto state_lower = ss_lower_->estimator.output(w_, input);
+  auto state_upper = ss_upper_->estimator.output(w_, input);
+  s_->estimate.phi = (alpha_ * (state_upper - state_lower) + state_lower)(0, 0);
+  state_(0, 0) = s_->estimate.phi;
+  state_(0, 1) = s_->estimate.delta;
+  state_(0, 2) = s_->estimate.phi_dot;
+  state_(0, 3) = s_->estimate.delta_dot;
+
+  auto w_lower = ss_lower_->estimator.update(w_, input);
+  auto w_upper = ss_upper_->estimator.update(w_, input);
+  w_ = alpha_ * (w_upper - w_lower) + w_lower;
 }
 
 float GainSchedule::lqr_output() const

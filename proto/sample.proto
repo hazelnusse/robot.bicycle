@@ -58,6 +58,7 @@ message Estimator {
   required float delta_dot = 4;
   required float theta_R_dot_lower = 5;
   required float theta_R_dot_upper = 6;
+  optional float w = 7;
 }
 
 // Size: 4 * 4 = 16 bytes
