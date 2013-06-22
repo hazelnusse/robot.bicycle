@@ -111,6 +111,8 @@ void GainSchedule::state_estimate(float torque_prev)
   auto w_lower = ss_lower_->estimator.update(w_, input);
   auto w_upper = ss_upper_->estimator.update(w_, input);
   w_ = alpha_ * (w_upper - w_lower) + w_lower;
+  s_->estimate.w = w_(0, 0);
+  s_->estimate.has_w = true;
 }
 
 float GainSchedule::lqr_output() const
