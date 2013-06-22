@@ -32,6 +32,10 @@ struct model_data {
   Eigen::MatrixXd C_obs;
   Eigen::MatrixXd D_obs;
 
+  // Discrete time version of observer state equation matrices
+  Eigen::MatrixXd A_obs_d;
+  Eigen::MatrixXd B_obs_d;
+
   bool operator<(const model_data & other) const {
       return theta_R_dot < other.theta_R_dot;
   }
