@@ -17,7 +17,9 @@ ForkMotorController::ForkMotorController()
   m_(GPIOF, GPIOF_STEER_DIR, GPIOF_STEER_ENABLE, GPIOF_STEER_FAULT,
      STM32_TIM1, ccr_channel, max_current, torque_constant),
   estimation_threshold_{0.0f},
-  control_threshold_{-2.0f / constants::wheel_radius}
+  control_threshold_{-2.0f / constants::wheel_radius},
+  derivative_filter_{0, 50*2*constants::pi,
+                     50*2*constants::pi, constants::loop_period_s}
 {
   instances[fork] = this;
 }
@@ -105,6 +107,9 @@ void ForkMotorController::set_thresholds_shell(BaseSequentialStream *chp,
 void ForkMotorController::update(Sample & s)
 {
   s.encoder.steer = e_.get_angle();
+  s.encoder.steer_rate = derivative_filter_.output(s.encoder.steer);
+  derivative_filter_.update(s.encoder.steer); // update for next iteration
+
   s.set_point.psi_dot = yaw_rate_command_;
   s.yaw_rate_pi.e = s.set_point.psi_dot - MPU6050::psi_dot(s);
   x_pi_ += s.yaw_rate_pi.e;

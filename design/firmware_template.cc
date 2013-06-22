@@ -8,7 +8,6 @@ R"(#ifndef GAIN_SCHEDULE_H
 #include <array>
 #include <utility>
 
-#include "filter.h"
 #include "constants.h"
 #include "matrix.h"
 #include "sample.pb.h"
@@ -83,7 +82,6 @@ class GainSchedule {
   controller_t *ss_lower_, *ss_upper_;
   rt_controller_t r;
   bool pi_control_enabled_;
-  first_order_discrete_filter<float> derivative_filter_;
   static const std::array<rt_controller_t, num_gains> schedule_;
 };
 

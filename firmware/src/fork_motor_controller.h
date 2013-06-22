@@ -3,6 +3,7 @@
 
 #include "ch.h"
 #include "chprintf.h"
+#include "filter.h"
 #include "encoder.h"
 #include "gain_schedule.h"
 #include "motor.h"
@@ -42,6 +43,7 @@ class ForkMotorController : public MotorController {
   float x_pi_;
   float estimation_threshold_; // in terms of rear wheel rate
   float control_threshold_;    // in terms of rear wheel rate
+  control::first_order_discrete_filter<float> derivative_filter_;
 };
 
 } // namespace hardware

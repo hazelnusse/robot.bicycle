@@ -35,9 +35,7 @@ bool rt_controller_t::operator<(const rt_controller_t& rhs) const
 }
 
 GainSchedule::GainSchedule()
-  : state_{{}}, pi_control_enabled_{false},
-    derivative_filter_{0, 50*2*constants::pi,
-                       50*2*constants::pi, constants::loop_period_s}
+  : state_{{}}, pi_control_enabled_{false}
 {
 
 }
@@ -91,26 +89,23 @@ bool GainSchedule::set_rate(float rate)
 void GainSchedule::state_estimate(float torque_prev)
 {
   state_estimate_time_ = s_->loop_count;
-  s_->estimate.delta = s_->encoder.steer;
-  s_->estimate.phi_dot = hardware::MPU6050::phi_dot(*s_);
-  s_->estimate.delta_dot = derivative_filter_.output(s_->encoder.steer);
-  derivative_filter_.update(s_->encoder.steer); // update for next iteration
-
-  vector_t<observer_input_size> input {{s_->estimate.delta, s_->estimate.phi_dot,
-                                        s_->estimate.delta_dot, torque_prev}};
+  vector_t<observer_input_size> input {{s_->encoder.steer, s_->mpu6050.gyroscope_y,
+                                        s_->encoder.steer_rate, torque_prev}};
 
   // estimator output and interpolation (roll angle)
   auto state_lower = ss_lower_->estimator.output(w_, input);
   auto state_upper = ss_upper_->estimator.output(w_, input);
   s_->estimate.phi = (alpha_ * (state_upper - state_lower) + state_lower)(0, 0);
-  state_(0, 0) = s_->estimate.phi;
-  state_(0, 1) = s_->estimate.delta;
-  state_(0, 2) = s_->estimate.phi_dot;
-  state_(0, 3) = s_->estimate.delta_dot;
+  state_(0, 0) = s_->estimate.phi; // phi
+  state_(0, 1) = input(0, 0); // steer
+  state_(0, 2) = input(0, 1); // phi dot
+  state_(0, 3) = input(0, 2); // delta_dot
 
+  // update observer state w
   auto w_lower = ss_lower_->estimator.update(w_, input);
   auto w_upper = ss_upper_->estimator.update(w_, input);
   w_ = alpha_ * (w_upper - w_lower) + w_lower;
+  s_->estimate.w = w_(0, 0);
 }
 
 float GainSchedule::lqr_output() const
