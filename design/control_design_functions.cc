@@ -188,6 +188,14 @@ void compute_observer_gains(const design_parameters & params,
   data.D_obs(0, 2) = -k3 / params.k0;
   data.D_obs(0, 3) = 0;
 
+  data.delta_to_phi_gain = (a21*k2 + a31*k3)/(-a20*k2 - a30*k3);
+  data.delta_to_phi_zero = a22*k2/k1 + a31*k3/k1;
+  data.phi_dot_to_phi_gain = (a22*k2 + a32*k3 + params.k0)/(-a20*k2 - a30*k3);
+  data.phi_dot_to_phi_zero = a22 + a32*k3/k2 + params.k0/k2;
+  data.delta_dot_to_phi_gain = (a23*k2 + a33*k3 + k1)/(-a20*k2 - a30*k3);
+  data.delta_dot_to_phi_zero = a23*k2/k3 + a33 + k1/k3;
+  data.T_delta_to_phi_gain = (b20*k2 + b30*k3)/(-a20*k2 - a30*k3);
+
   std::cout << "observer time constant = " << -1/data.A_obs(0, 0) << " seconds\n";
   std::cout << "observer characteristic frequency = " << -data.A_obs(0, 0) << " rad / s"
             << " = " << -data.A_obs(0, 0)/(2.0*M_PI) << " Hz" << std::endl;
@@ -197,6 +205,11 @@ void compute_observer_gains(const design_parameters & params,
   std::cout << "D_obs = " << data.D_obs.format(matlabfmt) << std::endl;
   std::cout << "A_obs_d = " << data.A_obs_d.format(matlabfmt) << std::endl;
   std::cout << "B_obs_d = " << data.B_obs_d.format(matlabfmt) << std::endl;
+
+  std::cout << "delta to phi (gain, zero) = (" << data.delta_to_phi_gain << ", " << data.delta_to_phi_zero << ")\n";
+  std::cout << "phi_dot to phi (gain, zero) = (" << data.phi_dot_to_phi_gain << ", " << data.phi_dot_to_phi_zero << ")\n";
+  std::cout << "delta_dot to phi (gain, zero) = (" << data.delta_dot_to_phi_gain << ", " << data.delta_dot_to_phi_zero << ")\n";
+  std::cout << "T_delta to phi gain = " << data.T_delta_to_phi_gain << "\n";
 }
 
 std::vector<model_data> design_controller(const design_parameters & params,

@@ -31,10 +31,19 @@ struct model_data {
   Eigen::MatrixXd B_obs;
   Eigen::MatrixXd C_obs;
   Eigen::MatrixXd D_obs;
-
+  
   // Discrete time version of observer state equation matrices
   Eigen::MatrixXd A_obs_d;
   Eigen::MatrixXd B_obs_d;
+
+  // Gain at s=0 and location of zero for the four transfer functions
+  double delta_to_phi_gain,
+         phi_dot_to_phi_gain,
+         delta_dot_to_phi_gain,
+         T_delta_to_phi_gain;
+  double delta_to_phi_zero,
+         phi_dot_to_phi_zero,
+         delta_dot_to_phi_zero;
 
   bool operator<(const model_data & other) const {
       return theta_R_dot < other.theta_R_dot;
