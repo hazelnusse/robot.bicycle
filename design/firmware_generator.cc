@@ -55,8 +55,8 @@ std::string generate_source(const std::vector<model_data> & md, std::string file
     out << "\t\t{\n"; // start writing out controllers
 
     out << "\t\t\t{ // StateEstimator\n";
-    out << "\t\t\t\t" << it->A_obs.format(printfmt) << ",\n";
-    out << "\t\t\t\t" << it->B_obs.format(printfmt) << ",\n";
+    out << "\t\t\t\t" << it->A_obs_d.format(printfmt) << ",\n";
+    out << "\t\t\t\t" << it->B_obs_d.format(printfmt) << ",\n";
     out << "\t\t\t\t" << it->C_obs.format(printfmt) << ",\n";
     out << "\t\t\t\t" << it->D_obs.format(printfmt) << "\n";
     out << "\t\t\t},\n"; // StateEstimator End
