@@ -19,7 +19,8 @@ ForkMotorController::ForkMotorController()
   estimation_threshold_{0.0f},
   control_threshold_{-2.0f / constants::wheel_radius},
   derivative_filter_{0, 10*2*constants::pi,
-                     10*2*constants::pi, constants::loop_period_s}
+                     10*2*constants::pi, constants::loop_period_s},
+  estimation_triggered_{false}, control_triggered_{false}
 {
   instances[fork] = this;
 }
@@ -139,14 +140,18 @@ void ForkMotorController::update(Sample & s)
 // estimation/control thresholds are in terms of wheel rate, which is defined
 // to be negative when the speed of the bicycle is positive. estimation/control
 // should occur when speed > threshold which is equivalent to rate < threshold.
-bool ForkMotorController::should_estimate(const Sample& s) const {
-  return s.encoder.rear_wheel_rate < estimation_threshold_;
+bool ForkMotorController::should_estimate(const Sample& s)
+{
+  if (!estimation_triggered_)
+      estimation_triggered_ = s.encoder.rear_wheel_rate < estimation_threshold_;
+  return estimation_triggered_;
 }
 
-bool ForkMotorController::should_control(const Sample& s) const
+bool ForkMotorController::should_control(const Sample& s)
 {
-  return s.encoder.rear_wheel_rate < control_threshold_ &&
-         std::fabs(s.encoder.steer) < max_steer_angle;
+  if (!control_triggered_)
+    control_triggered_ = s.encoder.rear_wheel_rate < control_threshold_;
+  return control_triggered_ && std::fabs(s.encoder.steer) < max_steer_angle;
 }
 
 } // namespace hardware
