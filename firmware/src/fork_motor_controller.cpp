@@ -18,8 +18,8 @@ ForkMotorController::ForkMotorController()
      STM32_TIM1, ccr_channel, max_current, torque_constant),
   estimation_threshold_{0.0f},
   control_threshold_{-2.0f / constants::wheel_radius},
-  derivative_filter_{0, 50*2*constants::pi,
-                     50*2*constants::pi, constants::loop_period_s}
+  derivative_filter_{0, 10*2*constants::pi,
+                     10*2*constants::pi, constants::loop_period_s}
 {
   instances[fork] = this;
 }
