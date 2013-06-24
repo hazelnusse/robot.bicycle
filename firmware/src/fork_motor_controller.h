@@ -32,8 +32,8 @@ class ForkMotorController : public MotorController {
  private:
   void set_estimation_threshold(float speed);
   void set_control_threshold(float speed);
-  bool should_estimate(const Sample& s) const;
-  bool should_control(const Sample& s) const;
+  bool should_estimate(const Sample& s);
+  bool should_control(const Sample& s);
 
   Encoder e_;
   Motor m_;
@@ -44,6 +44,8 @@ class ForkMotorController : public MotorController {
   float estimation_threshold_; // in terms of rear wheel rate
   float control_threshold_;    // in terms of rear wheel rate
   control::first_order_discrete_filter<float> derivative_filter_;
+  bool estimation_triggered_;
+  bool control_triggered_;
 };
 
 } // namespace hardware

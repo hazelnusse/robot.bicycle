@@ -21,8 +21,8 @@ RearMotorController::RearMotorController()
   theta_R_dot_command_{0.0f}, error_integral_{0.0f}, Kp_{10.0f}, Ki_{1.0f},
   rear_wheel_rate_prev_{0.0f}, system_time_prev_{0}, rear_wheel_count_prev_{0},
   low_pass_filter_{n0, n1, d0, constants::loop_period_s},
-  sg_data_{{}},
-  sg_insert_index_{0}
+  sg_data_{{}}, sg_insert_index_{0},
+  dthetadt_array_{{}}, dthetadt_elem_{0}
 {
   instances[rear_wheel] = this;
   e_.set_count(0);
@@ -54,14 +54,22 @@ void RearMotorController::update(Sample & s)
   s.encoder.rear_wheel = e_.get_angle();
   s.set_point.theta_R_dot = theta_R_dot_command_;
 
-  const float dt = (s.system_time - system_time_prev_)
-                    * constants::system_timer_seconds_per_count;
-  const float dthetadt = static_cast<int16_t>(s.encoder.rear_wheel_count
-                                            - rear_wheel_count_prev_)
-                                        * e_.get_rad_per_count() / dt;
+  // moving average for rear_wheel_rate
+  auto& now = dthetadt_array_[dthetadt_elem_];
+  now.first = s.system_time;
+  now.second = s.encoder.rear_wheel_count;
+
+  dthetadt_elem_ = (dthetadt_elem_ + 1) % dthetadt_array_.size();
+  auto& prev = dthetadt_array_[dthetadt_elem_];
+
+  const float dt = (now.first - prev.first) * constants::system_timer_seconds_per_count;
+  const float dthetadt = static_cast<int16_t>(now.second - prev.second) *
+                            e_.get_rad_per_count() / dt;
+
   low_pass_filter_.update(dthetadt);
   s.encoder.rear_wheel_rate = low_pass_filter_.output(dthetadt);
   //s.encoder.rear_wheel_rate = sg_smoother(dthetadt);
+
 
 
   const float error =  theta_R_dot_command_ - s.encoder.rear_wheel_rate;

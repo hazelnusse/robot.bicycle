@@ -22,6 +22,7 @@ class RearMotorController : public MotorController {
 
  private:
   float sg_smoother(float dthetadt);
+  float update_dthetadt(uint32_t wheel_count, uint32_t time);
   Encoder e_;
   Motor m_;
   float theta_R_dot_command_;
@@ -33,6 +34,11 @@ class RearMotorController : public MotorController {
   control::first_order_discrete_filter<float> low_pass_filter_;
   std::array<float, 5> sg_data_;
   uint8_t sg_insert_index_;
+
+  static const int averaging_size_ = 20; // 5 ms * 20 = 100 ms
+  std::array<std::pair<uint32_t, uint32_t>, averaging_size_> dthetadt_array_;
+  int dthetadt_elem_;
+
 };
 
 } // namespace hardware
