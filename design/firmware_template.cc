@@ -25,12 +25,12 @@ using vector_t = matrix_t<M, 1>;
 struct StateEstimator {
   matrix_t<observer_state_size, observer_state_size> A;
   matrix_t<observer_state_size, observer_input_size> B;
-  matrix_t<observer_state_size, observer_state_size> C;
-  matrix_t<observer_state_size, observer_input_size> D;
+  //matrix_t<observer_state_size, observer_state_size> C;
+  //matrix_t<observer_state_size, observer_input_size> D;
   vector_t<observer_state_size> update(const vector_t<observer_state_size>& x,
                                        const vector_t<observer_input_size>& u) const;
-  vector_t<observer_output_size> output(const vector_t<observer_state_size>& x,
-                                        const vector_t<observer_input_size>& u) const;
+//  vector_t<observer_output_size> output(const vector_t<observer_state_size>& x,
+//                                        const vector_t<observer_input_size>& u) const;
 };
 
 struct LQRController {
@@ -76,7 +76,7 @@ class GainSchedule {
   float rate_;
   float alpha_;
   uint32_t state_estimate_time_;
-  vector_t<observer_state_size> w_;
+  vector_t<observer_state_size> state_;
   controller_t *ss_lower_, *ss_upper_;
   rt_controller_t r;
   bool pi_control_enabled_;

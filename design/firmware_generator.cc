@@ -7,11 +7,12 @@
 #include "firmware_template.h"
 #include "control_design_functions.h"
 
-void firmware_generator(const std::vector<model_data> & md, std::string filename_base)
+void firmware_generator(const std::vector<model_data> & md)
 {
-  const int observer_state_size = 1;    // observer state is w
-  const int observer_input_size = 4;    // observer inputs are: steer, roll rate, steer rate, steer torque
-  const int observer_output_size = 1;   // estimate of roll angle
+  const int observer_state_size = 4;    // observer is a full state estimator
+  const int observer_input_size = 3;    // observer inputs are: steer, roll rate,
+                                        //                      steer torque
+  //const int observer_output_size = 1;   // estimate of roll angle
   const int plant_model_state_size = 4; // roll, steer, roll rate, steer rate
   const int plant_model_input_size = 1; // torque
 
@@ -22,20 +23,20 @@ void firmware_generator(const std::vector<model_data> & md, std::string filename
               + std::to_string(observer_state_size) + ";\n";
   header_body += "const uint32_t observer_input_size = "
               + std::to_string(observer_input_size) + ";\n";
-  header_body += "const uint32_t observer_output_size = "
-              + std::to_string(observer_output_size) + ";\n";
+//  header_body += "const uint32_t observer_output_size = "
+//              + std::to_string(observer_output_size) + ";\n";
   header_body += "const uint32_t plant_model_state_size = "
               + std::to_string(plant_model_state_size) + ";\n";
   header_body += "const uint32_t plant_model_input_size = "
               + std::to_string(plant_model_input_size) + ";\n";
 
-  std::ofstream header_file(filename_base + ".h");
+  std::ofstream header_file("gain_schedule.h");
   header_file << firmware_template::preamble
               << header_body << firmware_template::postamble;
   header_file.close();
 
-  std::ofstream source_file(filename_base + ".cpp");
-  source_file << generate_source(md, filename_base);
+  std::ofstream source_file("fork_schedule.cpp");
+  source_file << generate_source(md, "gain_schedule");
   source_file.close();
 }
 
@@ -57,8 +58,8 @@ std::string generate_source(const std::vector<model_data> & md, std::string file
     out << "\t\t\t{ // StateEstimator\n";
     out << "\t\t\t\t" << it->A_obs_d.format(printfmt) << ",\n";
     out << "\t\t\t\t" << it->B_obs_d.format(printfmt) << ",\n";
-    out << "\t\t\t\t" << it->C_obs.format(printfmt) << ",\n";
-    out << "\t\t\t\t" << it->D_obs.format(printfmt) << "\n";
+//    out << "\t\t\t\t" << it->C_obs.format(printfmt) << ",\n";
+//    out << "\t\t\t\t" << it->D_obs.format(printfmt) << "\n";
     out << "\t\t\t},\n"; // StateEstimator End
 
     out << "\t\t\t{ // LQRController\n"; // LQRController Start

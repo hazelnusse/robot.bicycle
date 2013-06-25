@@ -56,8 +56,10 @@ message SetPoint {
 message Estimator {
   required float theta_R_dot_lower = 1;
   required float theta_R_dot_upper = 2;
-  required float w = 3;
-  required float phi = 4;
+  required float phi = 3;
+  required float delta = 4;
+  required float phi_dot = 5;
+  required float delta_dot = 6;
 }
 
 // Size: 4 * 4 = 16 bytes
