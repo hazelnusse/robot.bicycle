@@ -36,7 +36,9 @@ controller_t = dtype([
     ('A_e', '(4,4)f8'),    # (I - K_e * C) * A, also error dynamics matrix
     ('B_e', '(4,3)f8'),    # [I - K_e * C) * B_delta, K_e]
     ('estimator_evals', '(4,)c16'),
+    ('estimator_evecs', '(4,4)c16'),
     ('estimator_evals_c', '(4,)c16'),
+    ('estimator_evecs_c', '(4,4)c16'),
     # Closed loop system (for simulation)
     # States: four bicycle states, four estimates
     # Inputs: additive steer torque (added to feedback law: u = K_c * \hat{x} + r)
