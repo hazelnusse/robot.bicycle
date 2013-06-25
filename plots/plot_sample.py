@@ -10,6 +10,7 @@ import numpy as np
 from plot_data import PlotData, PLOTY_SEP
 
 SECONDS_PER_CLOCK = 0.25e-6
+WHEEL_RADIUS = 0.3359
 
 class PlotSample(PlotData):
     def __init__(self, datafile=None):
@@ -17,6 +18,7 @@ class PlotSample(PlotData):
         self.default_x = None
         self._correct_system_time()
         self._add_sample_period()
+        self._add_forward_speed()
         self._mask_fields(['computation_time', 'sample_period'])
         self._convert_clocks_to_seconds(['system_time_c', 'computation_time',
                                          'sample_period'])
@@ -44,6 +46,12 @@ class PlotSample(PlotData):
         self.data_c[field] = systime_dt
         self.dtype_c[field] = type(self.data_c[field][0])
 
+    def _add_forward_speed(self):
+        field = 'forward_speed'
+        d = self.get_field_data('encoder.rear_wheel_rate')
+        self.dtype_c[field] = np.float32
+        self.data_c[field] = -WHEEL_RADIUS * d.astype(np.float32)
+
     def _mask_fields(self, field_list):
         """Mask the first element in the given fields since they are invalid.
         """
@@ -67,6 +75,58 @@ class PlotSample(PlotData):
         Refer to plot() for use of options.
         """
         return self.plot(self.default_x, *args, **kwargs)
+
+    def _plotyy(self, x, y1, y2, axes=None):
+        if axes is None:
+            fig, ax = plt.subplots(1)
+        else:
+            ax = axes
+            fig = ax.get_figure()
+
+        if isinstance(y1, list):
+            y1 = [item for sublist in map(self.expand_field, y1)
+                  for item in sublist]
+        else:
+            y1 = self.expand_field(y1)
+        if isinstance(y2, list):
+            y2 = [item for sublist in map(self.expand_field, y2)
+                  for item in sublist]
+        else:
+            y2 = self.expand_field(y2)
+        self._set_color_cycle(ax, len(y1 + y2) + 1)
+
+        xdata = self.get_field_data(self.expand_field(x)[0])
+        add_plot = lambda ax, y: ax.plot(xdata, self.get_field_data(y),
+                                         label=y)
+        for y in y1:
+            add_plot(ax, y)
+        axt = ax.twinx()
+        for y in y2:
+            add_plot(ax, y)
+
+        ax.set_xlabel(x)
+        ax.set_ylabel(', '.join(y1))
+        axt.set_ylabel(', '.join(y2))
+        ax.legend()
+        ax.grid(True)
+        return fig, ax
+
+    def plot_estimates(self):
+        fig, ax = plt.subplots(nrows=2, sharex=True)
+        self._plotyy('system_time_s',
+                     ['encoder.steer', 'mpu6050.gyroscope_y'],
+                     ['estimate.phi', 'estimate.w'],
+                     axes=ax[0])
+        self._plotyy('system_time_s',
+                     ['encoder.rear_wheel'],
+                     ['encoder.rear_wheel_rate', 'estimate.theta_R_dot_upper', 'estimate.theta_R_dot_lower'],
+                     axes=ax[1])
+        plt.show()
+        return fig
+        #fig, ax = plt.subplots(nrows=2, sharex=True)
+
+    def plot_forward_speed(self):
+        return self.plot_d('forward_speed')
 
     def fft_window(self, field, start=None, stop=None, step=None):
         """Plot a series of Fourier transforms for 'field' using different
