@@ -10,6 +10,12 @@ set(CMAKE_MODULE_PATH ${ROBOT_BICYCLE_HOST_SOURCE_DIR}/cmake/Modules)
 #find_package(Protobuf REQUIRED)
 find_package(Eigen3 3.1.2)
 
+if (DEFINED MATLAB_ROOT)
+  find_package(Matlab)
+else()
+  message("MATLAB_ROOT must be defined if you want to build Matlab dependent targets.")
+endif()
+
 #set(NANOPB_DIR "${ROBOT_BICYCLE_HOST_SOURCE_DIR}/firmware/nanopb")
 #set(NANOPB_GENERATOR_EXECUTABLE "${NANOPB_DIR}/generator/nanopb_generator.py")
 #
