@@ -10,7 +10,7 @@ discrete time transfer function.
 """
 from sympy import symbols, Poly, ccode, S, sqrt
 
-def discrete_realization(n0, n1, d0, T):
+def discrete_realization_tustin(n0, n1, d0, T):
     z = symbols('z')
     s = 2/T*(z-1)/(z+1)
     num = ((n1*s + n0)*T*(z + 1)).simplify()
@@ -38,7 +38,8 @@ n0, n1, d0, T = symbols('n0 n1 d0 T')
 #n0 = 1.23
 #n1 = 4.56
 #d0 = 7.89
-a, b_times_c, d = discrete_realization(n0, n1, d0, T)
+a, b_times_c, d = discrete_realization_tustin(n0, n1, d0, T)
+#a, b_times_c, d = discrete_realization_zoh(n0, n1, d0, T)
 
 a_str = ccode(a)
 b_times_c_str = ccode(b_times_c)
