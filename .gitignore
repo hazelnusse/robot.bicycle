@@ -13,3 +13,10 @@ images
 __pycache__
 CopleyConfiguration/
 data/physicalparameters/RawData/Images/
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.pdf
+
