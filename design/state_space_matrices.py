@@ -48,25 +48,32 @@ def calc_eigenvalues(theta_R_dot, bike, filename):
         B_w[i] = np.zeros((4, 3))
         B_w[i, 2, :] = bb[9, :]
         B_w[i, 3, :] = bb[11, :]
+        #print(B_w[i])
         
         # Yaw kinematic equation
         C_w[i] = np.array([[0.0, 1.0, 0.0, 0.0],      # steer measurement
                            [0.0, 0.0, 1.0, 0.0],      # roll rate measurement
                            A[0, cols]])               # yaw rate measurement
+        print(C_w[i])
 
-        print(i)
+        #print(i)
 
     # Save the data
     np.savez(filename, theta_R_dot=theta_R_dot, A_w=A_w, B_w=B_w, C_w=C_w)
 
 if __name__ == '__main__':
-    theta_R_dot = sorted(-np.logspace(-0.5, 1, 101) / w.rR)
+    N = 11                           # Number of speeds
+    lowest_speed = 0.5               # Lowest speed for calculations
+    highest_speed = 10.0             # Highest speed for calculations
+    speeds = np.logspace(np.log10(lowest_speed), np.log10(highest_speed), N)
+    theta_R_dot = sorted(-speeds / (rear.R + rear.r))
     calc_eigenvalues(theta_R_dot, benchmark_bicycle,
             'benchmark_bicycle_linear_dynamics_vs_logspeed.npz')
     calc_eigenvalues(theta_R_dot, robotic_bicycle,
             'robotic_bicycle_linear_dynamics_vs_logspeed.npz')
-    theta_R_dot = sorted(-np.linspace(0, 10, 101) / w.rR)
+    theta_R_dot = sorted(-np.linspace(0, 10, N) / w.rR)
     calc_eigenvalues(theta_R_dot, benchmark_bicycle,
             'benchmark_bicycle_linear_dynamics_vs_speed.npz')
     calc_eigenvalues(theta_R_dot, robotic_bicycle,
             'robotic_bicycle_linear_dynamics_vs_speed.npz')
+

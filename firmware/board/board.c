@@ -20,7 +20,7 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "PeripheralInit.h"
+#include "initialization.h"
 
 #if HAL_USE_PAL || defined(__DOXYGEN__)
 /**
@@ -110,5 +110,5 @@ bool_t mmc_lld_is_write_protected(MMCDriver *mmcp) {
  * @todo    Add your board-specific code, if any.
  */
 void boardInit(void) {
-  PeripheralInit();
+  peripheral_initialization();
 }

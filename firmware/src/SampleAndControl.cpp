@@ -3,9 +3,10 @@
 #include "SampleAndControl.h"
 #include "chprintf.h"
 
+#include "constants.h"
 #include "MPU6050.h"
-#include "RearWheel.h"
-#include "YawRateController.h"
+#include "rear_motor_controller.h"
+#include "fork_motor_controller.h"
 #include "SampleBuffer.h"
 #include "SystemState.h"
 
@@ -17,15 +18,24 @@ SampleAndControl::SampleAndControl()
 void SampleAndControl::controlThread(const char * filename)
 {
   chRegSetThreadName("Control");
-  enableSensorsMotors();
-  MPU6050 & imu = MPU6050::Instance();
-  RearWheel & rwc = RearWheel::Instance();
-  YawRateController & yrc = YawRateController::Instance();
+  // TODO: verify that functionality here has been moved to motor_controller
+  // subclasses
+  // enableSensorsMotors();
+  hardware::MPU6050 imu;
+  if (!imu.is_initialized())
+    chThdExit(-1); // TODO: figure what to do here
+
+  hardware::RearMotorController rear_motor_controller;
+  hardware::ForkMotorController fork_motor_controller;
+  hardware::Encoder front_wheel_encoder(STM32_TIM4, 800);
+  front_wheel_encoder.set_count(0);
+
+  // TODO: make SampleBuffer non-singleton
   SampleBuffer & sb = SampleBuffer::Instance();
   sb.initialize(filename);
   
-  // zero out wheel encoders and system timer
-  STM32_TIM4->CNT = STM32_TIM5->CNT = STM32_TIM8->CNT = 0;
+  // zero out system timer
+  STM32_TIM5->CNT = 0;
 
   // Create a sample to populate
   Sample s;
@@ -34,26 +44,24 @@ void SampleAndControl::controlThread(const char * filename)
   systime_t time = chTimeNow();     // Initial time
   systime_t sleep_time;
   for (uint32_t i = 0; !chThdShouldTerminate(); ++i) {
-    time += MS2ST(con::T_ms);       // Next deadline
+    time += MS2ST(constants::loop_period_ms);       // Next deadline
 
     // Begin pre control data collection
-    sampleTimers(s);  // sample system time/encoder counts/PWM duty cycle
-    imu.Acquire(s);   // sample rate gyro, accelerometer and temperature sensors
-    sampleSetPoints(s); // sample rear wheel and yaw rate commands
+    s.system_time = STM32_TIM5->CNT;
+    s.loop_count = i;
+    imu.acquire_data(s);
+    s.encoder.front_wheel = front_wheel_encoder.get_angle();
+    s.system_state |= systemstate::CollectionEnabled;
     // End pre control data collection
 
     // Begin control
-    if (rwc.isEnabled() && (i % con::RW_N == 0))
-      rwc.Update(s);
-
-    if (yrc.isEnabled() && (i % con::YC_N == 0))
-      yrc.Update(s);
+    rear_motor_controller.update(s);
+    fork_motor_controller.update(s);
     // End control
 
-    // Begin post control data collection
-    sampleMotorState(s);
-    s.system_state |= systemstate::CollectionEnabled;
-    // End post control data collection
+    // TODO: Push sampleMotorState functionality down into motor_controller
+    // class or subclasses.
+    // sampleMotorState(s);
 
     // Put the sample in to the buffer
     bool encode_failure = false;
@@ -62,10 +70,13 @@ void SampleAndControl::controlThread(const char * filename)
 
     // Clear the sample for the next iteration
     // The first time through the loop, computation_time will be logged as zero,
-    // subsequent times will be accurate but delayed by one sample period
+    // subsequent times will be accurate but delayed by one sample period. This
+    // is done to ensure that encoding computation is part of timing
+    // measurement.
     uint32_t ti = s.system_time;
     memset(&s, 0, sizeof(s));
     s.computation_time = STM32_TIM5->CNT - ti;
+    // Similarly, encode failures will be delayed by one sample.
     if (encode_failure) 
       s.system_state |= systemstate::SampleBufferEncodeError;
 
@@ -78,10 +89,14 @@ void SampleAndControl::controlThread(const char * filename)
   } // for
   
   // Clean up
-  disableSensorsMotors();
+  // TODO:
+  // disableSensorsMotors();
+  // TODO: change samplebuffer to be a non-singleton class and implement
+  // cleanup in destructor
   msg_t write_errors = sb.deinitialize();
   // End cleanup
  
+  // TODO: possibly just return...
   chThdExit(write_errors);
 }
 

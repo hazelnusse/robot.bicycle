@@ -93,21 +93,27 @@ CSRC = $(PORTSRC) \
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CPPSRC = src/main.cpp \
-				 src/MPU6050.cpp \
-				 src/MPU6050_calibration.cpp \
-				 src/PeripheralInit.cpp \
-				 src/RearWheel.cpp \
-				 src/SampleAndControl.cpp \
-				 src/SampleBuffer.cpp \
-				 src/YawRateController.cpp \
-				 src/stubs.cpp \
-				 src/SystemCommands.cpp \
-				 src/textutilities.cpp \
-				 src/VectorTable.cpp \
-				 src/Interrupts.cpp \
-				 src/YawRateController_gains.cpp
+CPPSRC = src/calibration.cpp \
+				src/control_loop.cpp \
+				src/fork_motor_controller.cpp \
+				src/fork_schedule.cpp \
+				src/gain_schedule.cpp \
+				src/initialization.cpp \
+				src/main.cpp \
+				src/motor.cpp \
+				src/motor_controller.cpp \
+				src/MPU6050.cpp \
+				src/rear_motor_controller.cpp \
+				src/sample_buffer.cpp \
+				src/system_commands.cpp \
+				src/textutilities.cpp \
+				src/vector_table.cpp
 
+# Enable this if you want to build tests and have them run in main
+ifeq ($(BUILD_TEST), YES)
+	BUILD_TEST = YES
+	CPPSRC += src/test.cpp
+endif
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -182,6 +188,10 @@ CPPWARN = -Wall -Wextra
 
 # List all default C defines here, like -D_DEBUG=1
 DDEFS =
+# Enable this if you want to build tests and have them run in main
+ifeq ($(BUILD_TEST), YES)
+	DDEFS = -DBUILD_TEST=TRUE
+endif
 
 # List all default ASM defines here, like -D_DEBUG=1
 DADEFS =

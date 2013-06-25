@@ -15,21 +15,29 @@
 #include "hal.h"
 
 #include "MPU6050.h"
-#include "Constants.h"
+#include "constants.h"
 #include "SystemState.h"
 
+namespace hardware {
+
 MPU6050::MPU6050()
-  : i2c_(0),
-    i2cfg_({OPMODE_I2C, 400000, FAST_DUTY_CYCLE_2}),
-    timeout_(MS2ST(2)),
-    I2C_ADDR(0b1101000),
-    ACCEL_XOUT_ADDR(59)
+  : i2c_{&I2CD2},
+    i2cfg_{OPMODE_I2C, 400000, FAST_DUTY_CYCLE_2},
+    timeout_{MS2ST(2)},
+    I2C_ADDR{0b1101000},
+    ACCEL_XOUT_ADDR{59},
+    initialized_{true}
 {
-  // I2C configuration
-  i2cObjectInit(i2c_);    // Initialize I2CD2
+  i2cObjectInit(i2c_);          // Initialize I2C driver
+  initialized_ = initialize();  // Initialize and configure MPU6050
 } // MPU6050())
 
-bool MPU6050::Acquire(Sample & s) const
+MPU6050::~MPU6050()
+{
+  i2cStop(i2c_); // Deactivate I2CD2
+}
+
+bool MPU6050::acquire_data(Sample & s) const
 {
   int16_t ar[7];
   msg_t res = i2cMasterTransmitTimeout(&I2CD2, I2C_ADDR, &ACCEL_XOUT_ADDR, 1,
@@ -54,12 +62,11 @@ bool MPU6050::Acquire(Sample & s) const
   convertData(s, ar);
 
   return true;
-} // Acquire()
+} // acquire_data()
 
-bool MPU6050::Initialize(I2CDriver * i2c)
+bool MPU6050::initialize()
 {
   static Sample s;
-  i2c_ = i2c;
   i2cStart(i2c_, &i2cfg_); // Configure and activate I2CD2
   uint8_t tx_data[8];
   
@@ -99,7 +106,7 @@ bool MPU6050::Initialize(I2CDriver * i2c)
   time = chTimeNow() + MS2ST(50);
   chThdSleepUntil(time);
   for (int i = 0; i < 10; ++i) {
-    if (!Acquire(s)) {
+    if (!acquire_data(s)) {
       return false;
     } else {
       time = chTimeNow() + MS2ST(5);
@@ -109,11 +116,6 @@ bool MPU6050::Initialize(I2CDriver * i2c)
 
   return true;
 } // Initialize()
-
-void MPU6050::DeInitialize()
-{
-  i2cStop(i2c_); // Deactivate I2CD2
-}
 
 bool MPU6050::checkTransmission(msg_t res, Sample & s)
 {
@@ -129,14 +131,15 @@ bool MPU6050::checkTransmission(msg_t res, Sample & s)
 
 void MPU6050::convertData(Sample & s, int16_t ar[7])
 {
+  using namespace constants;
   s.has_mpu6050 = true;
-  s.mpu6050.accelerometer_x = ar[0] * cf::Accelerometer_sensitivity;
-  s.mpu6050.accelerometer_y = ar[1] * cf::Accelerometer_sensitivity;
-  s.mpu6050.accelerometer_z = ar[2] * cf::Accelerometer_sensitivity;
-  s.mpu6050.temperature = ar[3] * cf::Thermometer_sensitivity + cf::Thermometer_offset;
-  s.mpu6050.gyroscope_x = ar[4] * cf::Gyroscope_sensitivity - MPU6050::gyro_x_bias;
-  s.mpu6050.gyroscope_y = ar[5] * cf::Gyroscope_sensitivity - MPU6050::gyro_y_bias;
-  s.mpu6050.gyroscope_z = ar[6] * cf::Gyroscope_sensitivity - MPU6050::gyro_z_bias;
+  s.mpu6050.accelerometer_x = ar[0] * accelerometer_sensitivity;
+  s.mpu6050.accelerometer_y = ar[1] * accelerometer_sensitivity;
+  s.mpu6050.accelerometer_z = ar[2] * accelerometer_sensitivity;
+  s.mpu6050.temperature = ar[3] * thermometer_sensitivity + thermometer_offset;
+  s.mpu6050.gyroscope_x = ar[4] * gyroscope_sensitivity - gyro_x_bias;
+  s.mpu6050.gyroscope_y = ar[5] * gyroscope_sensitivity - gyro_y_bias;
+  s.mpu6050.gyroscope_z = ar[6] * gyroscope_sensitivity - gyro_z_bias;
 }
 
 float MPU6050::phi_dot(const Sample & s)
@@ -149,3 +152,4 @@ float MPU6050::psi_dot(const Sample & s)
   return s.mpu6050.gyroscope_z;
 }
 
+} // namespace hardware

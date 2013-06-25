@@ -6,11 +6,15 @@
 
 #include "ff.h"
 
-#include "RearWheel.h"
-#include "SampleAndControl.h"
-#include "SystemCommands.h"
-#include "VectorTable.h"
-#include "YawRateController.h"
+#include "calibration.h"
+#include "control_loop.h"
+#include "system_commands.h"
+#include "vector_table.h"
+#include "motor_controller.h"
+
+#if defined(BUILD_TEST)
+#include "test.h"
+#endif
 
 /*===========================================================================*/
 /* Card insertion monitor.                                                   */
@@ -115,18 +119,19 @@ static void cmd_threads(BaseSequentialStream *chp, int argc, char *argv[]) {
 }
 
 static const ShellCommand commands[] = {
-  {"rw", RearWheel::shellcmd_},             // select rear wheel rate set point
-  {"yr", YawRateController::shellcmd_},     // select yaw rate set point
-  {"calibrate", YawRateController::calibrateSteerEncoder_},     // select yaw rate set point
-  {"homefork", YawRateController::homeFork_},     // select yaw rate set point
-  {"collect", SampleAndControl::shellcmd_}, // enable/disable data collection and control
-  {"disable", SystemCommands::disablemotors},
+  {"collect", hardware::ControlLoop::shell_command}, // enable/disable data collection and control
+  {"disable", SystemCommands::disable_controllers},
   {"reset", SystemCommands::reset},
-  {"status", SystemCommands::status},
   {"threads", cmd_threads},
-  {"e_thresh", YawRateController::setEstimationThreshold},
-  {"c_thresh", YawRateController::setControlThreshold},
-  {"pi", YawRateController::togglePI},
+  {"calibrate", calibration::fork_encoder_calibration},
+  {"homefork", calibration::fork_encoder_home},
+  // TODO: move all YawRateController static functions elsehwere
+  {"e_thresh", hardware::ForkMotorController::set_estimation_threshold_shell},
+  {"c_thresh", hardware::ForkMotorController::set_control_threshold_shell},
+  {"thresh", hardware::ForkMotorController::set_thresholds_shell},
+//  {"pi", YawRateController::togglePI},
+  {"yaw_rate", hardware::set_reference_shell<hardware::fork>},
+  {"speed", hardware::set_reference_shell<hardware::rear_wheel>},
   {NULL, NULL}
 };
 
@@ -174,8 +179,13 @@ static void RemoveHandler(__attribute__((unused)) eventid_t id)
  */
 int main()
 {
+#if defined(BUILD_TEST)
+  if (!test_all())
+    while(1){}
+#endif
+
   VectorTable v;
-  v.Relocate();
+  v.relocate();
   static const evhandler_t evhndl[] = { InsertHandler, RemoveHandler };
   Thread * shelltp = NULL;
   static struct EventListener el0, el1;

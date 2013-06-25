@@ -1,8 +1,7 @@
 #include "ch.h"
 #include "hal.h"
-#include "PeripheralInit.h"
-#include "Constants.h"
-
+#include "initialization.h"
+#include "constants.h"
 
 // For all peripheral initialization, the following apprach is taken:
 // -- on reset, all inputs are input floating by default
@@ -13,19 +12,19 @@
 //    the enable lines that go to the motor controller.
 
 // Private functions
-static void configureRCC();
-static void configureEncoderTimers();
-static void configureMotorPWM();
+static void configure_RCC();
+static void configure_encoder_timers();
+static void configure_motor_PWM();
 
 // This function is called in boardInit(), which is called during halInit()
-void PeripheralInit()
+void peripheral_initialization()
 {
-  configureRCC();           // Enable peripheral clocks
-  configureEncoderTimers();        // Configure Timers
-  configureMotorPWM();      // Configure Motor PWM
-}
+  configure_RCC();           // Enable peripheral clocks
+  configure_encoder_timers();        // Configure Timers
+  configure_motor_PWM();      // Configure Motor PWM
+} // peripheral_initialization()
 
-static void configureRCC()
+static void configure_RCC()
 {
   // SYSCLOCK is at 168.0 MHz
   // APB1 timers are clocked at  84.0 MHz
@@ -50,9 +49,9 @@ static void configureRCC()
                |   (1 << 10)  // ADC3  --  Battery monitor
                |   (1 <<  1)  // TIM8  --  Rear wheel angle measurement
                |   (1 <<  0));// TIM1  --  PWM Output
-} // configureRCC
+} // configure_RCC()
 
-void configureEncoderTimers(void)
+void configure_encoder_timers(void)
 {
   // Position encoder timers are all 16-bit
   // TIM3 and TIM4 are APB1@84.0MHz, TIM8 is APB2@168.0MHz.
@@ -67,7 +66,7 @@ void configureEncoderTimers(void)
   for (auto timer : encoderTimers) {
     timer->SMCR = 3;          // Encoder mode 3
     timer->CCER = 0;          // rising edge polarity
-    timer->ARR = reg::ENC_ARR;// count from 0-ARR or ARR-0
+    timer->ARR = constants::ENC_ARR;// count from 0-ARR or ARR-0
     timer->CCMR1 = 0xC1C1;    // f_DTS/16, N=8, IC1->TI1, IC2->TI2
     timer->CNT = 0;           // Initialize counter
     timer->EGR = 1;           // Generate an update event
@@ -93,9 +92,9 @@ void configureEncoderTimers(void)
 
   // Enable timer 
   STM32_TIM5->CR1 = 1;
-} // configureEncoderTimers()
+} // configure_encoder_timers()
 
-static void configureMotorPWM()
+static void configure_motor_PWM()
 {
   // Disable the timer and enable auto preload register
   STM32_TIM1->CR1 = (1 << 7);
@@ -106,7 +105,7 @@ static void configureMotorPWM()
   // TIM1 Frequency = TIM1 counter clock / (ARR + 1)
   //                = 168 MHz / (2^16 - 1)
   //                = 2563.52 Hz
-  STM32_TIM1->ARR = reg::PWM_ARR; // 2^16 - 2
+  STM32_TIM1->ARR = constants::PWM_ARR; // 2^16 - 2
 
   // Select PWM1 mode for OC1 and OC2 (OCX inactive when CNT<CCRX)
   STM32_TIM1->CCMR1 = (0b110 << 12) | (0b110 << 4);
@@ -131,4 +130,5 @@ static void configureMotorPWM()
 
   // TIM1 Main Output Enable
   STM32_TIM1->BDTR = (1 << 15);
-} // configureMotorPWM()
+} // configure_motor_PWM()
+

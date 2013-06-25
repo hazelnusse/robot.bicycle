@@ -5,10 +5,12 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                              "..", "proto"))
 
+import matplotlib.pyplot as plt
 import numpy as np
-from plot_data import PlotData
+from plot_data import PlotData, PLOTY_SEP
 
 SECONDS_PER_CLOCK = 0.25e-6
+WHEEL_RADIUS = 0.3359
 
 class PlotSample(PlotData):
     def __init__(self, datafile=None):
@@ -16,6 +18,8 @@ class PlotSample(PlotData):
         self.default_x = None
         self._correct_system_time()
         self._add_sample_period()
+        self._add_forward_speed()
+        self._mask_fields(['computation_time', 'sample_period'])
         self._convert_clocks_to_seconds(['system_time_c', 'computation_time',
                                          'sample_period'])
         self.set_default_x('system_time_s')
@@ -24,7 +28,7 @@ class PlotSample(PlotData):
         field = 'system_time_c'
         systime_data = self.get_field_data('system_time')
         self.dtype_c[field] = np.uint64
-        self.data_c[field] = np.empty(systime_data.shape,
+        self.data_c[field] = np.ma.empty(systime_data.shape,
                                       dtype=self.dtype_c[field])
         prev_t = 0
         offset = 0
@@ -39,9 +43,20 @@ class PlotSample(PlotData):
         systime_data = self.get_field_data('system_time_c')
         systime_delay = np.roll(systime_data, 1)
         systime_dt = systime_data - systime_delay
-        systime_dt[0] = 0;
         self.data_c[field] = systime_dt
         self.dtype_c[field] = type(self.data_c[field][0])
+
+    def _add_forward_speed(self):
+        field = 'forward_speed'
+        d = self.get_field_data('encoder.rear_wheel_rate')
+        self.dtype_c[field] = np.float32
+        self.data_c[field] = -WHEEL_RADIUS * d.astype(np.float32)
+
+    def _mask_fields(self, field_list):
+        """Mask the first element in the given fields since they are invalid.
+        """
+        for field in field_list:
+            self.get_field_data(field)[0] = np.ma.masked
 
     def _convert_clocks_to_seconds(self, fields):
         for field in fields:
@@ -55,6 +70,111 @@ class PlotSample(PlotData):
     def set_default_x(self, field):
         self.default_x = field;
 
-    def plot_d(self, *arg):
-        print(arg)
-        self.plot(self.default_x, *arg)
+    def plot_d(self, *args, **kwargs):
+        """Calls plot(), using self.default_x as the x axis.
+        Refer to plot() for use of options.
+        """
+        return self.plot(self.default_x, *args, **kwargs)
+
+    def _plotyy(self, x, y1, y2, axes=None):
+        if axes is None:
+            fig, ax = plt.subplots(1)
+        else:
+            ax = axes
+            fig = ax.get_figure()
+
+        if isinstance(y1, list):
+            y1 = [item for sublist in map(self.expand_field, y1)
+                  for item in sublist]
+        else:
+            y1 = self.expand_field(y1)
+        if isinstance(y2, list):
+            y2 = [item for sublist in map(self.expand_field, y2)
+                  for item in sublist]
+        else:
+            y2 = self.expand_field(y2)
+        self._set_color_cycle(ax, len(y1 + y2) + 1)
+
+        xdata = self.get_field_data(self.expand_field(x)[0])
+        add_plot = lambda ax, y: ax.plot(xdata, self.get_field_data(y),
+                                         label=y)
+        for y in y1:
+            add_plot(ax, y)
+        axt = ax.twinx()
+        for y in y2:
+            add_plot(ax, y)
+
+        ax.set_xlabel(x)
+        ax.set_ylabel(', '.join(y1))
+        axt.set_ylabel(', '.join(y2))
+        ax.legend()
+        ax.grid(True)
+        return fig, ax
+
+    def plot_estimates(self):
+        fig, ax = plt.subplots(nrows=2, sharex=True)
+        self._plotyy('system_time_s',
+                     ['encoder.steer', 'mpu6050.gyroscope_y'],
+                     ['estimate.phi', 'estimate.w'],
+                     axes=ax[0])
+        self._plotyy('system_time_s',
+                     ['encoder.rear_wheel'],
+                     ['encoder.rear_wheel_rate', 'estimate.theta_R_dot_upper', 'estimate.theta_R_dot_lower'],
+                     axes=ax[1])
+        plt.show()
+        return fig
+        #fig, ax = plt.subplots(nrows=2, sharex=True)
+
+    def plot_forward_speed(self):
+        return self.plot_d(['forward_speed', 'threshold'])
+
+    def fft_window(self, field, start=None, stop=None, step=None):
+        """Plot a series of Fourier transforms for 'field' using different
+        time windows. First window begins at time 'start' and last window ends
+        at time 'stop'.'step' specifies the length for each window in the
+        series.
+        By default, the series spans the all data collected and uses the
+        last time value for 'step'.
+        """
+        fig, ax = plt.subplots(1)
+        if not isinstance(field, list):
+            field = [field]
+        ex_fields = [ef for f in field for ef in self.expand_field(f)]
+        T = np.mean(self.get_field_data('sample_period_s'))
+        t = self.get_field_data('system_time_s')
+
+        if start is None:
+            start = t[0]
+        if stop is None:
+            stop = t[-1]
+        if step is None:
+            step = stop
+
+        times = np.arange(start, stop, step)
+        self._set_color_cycle(ax, len(times) * len(ex_fields) + 1)
+
+        for ef in ex_fields:
+            time_start = start
+            for time_stop in np.append(times, stop)[1:]:
+                data = self.get_field_data(ef)
+                data_slice = data[np.logical_and(t >= time_start, t < time_stop)]
+                Y = abs(np.fft.fft(data_slice))
+                f = np.fft.fftfreq(len(data_slice), T)
+                scale = np.max(Y)
+                if scale < 1e-12:
+                    scale = 1.0
+                ax.plot(f[range(len(data_slice)/2)],
+                        Y[range(len(data_slice)/2)] / scale,
+                        label="field:{0}\ntime: [{1}, {2})".format(ef,
+                                                                   time_start,
+                                                                   time_stop))
+                time_start = time_stop
+
+        field_str = PLOTY_SEP.join(field)
+        ax.set_xlabel("Frequency (Hz)")
+        ax.set_ylabel("|Y(freq)|")
+        ax.set_title(("Fourier series in windows of {0} s from {1} s to " +
+                      "{2} s for {3}").format(step, start, stop, field_str))
+        ax.legend()
+        plt.show()
+        return fig

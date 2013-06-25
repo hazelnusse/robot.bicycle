@@ -1,0 +1,74 @@
+\documentclass[letterpaper,11pt]{article}
+\usepackage[round]{natbib}
+\usepackage[margin=1in,centering]{geometry}
+\usepackage{fancyhdr}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[pdftex]{hyperref}
+\hypersetup{
+    pdftitle={Bicycle reduced order observer},
+    pdfauthor={Dale Lukas Peterson},
+    pdfsubject={Subject},
+    pdfkeywords={Keywords}}
+
+\pagestyle{fancy}
+\fancyhead[L]{Bicycle reduced order observer, Dale L. Peterson}
+\fancyhead[R]{\thepage}  % page number on the right
+\fancyfoot[L,C,R]{}  %  No footer on left, center or right, on even or odd pages
+
+\begin{document}
+With the state of the bicycle defined as $x = \left[\phi, \delta, \dot{\phi},
+\dot{\delta}\right]^T$, and with the input being steer torque $T_\delta$, the
+linear state space bicycle equations are of the form:
+\begin{align*}
+\dot{x} &=\left[\begin{smallmatrix}0 & 0 & 1 & 0\\0 & 0 & 0 & 1\\a_{20} & a_{21} &
+a_{22} & a_{23}\\a_{30} & a_{31} & a_{32} & a_{33}\end{smallmatrix}\right] x +
+\left[\begin{smallmatrix}0\\0\\b_{20}\\b_{30}\end{smallmatrix}\right] T_\delta
+\\
+z &= \left[\begin{smallmatrix}0 & 1 & 0 & 0\\ 0 & 0 & 1 & 0\\ 0 & 0 & 0 &
+1\end{smallmatrix}\right] x
+\end{align*}
+Where we have assumed we can directly measure steer $\delta$, roll rate $\dot{\phi}$, and
+steer rate $\dot{\delta}$.  It is worth noting that the $a_{20}$ and $a_{30}$ entries of
+the system dynamics matrix are independent of forward speed.  Following the
+approach of \citet*{Bryson1970}, we introduce a change of variables
+\begin{align*}
+\left[\begin{smallmatrix}w \\ z\end{smallmatrix}\right] &=
+\left[\begin{smallmatrix}k_0 & k_1 & k_2 & k_3 \\ 0 & 1 & 0 & 0\\ 0 & 0 & 1 & 0\\ 0 & 0 & 0 &
+1\end{smallmatrix}\right] x \\
+ &= M x
+\end{align*}
+where the $k_i$'s must chosen so that $M$ is non-singular.  An observer
+for $w$ can be synthesized as
+\begin{align*}
+\dot{\hat{w}} &= \frac{a_{20} k_{2} + a_{30} k_{3}}{k_{0}} \hat{w} \\
+ &+ \left(a_{21} k_{2} + a_{31} k_{3} - \frac{k_{1} \left(a_{20} k_{2} + a_{30} k_{3}\right)}{k_{0}}\right) \delta \\
+ &+ \left(a_{22} k_{2} + a_{32} k_{3} + k_{0} - \frac{k_{2} \left(a_{20} k_{2} + a_{30} k_{3}\right)}{k_{0}}\right) \dot{\phi} \\
+ &+ \left(a_{23} k_{2} + a_{33} k_{3} + k_{1} - \frac{k_{3} \left(a_{20} k_{2} + a_{30} k_{3}\right)}{k_{0}}\right) \dot{\delta} \\
+ &+ \left(b_{20} k_{2} + b_{30} k_{3}\right) T_\delta
+\end{align*}
+With the output of the observer being
+\begin{align*}
+\hat{x} &= M^{-1} \left[\begin{smallmatrix}\hat{w} \\ z\end{smallmatrix}\right] \\
+  &= \left[\begin{smallmatrix}\frac{1}{k_{0}} & - \frac{k_{1}}{k_{0}} & -
+  \frac{k_{2}}{k_{0}} & - \frac{k_{3}}{k_{0}}\\0 & 1 & 0 & 0\\0 & 0 & 1 & 0\\0
+  & 0 & 0 & 1\end{smallmatrix}\right]\left[\begin{smallmatrix}\hat{w} \\ z\end{smallmatrix}\right]
+\end{align*}
+
+The observer state equation must be stabilized, so we must have
+\begin{equation*}
+\frac{a_{20} k_{2} + a_{30} k_{3}}{k_{0}} < 0
+\end{equation*}
+Since $a_{20}$ and $a_{30}$ are independent of speed, the estimator eigenvalues
+can be arbitrarily assigned by selection of fixed $k_0$, $k_2$, and $k_3$ that
+are independent of speed.  However, the state measurement and input
+coefficients are speed dependent.  Beyond this essential stability property, it
+is not entirely clear to me how the entries of $K$ should be selected to
+determine the coefficients that multiply the state measurements and steer torque
+input.
+
+\bibliography{library}   % name your BibTeX data base
+\bibliographystyle{plainnat}      % mathematics and physical sciences
+
+\end{document}

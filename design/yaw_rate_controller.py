@@ -84,6 +84,7 @@ def compute_gains(Q, R, W, V, dt):
         data['A_c'][i] = A + dot(B, K_c)
         data['B_c'][i] = B
         data['controller_evals'][i] = la.eigvals(data['A_c'][i])
+        data['controller_evals_c'][i] = np.log(data['controller_evals'][i]) / dt
         assert(np.all(abs(data['controller_evals'][i]) < 1.0))
 
         # Observability from steer angle and roll rate measurement
@@ -101,6 +102,7 @@ def compute_gains(Q, R, W, V, dt):
         data['A_e'][i] = dot(eye(4) - dot(K_e, C_m), A)
         data['B_e'][i] = np.hstack((dot(eye(4) - dot(K_e, C_m), B), K_e))
         data['estimator_evals'][i] = la.eigvals(data['A_e'][i])
+        data['estimator_evals_c'][i] = np.log(data['estimator_evals'][i]) / dt
         # Verify that Kalman estimator eigenvalues are stable
         assert(np.all(abs(data['estimator_evals'][i]) < 1.0))
 
@@ -161,7 +163,7 @@ def design_controller():
     W = diag([0.0, 0.0, 1e-6, 1e-6]) * dt
 
     # Measurement error covariance
-    V = diag([(1.0/20000*2.0*pi)**2., # square of 1.0 count
+    V = .01*diag([(1.0/20000*2.0*pi)**2., # square of 1.0 count
               (0.00227631723111)**2]) # square of std deviation from static
 
     # Calculate closed loop eigenvalues and gains

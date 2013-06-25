@@ -10,8 +10,6 @@
 #include "sample.pb.h"
 #include "Singleton.h"
 #include "MPU6050.h"
-#include "RearWheel.h"
-#include "YawRateController.h"
 #include "SystemState.h"
 
 class SampleAndControl : public Singleton<SampleAndControl> {
@@ -21,10 +19,10 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   msg_t Stop();
 
   const char * fileName() const;
-  void sampleMotorState(Sample & s) const;
+  // void sampleMotorState(Sample & s) const;
   uint32_t systemState() const;
-  static void enableSensorsMotors();
-  static void disableSensorsMotors();
+  // static void enableSensorsMotors();
+  // static void disableSensorsMotors();
 
   static void shellcmd_(BaseSequentialStream *chp, int argc, char *argv[]);
 
@@ -38,8 +36,8 @@ class SampleAndControl : public Singleton<SampleAndControl> {
   void controlThread(const char * filename);
 
   // Data collection related
-  static void sampleTimers(Sample & s);
-  void sampleSetPoints(Sample & s);
+  // static void sampleTimers(Sample & s);
+  // void sampleSetPoints(Sample & s);
 
   WORKING_AREA(waControlThread, 4096);
   
