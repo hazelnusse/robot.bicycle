@@ -66,7 +66,7 @@ class PlotSample(PlotData):
         """Calls plot(), using self.default_x as the x axis.
         Refer to plot() for use of options.
         """
-        self.plot(self.default_x, *args, **kwargs)
+        return self.plot(self.default_x, *args, **kwargs)
 
     def fft_window(self, field, start=None, stop=None, step=None):
         """Plot a series of Fourier transforms for 'field' using different
