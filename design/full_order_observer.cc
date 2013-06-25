@@ -18,7 +18,7 @@ int main(int argc, char ** argv)
   bicycle::Bicycle rb = bicycle::robot_bicycle();
 
   design_parameters params;
-  params.N = 11;
+  params.N = 101;
   params.Ts = 0.005;
   params.lowest_speed = 0.5;
   params.highest_speed = 10.0;
