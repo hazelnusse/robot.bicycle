@@ -126,7 +126,7 @@ class PlotSample(PlotData):
         #fig, ax = plt.subplots(nrows=2, sharex=True)
 
     def plot_forward_speed(self):
-        return self.plot_d('forward_speed')
+        return self.plot_d(['forward_speed', 'threshold'])
 
     def fft_window(self, field, start=None, stop=None, step=None):
         """Plot a series of Fourier transforms for 'field' using different
