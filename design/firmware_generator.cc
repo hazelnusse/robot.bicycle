@@ -7,7 +7,7 @@
 #include "firmware_template.h"
 #include "control_design_functions.h"
 
-void firmware_generator(const std::vector<model_data> & md, std::string filename_base)
+void firmware_generator(const std::vector<model_data> & md)
 {
   const int observer_state_size = 1;    // observer state is w
   const int observer_input_size = 4;    // observer inputs are: steer, roll rate, steer rate, steer torque
@@ -29,13 +29,13 @@ void firmware_generator(const std::vector<model_data> & md, std::string filename
   header_body += "const uint32_t plant_model_input_size = "
               + std::to_string(plant_model_input_size) + ";\n";
 
-  std::ofstream header_file(filename_base + ".h");
+  std::ofstream header_file("gain_schedule.h");
   header_file << firmware_template::preamble
               << header_body << firmware_template::postamble;
   header_file.close();
 
-  std::ofstream source_file(filename_base + ".cpp");
-  source_file << generate_source(md, filename_base);
+  std::ofstream source_file("fork_schedule.cpp");
+  source_file << generate_source(md, "gain_schedule");
   source_file.close();
 }
 

@@ -9,11 +9,11 @@
 
 int main(int argc, char ** argv)
 {
-  if (argc != 2) {
-    std::cout << "Filename must be supplied\n";
-    return -1;
-  }
-  std::string filename_base(argv[1]);
+//  if (argc != 2) {
+//    std::cout << "Filename must be supplied\n";
+//    return -1;
+//  }
+//  std::string filename_base(argv[1]);
 
   bicycle::Bicycle rb = bicycle::robot_bicycle();
   // bicycle::Bicycle bike = bicycle::benchmark_bicycle();
@@ -38,6 +38,7 @@ int main(int argc, char ** argv)
 
   std::vector<model_data> md = design_controller(params, rb);
   std::sort(md.begin(), md.end());
-  firmware_generator(md, filename_base);
+  firmware_generator(md);
+  //firmware_generator(md, filename_base);
 }
 
