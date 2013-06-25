@@ -135,6 +135,9 @@ void ForkMotorController::update(Sample & s)
     s.system_state |= systemstate::SteerMotorFault;
   if (m_.current_direction())
     s.system_state |= systemstate::SteerMotorCurrentDir;
+  s.threshold.estimation = estimation_threshold_;
+  s.threshold.control = control_threshold_;
+  s.has_threshold = true;
 }
 
 // estimation/control thresholds are in terms of wheel rate, which is defined
