@@ -12,11 +12,11 @@ vector_t<observer_state_size> StateEstimator::update(const vector_t<observer_sta
   return A * x + B * u;
 }
 
-vector_t<observer_output_size> StateEstimator::output(const vector_t<observer_state_size>& x,
-                                            const vector_t<observer_input_size>& u) const
-{
-  return C * x + D * u;
-}
+//vector_t<observer_output_size> StateEstimator::output(const vector_t<observer_state_size>& x,
+//                                            const vector_t<observer_input_size>& u) const
+//{
+//  return C * x + D * u;
+//}
 
 vector_t<plant_model_input_size> LQRController::update(const vector_t<plant_model_state_size>& x) const
 {
@@ -35,9 +35,12 @@ bool rt_controller_t::operator<(const rt_controller_t& rhs) const
 }
 
 GainSchedule::GainSchedule()
-  : w_{{}}, pi_control_enabled_{false}
+  : state_{{}}, pi_control_enabled_{false}
 {
-  w_(0, 0) = 0;
+  state_(0, 0) = 0;
+  state_(0, 1) = 0;
+  state_(0, 2) = 0;
+  state_(0, 3) = 0;
 }
 
 float GainSchedule::rate() const
@@ -85,26 +88,24 @@ void GainSchedule::state_estimate(float torque_prev)
 {
   state_estimate_time_ = s_->loop_count;
   vector_t<observer_input_size> input {{s_->encoder.steer, s_->mpu6050.gyroscope_y,
-                                        s_->encoder.steer_rate, torque_prev}};
+                                        torque_prev}};
 
-  // estimator output and interpolation (roll angle)
-  auto state_lower = ss_lower_->estimator.output(w_, input);
-  auto state_upper = ss_upper_->estimator.output(w_, input);
-  s_->estimate.phi = (alpha_ * (state_upper - state_lower) + state_lower)(0, 0);
-
-  // update observer state w
-  auto w_lower = ss_lower_->estimator.update(w_, input);
-  auto w_upper = ss_upper_->estimator.update(w_, input);
-  w_ = alpha_ * (w_upper - w_lower) + w_lower;
-  s_->estimate.w = w_(0, 0);
+  // update observer state
+  auto state_lower = ss_lower_->estimator.update(state_, input);
+  auto state_upper = ss_upper_->estimator.update(state_, input);
+  state_ = alpha_ * (state_upper - state_lower) + state_lower;
+  s_->estimate.phi = state_(0, 0);
+  s_->estimate.delta = state_(0, 1);
+  s_->estimate.phi_dot = state_(0, 2);
+  s_->estimate.delta_dot = state_(0, 3);
 }
 
 float GainSchedule::lqr_output() const
 {
-  vector_t<plant_model_state_size> state = {{s_->estimate.phi, // phi
-                                             s_->encoder.steer, // delta
-                                             s_->mpu6050.gyroscope_y, // phi dot
-                                             s_->encoder.steer_rate}}; // delta dot
+  vector_t<plant_model_state_size> state = {{s_->estimate.phi,
+                                             s_->estimate.delta,
+                                             s_->estimate.phi_dot,
+                                             s_->estimate.delta_dot}};
   const float t0 = ss_lower_->lqr.update(state)(0, 0);
   const float t1 = ss_upper_->lqr.update(state)(0, 0);
   return alpha_ * (t1 - t0) + t0;
