@@ -9,6 +9,7 @@ message Sample {
   optional InvensenseMPU6050 mpu6050 = 7;    // 28 bytes
   optional Estimator estimate = 8;           // 24 bytes
   optional PIController yaw_rate_pi = 9;     // 16 bytes
+  optional Threshold threshold = 11;         //  8 bytes
 
   required uint32 loop_count = 10;           // loop count
                                    // Total:   116 bytes
@@ -67,3 +68,8 @@ message PIController {
   required float x = 4;
 }
 
+// Size: 2 * 4 = 8 bytes
+message Threshold {
+  required float estimation = 1;
+  required float control = 2;
+}
