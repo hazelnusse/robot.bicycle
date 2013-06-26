@@ -116,11 +116,11 @@ void ForkMotorController::update(Sample & s)
   x_pi_ += s.yaw_rate_pi.e;
   s.yaw_rate_pi.x = x_pi_;
 
-  s.motor_current.desired_steer = 0.0f;
+  s.motor_torque.desired_steer = 0.0f;
   if (should_estimate(s) && fork_control_.set_sample(s)) {
     const float torque = fork_control_.compute_updated_torque(m_.get_torque());
     if (should_control(s)) {
-      s.motor_current.desired_steer = torque / torque_constant;
+      s.motor_torque.desired_steer = torque;
       m_.set_torque(torque);
     } else {
       m_.set_torque(0.0f);
@@ -128,7 +128,7 @@ void ForkMotorController::update(Sample & s)
   } else {
     m_.set_torque(0.0f);
   }
-  s.motor_current.steer = m_.get_current();
+  s.motor_torque.steer = m_.get_torque();
 
   if (e_.rotation_direction())
     s.system_state |= systemstate::SteerEncoderDir;

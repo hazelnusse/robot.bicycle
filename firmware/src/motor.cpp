@@ -38,21 +38,22 @@ Motor::~Motor()
 bool Motor::set_torque(float torque)
 {
   bool torque_set = true;
-  if (torque < 0.0f) {
+  if (torque < 0.0f)
     set_direction_negative();
-    torque = -torque;
-  } else {
+  else
     set_direction_positive();
-  }
 
-  if (torque > max_torque_) {
-    torque = max_torque_;
+  if (std::fabs(torque) > max_torque_) {
+    if (torque > 0.0f)
+      torque = max_torque_;
+    else
+      torque = -max_torque_;
     torque_set = false;
   }
 
   torque_ = torque;
   current_ = torque * inv_torque_constant_;
-  set_ccr(current_to_ccr(current_));
+  set_ccr(current_to_ccr(std::fabs(current_)));
   return torque_set;
 }
 

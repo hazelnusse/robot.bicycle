@@ -76,7 +76,7 @@ void RearMotorController::update(Sample & s)
   const float error_integral_update = error_integral_ + error * dt;
   const float torque = Kp_ * error + Ki_ * error_integral_update;
 
-  s.motor_current.desired_rear_wheel = torque / torque_constant;
+  s.motor_torque.desired_rear_wheel = torque;
   if (m_.set_torque(torque))  // integrate if we haven't saturated motor
     error_integral_ = error_integral_update;
 
@@ -84,7 +84,7 @@ void RearMotorController::update(Sample & s)
   rear_wheel_count_prev_ = s.encoder.rear_wheel_count;
   rear_wheel_rate_prev_ = s.encoder.rear_wheel_rate;
 
-  s.motor_current.rear_wheel = m_.get_current();
+  s.motor_torque.rear_wheel = m_.get_torque();
 
   if (e_.rotation_direction())
     s.system_state |= systemstate::RearWheelEncoderDir;

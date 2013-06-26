@@ -128,7 +128,8 @@ class PlotSample(PlotData):
                      ['forward_speed', 'motor_current.steer'],
                      axes=ax[0])
         self._plotyy('system_time_s',
-                     ['mpu6050.gyroscope_y', 'estimate.phi_dot', 'estimate.delta_dot'],
+                     ['mpu6050.gyroscope_y', 'estimate.phi_dot',
+                      'estimate.delta_dot', 'encoder.steer_rate'],
                      ['forward_speed', 'motor_current.steer'],
                      axes=ax[1])
         plt.show()
