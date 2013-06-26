@@ -192,7 +192,7 @@ class PlotData(object):
         ax.set_xlabel(x_field)
         ax.set_ylabel(y_label)
         ax.set_title(y_label + ' vs. ' + x_field)
-        ax.legend()
+        ax.legend(loc=2)
         ax.grid(True)
         plt.show()
         return fig, ax

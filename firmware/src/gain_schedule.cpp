@@ -37,10 +37,10 @@ bool rt_controller_t::operator<(const rt_controller_t& rhs) const
 GainSchedule::GainSchedule()
   : state_{{}}, pi_control_enabled_{false}
 {
-  state_(0, 0) = 0;
-  state_(0, 1) = 0;
-  state_(0, 2) = 0;
-  state_(0, 3) = 0;
+  state_(0, 0) = 0.0f;
+  state_(0, 1) = 0.0f;
+  state_(0, 2) = 0.0f;
+  state_(0, 3) = 0.0f;
 }
 
 float GainSchedule::rate() const
@@ -82,6 +82,14 @@ bool GainSchedule::set_rate(float rate)
   }
 
   return valid;
+}
+
+void GainSchedule::set_state(float phi, float delta, float phi_dot, float delta_dot)
+{
+  state_ (0, 0) = phi;
+  state_ (0, 1) = delta;
+  state_ (0, 2) = phi_dot;
+  state_ (0, 3) = delta_dot;
 }
 
 void GainSchedule::state_estimate(float torque_prev)

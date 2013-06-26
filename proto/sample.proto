@@ -44,6 +44,8 @@ message Encoder {
 message MotorCurrent {
   required float rear_wheel = 1;
   required float steer = 2;
+  required float desired_rear_wheel = 3;
+  required float desired_steer = 4;
 }
 
 // Size: 2 * 4 = 8 bytes

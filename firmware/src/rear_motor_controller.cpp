@@ -76,6 +76,7 @@ void RearMotorController::update(Sample & s)
   const float error_integral_update = error_integral_ + error * dt;
   const float torque = Kp_ * error + Ki_ * error_integral_update;
 
+  s.motor_current.desired_rear_wheel = torque / torque_constant;
   if (m_.set_torque(torque))  // integrate if we haven't saturated motor
     error_integral_ = error_integral_update;
 
