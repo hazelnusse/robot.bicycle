@@ -116,12 +116,15 @@ void ForkMotorController::update(Sample & s)
   x_pi_ += s.yaw_rate_pi.e;
   s.yaw_rate_pi.x = x_pi_;
 
+  s.motor_current.desired_steer = 0.0f;
   if (should_estimate(s) && fork_control_.set_sample(s)) {
     const float torque = fork_control_.compute_updated_torque(m_.get_torque());
-    if (should_control(s))
+    if (should_control(s)) {
+      s.motor_current.desired_steer = torque / torque_constant;
       m_.set_torque(torque);
-    else
+    } else {
       m_.set_torque(0.0f);
+    }
   } else {
     m_.set_torque(0.0f);
   }
