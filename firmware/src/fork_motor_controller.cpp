@@ -145,8 +145,13 @@ void ForkMotorController::update(Sample & s)
 // should occur when speed > threshold which is equivalent to rate < threshold.
 bool ForkMotorController::should_estimate(const Sample& s)
 {
-  if (!estimation_triggered_)
-      estimation_triggered_ = s.encoder.rear_wheel_rate < estimation_threshold_;
+  if (!estimation_triggered_) {
+    estimation_triggered_ = s.encoder.rear_wheel_rate < estimation_threshold_;
+  } else {
+    // if estimation not triggered, update the state
+    fork_control_.set_state(0.0f, s.encoder.steer,
+                            s.mpu6050.gyroscope_y, s.encoder.steer_rate);
+  }
   return estimation_triggered_;
 }
 
