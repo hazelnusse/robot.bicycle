@@ -84,12 +84,12 @@ bool GainSchedule::set_rate(float rate)
   return valid;
 }
 
-void GainSchedule::set_state(float phi, float delta, float phi_dot, float delta_dot)
+void GainSchedule::set_state(float lean, float steer, float lean_rate, float steer_rate)
 {
-  state_ (0, 0) = phi;
-  state_ (0, 1) = delta;
-  state_ (0, 2) = phi_dot;
-  state_ (0, 3) = delta_dot;
+  state_ (0, 0) = lean;
+  state_ (0, 1) = steer;
+  state_ (0, 2) = lean_rate;
+  state_ (0, 3) = steer_rate;
 }
 
 void GainSchedule::state_estimate(float torque_prev)
@@ -102,18 +102,18 @@ void GainSchedule::state_estimate(float torque_prev)
   auto state_lower = ss_lower_->estimator.update(state_, input);
   auto state_upper = ss_upper_->estimator.update(state_, input);
   state_ = alpha_ * (state_upper - state_lower) + state_lower;
-  s_->estimate.phi = state_(0, 0);
-  s_->estimate.delta = state_(0, 1);
-  s_->estimate.phi_dot = state_(0, 2);
-  s_->estimate.delta_dot = state_(0, 3);
+  s_->estimate.lean = state_(0, 0);
+  s_->estimate.steer = state_(0, 1);
+  s_->estimate.lean_rate = state_(0, 2);
+  s_->estimate.steer_rate = state_(0, 3);
 }
 
 float GainSchedule::lqr_output() const
 {
-  vector_t<plant_model_state_size> state = {{s_->estimate.phi,
-                                             s_->estimate.delta,
-                                             s_->estimate.phi_dot,
-                                             s_->estimate.delta_dot}};
+  vector_t<plant_model_state_size> state = {{s_->estimate.lean,
+                                             s_->estimate.steer,
+                                             s_->estimate.lean_rate,
+                                             s_->estimate.steer_rate}};
   const float t0 = ss_lower_->lqr.update(state)(0, 0);
   const float t1 = ss_upper_->lqr.update(state)(0, 0);
   return alpha_ * (t1 - t0) + t0;

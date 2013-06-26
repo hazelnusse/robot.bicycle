@@ -4,7 +4,7 @@ message Sample {
   required uint32 system_state = 3;          //  4 bytes **
   required Encoder encoder = 4;              // 16 bytes
   required SetPoint set_point = 5;           //  8 bytes
-  required MotorCurrent motor_current = 6;   //  8 bytes
+  required MotorTorque motor_torque = 6;     // 16 bytes
 
   optional InvensenseMPU6050 mpu6050 = 7;    // 28 bytes
   optional Estimator estimate = 8;           // 24 bytes
@@ -41,7 +41,7 @@ message Encoder {
 }
 
 // Size: 2 * 4 = 8 bytes
-message MotorCurrent {
+message MotorTorque {
   required float rear_wheel = 1;
   required float steer = 2;
   required float desired_rear_wheel = 3;
@@ -58,10 +58,10 @@ message SetPoint {
 message Estimator {
   required float theta_R_dot_lower = 1;
   required float theta_R_dot_upper = 2;
-  required float phi = 3;
-  required float delta = 4;
-  required float phi_dot = 5;
-  required float delta_dot = 6;
+  required float lean = 3;
+  required float steer = 4;
+  required float lean_rate = 5;
+  required float steer_rate = 6;
 }
 
 // Size: 4 * 4 = 16 bytes
