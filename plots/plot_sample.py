@@ -19,6 +19,7 @@ class PlotSample(PlotData):
         self._correct_system_time()
         self._add_sample_period()
         self._add_forward_speed()
+        self._add_threshold_speed()
         self._mask_fields(['computation_time', 'sample_period'])
         self._convert_clocks_to_seconds(['system_time_c', 'computation_time',
                                          'sample_period'])
@@ -51,6 +52,13 @@ class PlotSample(PlotData):
         d = self.get_field_data('encoder.rear_wheel_rate')
         self.dtype_c[field] = np.float32
         self.data_c[field] = -WHEEL_RADIUS * d.astype(np.float32)
+
+    def _add_threshold_speed(self):
+        for f in self.expand_field('threshold'):
+            d = self.get_field_data(f)
+            field = f.replace('.', '_speed_')
+            self.dtype_c[field] = np.float32
+            self.data_c[field] = -WHEEL_RADIUS * d.astype(np.float32)
 
     def _mask_fields(self, field_list):
         """Mask the first element in the given fields since they are invalid.
@@ -102,31 +110,34 @@ class PlotSample(PlotData):
             add_plot(ax, y)
         axt = ax.twinx()
         for y in y2:
-            add_plot(ax, y)
+            add_plot(axt, y)
 
         ax.set_xlabel(x)
         ax.set_ylabel(', '.join(y1))
         axt.set_ylabel(', '.join(y2))
-        ax.legend()
+        handles, labels = ax.get_legend_handles_labels()
+        handles2, labels2 = axt.get_legend_handles_labels()
+        ax.legend(handles + handles2, labels + labels2, loc=2)
         ax.grid(True)
         return fig, ax
 
     def plot_estimates(self):
         fig, ax = plt.subplots(nrows=2, sharex=True)
         self._plotyy('system_time_s',
-                     ['encoder.steer', 'mpu6050.gyroscope_y'],
-                     ['estimate.phi', 'estimate.w'],
+                     ['encoder.steer', 'estimate.phi', 'estimate.delta'],
+                     ['forward_speed', 'motor_current.steer'],
                      axes=ax[0])
         self._plotyy('system_time_s',
-                     ['encoder.rear_wheel'],
-                     ['encoder.rear_wheel_rate', 'estimate.theta_R_dot_upper', 'estimate.theta_R_dot_lower'],
+                     ['mpu6050.gyroscope_y', 'estimate.phi_dot', 'estimate.delta_dot'],
+                     ['forward_speed', 'motor_current.steer'],
                      axes=ax[1])
         plt.show()
-        return fig
+        return fig, ax
         #fig, ax = plt.subplots(nrows=2, sharex=True)
 
     def plot_forward_speed(self):
-        return self.plot_d(['forward_speed', 'threshold'])
+        return self.plot_d(['forward_speed', 'threshold_speed_estimation',
+                            'threshold_speed_control'])
 
     def fft_window(self, field, start=None, stop=None, step=None):
         """Plot a series of Fourier transforms for 'field' using different

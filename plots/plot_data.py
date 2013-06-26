@@ -195,7 +195,7 @@ class PlotData(object):
         ax.legend()
         ax.grid(True)
         plt.show()
-        return fig
+        return fig, ax
 
     def hist(self, field=None, data=None, *args, **kwargs):
         """Plots a histogram for the specified 'field' or with 'data' using the
