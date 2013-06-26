@@ -1,16 +1,37 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-import os
-import sys
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                             "..", "proto"))
-
+from itertools import cycle
 import matplotlib.pyplot as plt
 import numpy as np
 from plot_data import PlotData, PLOTY_SEP
 
 SECONDS_PER_CLOCK = 0.25e-6
 WHEEL_RADIUS = 0.3359
+STATE_FLAGS = [
+    ('rear_wheel_motor_enable', 0x00000001),
+    ('steer_motor_enable', 0x00000002),
+    ('rear_wheel_motor_fault', 0x00000004),
+    ('steer_motor_fault', 0x00000008),
+    ('rear_wheel_encoder_dir', 0x00000010),
+    ('steer_encoder_dir', 0x00000020),
+    ('front_wheel_encoder_dir', 0x00000040),
+    ('rear_wheel_motor_current_dir', 0x00000080),
+    ('steer_motor_current_dir', 0x00000100),
+    ('file_system_write_triggered', 0x00000200),
+    ('sample_buffer_overflow', 0x00000400),
+    ('sample_buffer_encode_error', 0x00000800),
+    ('sample_buffer_init_error', 0x00001000),
+    ('collection_enabled', 0x00008000),
+    ('I2C_Bus_Error', 0x00010000),
+    ('I2C_Arbitration_Lost', 0x00020000),
+    ('I2C_ACK_Failure', 0x00040000),
+    ('I2C_Overrun', 0x00080000),
+    ('I2C_PEC_Error', 0x00100000),
+    ('I2C_Hardware_Timeout', 0x00200000),
+    ('I2C_SMB_Alert', 0x00400000),
+    ('I2C_Software_Timeout', 0x00800000),
+    ('FATFS_f_open_error', 0x01000000)
+]
 
 class PlotSample(PlotData):
     def __init__(self, datafile=None):
@@ -20,6 +41,7 @@ class PlotSample(PlotData):
         self._add_sample_period()
         self._add_forward_speed()
         self._add_threshold_speed()
+        self._parse_system_state()
         self._mask_fields(['computation_time', 'sample_period'])
         self._convert_clocks_to_seconds(['system_time_c', 'computation_time',
                                          'sample_period'])
@@ -59,6 +81,16 @@ class PlotSample(PlotData):
             field = f.replace('.', '_speed_')
             self.dtype_c[field] = np.float32
             self.data_c[field] = -WHEEL_RADIUS * d.astype(np.float32)
+
+    def _parse_system_state(self):
+        data = self.get_field_data('system_state')
+        state_bit = np.empty(data.shape, dtype=np.uint32)
+        for field, bit in STATE_FLAGS:
+            field = 'system_state_' + field
+            state_bit.fill(bit)
+            self.dtype_c[field] = np.bool
+            self.data_c[field] = np.bitwise_and(data,
+                                                state_bit).astype(np.bool)
 
     def _mask_fields(self, field_list):
         """Mask the first element in the given fields since they are invalid.
@@ -134,11 +166,49 @@ class PlotSample(PlotData):
                      axes=ax[1])
         plt.show()
         return fig, ax
-        #fig, ax = plt.subplots(nrows=2, sharex=True)
 
     def plot_forward_speed(self):
         return self.plot_d(['forward_speed', 'threshold_speed_estimation',
                             'threshold_speed_control'])
+
+    def plot_system_state(self, enable_all=False, disable_func=None):
+        """Plot the system state boolean fields. Fields are scaled from 0.75
+        to 1.25 such that different fields will not overlap when HIGH. User
+        can specify which state fields are displayed by passing a function
+        to 'disable_func' to exclude certain state fields. By default,
+        'disable_func' is set to:
+        lambda f: f.startswith('I2C') or f.endswith('_dir')
+
+        Alternatively, all state fields can be displayed by setting
+        'enable_all' to True.
+        """
+        if disable_func is None:
+            disable_func = lambda f: f.startswith('I2C') or f.endswith('_dir')
+        if enable_all:
+            disable_func = lambda f: False
+
+        fig, ax = plt.subplots(1)
+        xdata = self.get_field_data(self.expand_field(self.default_x)[0])
+        state_fields = [f for f in self.data_c.iterkeys()
+                        if (f.startswith('system_state_') and
+                            not disable_func(f.replace('system_state_', '')))]
+
+        scale_fields = np.linspace(0.75, 1.25, len(state_fields))
+        self._set_color_cycle(ax, len(state_fields) + 1)
+        lscycler = cycle(['-', '--'])
+
+        for fields, scale in zip(sorted(state_fields), scale_fields):
+            ax.plot(xdata, self.get_field_data(fields) * scale,
+                    label=fields.replace('system_state_', ''),
+                    linestyle=next(lscycler))
+
+        ax.legend(loc=2)
+        ax.grid(True)
+        ax.set_xlabel(self.default_x)
+        ax.set_ylabel('system state')
+        ax.set_title('system state')
+        plt.show()
+        return fig, ax
 
     def fft_window(self, field, start=None, stop=None, step=None):
         """Plot a series of Fourier transforms for 'field' using different
