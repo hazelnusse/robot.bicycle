@@ -43,7 +43,7 @@ void firmware_generator(const std::vector<model_data> & md)
 std::string generate_source(const std::vector<model_data> & md, std::string filename_base)
 {
   //std::string source_body{};
-  Eigen::IOFormat printfmt(Eigen::FullPrecision, 0, ", ", ", ", "", "", "{{", "}}");
+  Eigen::IOFormat printfmt(Eigen::FullPrecision, 0, "f, ", "f, ", "", "", "{{", "f}}");
   std::ostringstream out;
   out << "#include \"" << filename_base << ".h\"\n\n";
   out << "namespace control {\n\n";
@@ -57,13 +57,13 @@ std::string generate_source(const std::vector<model_data> & md, std::string file
 
     out << "\t\t\t{ // StateEstimator\n";
     out << "\t\t\t\t" << it->A_obs_d.format(printfmt) << ",\n";
-    out << "\t\t\t\t" << it->B_obs_d.format(printfmt) << ",\n";
+    out << "\t\t\t\t" << it->B_obs_d.format(printfmt) << "\n";
 //    out << "\t\t\t\t" << it->C_obs.format(printfmt) << ",\n";
 //    out << "\t\t\t\t" << it->D_obs.format(printfmt) << "\n";
     out << "\t\t\t},\n"; // StateEstimator End
 
     out << "\t\t\t{ // LQRController\n"; // LQRController Start
-    out << "\t\t\t\t" << it->K_lqr.format(printfmt) << "\n";
+    out << "\t\t\t\t" << it->K_lqr_d.format(printfmt) << "\n";
     out << "\t\t\t},\n"; // LQRController End
 
     out << "\t\t\t{ // PIController\n"; // PIController Start
