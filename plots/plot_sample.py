@@ -124,13 +124,13 @@ class PlotSample(PlotData):
     def plot_estimates(self):
         fig, ax = plt.subplots(nrows=2, sharex=True)
         self._plotyy('system_time_s',
-                     ['encoder.steer', 'estimate.phi', 'estimate.delta'],
-                     ['forward_speed', 'motor_current.steer'],
+                     ['encoder.steer', 'estimate.lean', 'estimate.steer'],
+                     ['forward_speed', 'motor_torque.steer'],
                      axes=ax[0])
         self._plotyy('system_time_s',
-                     ['mpu6050.gyroscope_y', 'estimate.phi_dot',
-                      'estimate.delta_dot', 'encoder.steer_rate'],
-                     ['forward_speed', 'motor_current.steer'],
+                     ['mpu6050.gyroscope_y', 'estimate.lean_rate',
+                      'estimate.steer_rate', 'encoder.steer_rate'],
+                     ['forward_speed', 'motor_torque.steer'],
                      axes=ax[1])
         plt.show()
         return fig, ax
