@@ -128,15 +128,17 @@ void compute_observer_gains(const design_parameters & params,
   matlab.put_Matrix(poles, "poles");
   matlab.eval("[K_obs, prec, message] = place(A', C_obs', poles); K_obs = -K_obs';");
   data.K_obs = matlab.get_Matrix("K_obs");
-  std::cout << "K_obs = \n" << data.K_obs.transpose() << std::endl;
+  std::cout << "K_obs = \n" << data.K_obs << std::endl;
   Eigen::EigenSolver<Eigen::MatrixXd> es(data.A + data.K_obs * C_obs);
   std::cout << "Observer CL evals = \n" << es.eigenvalues().transpose() << std::endl;
   matlab.eval("B_obs = [K_obs, B]; sys_obs_c = ss(A, B_obs, eye(4), zeros(4, 3));"
-              "sys_obs_d = c2d(sys_obs_c, Ts); A_obs_d = sys_obs_d.A; B_obs_d = sys_obs_d.B;");
+              "sys_obs_d = c2d(sys_obs_c, Ts, 'tustin'); A_obs_d = sys_obs_d.A; B_obs_d = sys_obs_d.B;");
   data.A_obs_d = matlab.get_Matrix("A_obs_d");
   data.B_obs_d = matlab.get_Matrix("B_obs_d");
   std::cout << "Observer A matrix:\n" << data.A_obs_d << std::endl;
   std::cout << "Observer B matrix:\n" << data.B_obs_d << std::endl;
+  Eigen::EigenSolver<Eigen::MatrixXd> es_d(data.A_obs_d + data.B_obs_d.block(0, 0, 4, 2) * C_obs);
+  std::cout << "Observer A_d evals:\n" << es_d.eigenvalues() << std::endl;
 }
 
 std::vector<model_data> design_controller(const design_parameters & params,
