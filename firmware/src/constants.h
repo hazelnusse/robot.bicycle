@@ -26,8 +26,12 @@ constexpr float Nm_per_ozfin = 0.00706155182175f;
 constexpr float wheel_radius = 0.3359f;
 
 // Accelerometer constexprants
+// gyro_scale calculated experimentally by comparing integration of lean rate
+// with calculation of lean using acceleration for the system in a
+// quasi-static setting.
+constexpr float gyro_scale = 0.866634f;
 constexpr float accelerometer_sensitivity = g / 16384.0f;
-constexpr float gyroscope_sensitivity = rad_per_degree / 131.0f;
+constexpr float gyroscope_sensitivity = rad_per_degree / 131.0f * gyro_scale;
 constexpr float thermometer_offset = 36.53f;
 constexpr float thermometer_sensitivity = 1.0f / 340.0f;
 
