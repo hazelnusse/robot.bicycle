@@ -7,6 +7,8 @@ add_executable(full_order_observer control_design_functions.cc
                                       matlab_interface.cc
                                       full_order_observer.cc
                                       robot_bicycle_parameters.cc)
-endif()
 target_link_libraries(full_order_observer bicycle control ${MATLAB_LIBRARIES})
+endif()
 
+add_executable(parameter_check parameter_check.cc robot_bicycle_parameters.cc)
+target_link_libraries(parameter_check bicycle)
