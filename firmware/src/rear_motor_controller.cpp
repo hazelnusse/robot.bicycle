@@ -7,7 +7,9 @@
 namespace hardware {
 
 const uint8_t ccr_channel = 1;              // PWM Channel 1
-const float max_current = 12.0f;            // Copley Controls ACJ-090-36
+const float max_current = 24.0f;            // Copley Controls ACJ-090-36
+                                            // Configured 24.0A peak, 12.0A
+                                            // continuous
 const float torque_constant = 6.654987675770698f;  // Experimentally determined
 const float d0 = 10.0f * constants::two_pi; // filter pole at -d0 rad / s
 const float n0 = d0;
