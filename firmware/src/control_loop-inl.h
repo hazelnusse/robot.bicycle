@@ -7,7 +7,7 @@
 namespace hardware {
 
 inline
-bool ControlLoop::hw_button_enabled()
+bool ControlLoop::hw_button_enabled() const
 {
   return MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->IDR)),
                           GPIOF_HW_SWITCH_PIN));
