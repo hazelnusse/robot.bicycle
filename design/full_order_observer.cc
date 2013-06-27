@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
   params.Q(2, 2) = std::pow(200*pi/180, -2.0);
   params.Q(3, 3) = std::pow(200*pi/180, -2.0);
   params.R.resize(1, 1);
-  params.R << std::pow(6.0*.75, -2.0);
+  params.R << std::pow(.4, -2.0);
   params.pole_placement_factor = 3.0;
 
   std::vector<model_data> md = design_controller(params, rb);
