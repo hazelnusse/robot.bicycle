@@ -151,7 +151,7 @@
 #define GPIOF_I2C2_SDA              0
 #define GPIOF_I2C2_SCL              1
 #define GPIOF_XBEE_RESET            2
-#define GPIOF_TIMING_PIN            3
+#define GPIOF_HW_SWITCH_PIN         3
 #define GPIOF_RW_ENABLE             4
 #define GPIOF_STEER_ENABLE          5
 #define GPIOF_RW_DIR                6
@@ -829,7 +829,7 @@
  * PF0  - I2C2_SDA                  (output open drain, pullup, AF4).
  * PF1  - I2C2_SCL                  (output open drain, pullup, AF4).
  * PF2  - XBEE_RESET                (output pushpull, pullup, AF0).
- * PF3  - TIMING_PIN                (output pushpull, AF0).
+ * PF3  - HW_SWITCH_PIN             (input pullup, AF0).
  * PF4  - RW_ENABLE                 (output pushpull, AF0).
  * PF5  - STEER_ENABLE              (output pushpull, AF0).
  * PF6  - RW_DIR                    (output pushpull, AF0).
@@ -846,7 +846,7 @@
 #define VAL_GPIOF_MODER             (PIN_MODE_ALTERNATE(GPIOF_I2C2_SDA) |         \
                                      PIN_MODE_ALTERNATE(GPIOF_I2C2_SCL) |         \
                                      PIN_MODE_OUTPUT(GPIOF_XBEE_RESET) |      \
-                                     PIN_MODE_OUTPUT(GPIOF_TIMING_PIN) |      \
+                                     PIN_MODE_INPUT(GPIOF_HW_SWITCH_PIN) |      \
                                      PIN_MODE_OUTPUT(GPIOF_RW_ENABLE) |       \
                                      PIN_MODE_OUTPUT(GPIOF_STEER_ENABLE) |    \
                                      PIN_MODE_OUTPUT(GPIOF_RW_DIR) |          \
@@ -862,7 +862,7 @@
 #define VAL_GPIOF_OTYPER            (PIN_OTYPE_OPENDRAIN(GPIOF_I2C2_SDA) |     \
                                      PIN_OTYPE_OPENDRAIN(GPIOF_I2C2_SCL) |     \
                                      PIN_OTYPE_PUSHPULL(GPIOF_XBEE_RESET) |   \
-                                     PIN_OTYPE_PUSHPULL(GPIOF_TIMING_PIN) |   \
+                                     PIN_OTYPE_PUSHPULL(GPIOF_HW_SWITCH_PIN) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOF_RW_ENABLE) |    \
                                      PIN_OTYPE_PUSHPULL(GPIOF_STEER_ENABLE) | \
                                      PIN_OTYPE_PUSHPULL(GPIOF_RW_DIR) |       \
@@ -878,7 +878,7 @@
 #define VAL_GPIOF_OSPEEDR           (PIN_OSPEED_2M(GPIOF_I2C2_SDA) |        \
                                      PIN_OSPEED_2M(GPIOF_I2C2_SCL) |        \
                                      PIN_OSPEED_100M(GPIOF_XBEE_RESET) |      \
-                                     PIN_OSPEED_100M(GPIOF_TIMING_PIN) |      \
+                                     PIN_OSPEED_100M(GPIOF_HW_SWITCH_PIN) |      \
                                      PIN_OSPEED_100M(GPIOF_RW_ENABLE) |       \
                                      PIN_OSPEED_100M(GPIOF_STEER_ENABLE) |    \
                                      PIN_OSPEED_100M(GPIOF_RW_DIR) |          \
@@ -894,7 +894,7 @@
 #define VAL_GPIOF_PUPDR             (PIN_PUPDR_PULLUP(GPIOF_I2C2_SDA) |       \
                                      PIN_PUPDR_PULLUP(GPIOF_I2C2_SCL) |       \
                                      PIN_PUPDR_FLOATING(GPIOF_XBEE_RESET) |   \
-                                     PIN_PUPDR_FLOATING(GPIOF_TIMING_PIN) |   \
+                                     PIN_PUPDR_PULLUP(GPIOF_HW_SWITCH_PIN) |   \
                                      PIN_PUPDR_FLOATING(GPIOF_RW_ENABLE) |    \
                                      PIN_PUPDR_FLOATING(GPIOF_STEER_ENABLE) | \
                                      PIN_PUPDR_FLOATING(GPIOF_RW_DIR) |       \
@@ -910,7 +910,7 @@
 #define VAL_GPIOF_ODR               (PIN_ODR_HIGH(GPIOF_I2C2_SDA) |           \
                                      PIN_ODR_HIGH(GPIOF_I2C2_SCL) |           \
                                      PIN_ODR_HIGH(GPIOF_XBEE_RESET) |         \
-                                     PIN_ODR_HIGH(GPIOF_TIMING_PIN) |         \
+                                     PIN_ODR_HIGH(GPIOF_HW_SWITCH_PIN) |         \
                                      PIN_ODR_HIGH(GPIOF_RW_ENABLE) |          \
                                      PIN_ODR_HIGH(GPIOF_STEER_ENABLE) |       \
                                      PIN_ODR_HIGH(GPIOF_RW_DIR) |             \
@@ -926,7 +926,7 @@
 #define VAL_GPIOF_AFRL              (PIN_AFIO_AF(GPIOF_I2C2_SDA, 4) |         \
                                      PIN_AFIO_AF(GPIOF_I2C2_SCL, 4) |         \
                                      PIN_AFIO_AF(GPIOF_XBEE_RESET, 0) |       \
-                                     PIN_AFIO_AF(GPIOF_TIMING_PIN, 0) |       \
+                                     PIN_AFIO_AF(GPIOF_HW_SWITCH_PIN, 0) |       \
                                      PIN_AFIO_AF(GPIOF_RW_ENABLE, 0) |        \
                                      PIN_AFIO_AF(GPIOF_STEER_ENABLE, 0) |     \
                                      PIN_AFIO_AF(GPIOF_RW_DIR, 0) |           \
