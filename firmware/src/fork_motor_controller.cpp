@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <cstdlib>
 #include "constants.h"
 #include "fork_motor_controller.h"
 #include "MPU6050.h"
@@ -16,11 +17,14 @@ ForkMotorController::ForkMotorController()
   e_(STM32_TIM3, constants::fork_counts_per_revolution),
   m_(GPIOF, GPIOF_STEER_DIR, GPIOF_STEER_ENABLE, GPIOF_STEER_FAULT,
      STM32_TIM1, ccr_channel, max_current, torque_constant),
-  estimation_threshold_{-0.75f / constants::wheel_radius},
-  control_threshold_{-1.5f / constants::wheel_radius},
   derivative_filter_{0, 10*2*constants::pi,
                      10*2*constants::pi, constants::loop_period_s},
-  estimation_triggered_{false}, control_triggered_{false}
+  yaw_rate_command_{0.0f},
+  x_pi_{0.0f},
+  estimation_threshold_{-0.75f / constants::wheel_radius},
+  estimation_triggered_{false},
+  control_triggered_{false},
+  control_delay_{10u}
 {
   instances[fork] = this;
 }
@@ -40,9 +44,9 @@ void ForkMotorController::set_estimation_threshold(float speed)
   estimation_threshold_  = speed / -constants::wheel_radius;
 }
 
-void ForkMotorController::set_control_threshold(float speed)
+void ForkMotorController::set_control_delay(uint32_t N)
 {
-  control_threshold_ = speed / -constants::wheel_radius;
+  control_delay_= N;
 }
 
 void ForkMotorController::disable()
@@ -72,15 +76,16 @@ void ForkMotorController::set_estimation_threshold_shell(BaseSequentialStream *c
   }
 }
 
-void ForkMotorController::set_control_threshold_shell(BaseSequentialStream *chp,
-                                                      int argc, char *argv[])
+void ForkMotorController::set_control_delay_shell(BaseSequentialStream *chp,
+                                                  int argc, char *argv[])
 {
   if (argc == 1) {
       ForkMotorController* fmc = reinterpret_cast<ForkMotorController*>(instances[fork]);
       if (fmc) {
-        fmc->set_control_threshold(tofloat(argv[0]));
-        chprintf(chp, "%s control threshold set to %f.\r\n", fmc->name(),
-                 fmc->control_threshold_);
+        uint32_t N = std::atoi(argv[0]);
+        fmc->set_control_delay(N);
+        chprintf(chp, "%s control delay set to begin %u samples after estimation.\r\n", fmc->name(),
+                 fmc->control_delay_);
       } else {
         chprintf(chp, "Enable collection before setting control threshold.\r\n");
       }
@@ -95,11 +100,12 @@ void ForkMotorController::set_thresholds_shell(BaseSequentialStream *chp,
   if (argc == 2) {
       ForkMotorController* fmc = reinterpret_cast<ForkMotorController*>(instances[fork]);
       fmc->set_estimation_threshold(tofloat(argv[0]));
-      fmc->set_control_threshold(tofloat(argv[1]));
+      uint32_t N = std::atoi(argv[0]);
+      fmc->set_control_delay(N);
       chprintf(chp, "%s estimation threshold set to %f.\r\n", fmc->name(),
                fmc->estimation_threshold_);
-      chprintf(chp, "%s control threshold set to %f.\r\n", fmc->name(),
-               fmc->control_threshold_);
+      chprintf(chp, "%s control delay set to begin %u samples after estimation.\r\n", fmc->name(),
+               fmc->control_delay_);
   } else {
     chprintf(chp, "Invalid usage.\r\n");
   }
@@ -139,7 +145,7 @@ void ForkMotorController::update(Sample & s)
   if (m_.current_direction())
     s.system_state |= systemstate::SteerMotorCurrentDir;
   s.threshold.estimation = estimation_threshold_;
-  s.threshold.control = control_threshold_;
+  s.threshold.control = 0.0f; //  control_threshold_;
   s.has_threshold = true;
 }
 
@@ -161,7 +167,7 @@ bool ForkMotorController::should_estimate(const Sample& s)
 bool ForkMotorController::should_control(const Sample& s)
 {
   if (!control_triggered_)
-    control_triggered_ = s.encoder.rear_wheel_rate < control_threshold_;
+    control_triggered_ = --control_delay_ == 0;
   return control_triggered_ && std::fabs(s.encoder.steer) < max_steer_angle;
 }
 

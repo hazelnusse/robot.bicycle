@@ -28,7 +28,7 @@ front.R   =        0.3358632190780645,
 front.r   =                         0,
 front.a   =      -0.02086466545111477,
 front.b   =       -0.1524559736777648,
-front.c   =                 0.0478155};
+front.c   =                -0.0478155};
 
 double ls = 0.3434334;
 // END Copy paste from output of data/physicalparameters/compute_model_parameters.py

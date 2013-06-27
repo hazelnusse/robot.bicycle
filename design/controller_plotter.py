@@ -345,15 +345,16 @@ def main():
     x0[2] = 1e1 * np.pi/180.0  # Initial roll rate
     x0[3] = 1e1 * np.pi/180.0  # Initial steer rate
     for v in speeds:
-        d.plant_evals_c()
-        d.plant_evals_d()
         #d.bode_r_to_psi_dot(-v / rear.R)#, "cl_{0}.pdf".format(int(v)))
-        d.bode_open_loop_e_to_psi_dot(-v / rear.R, "e_to_psi_dot_{0}.pdf".format(int(v)))
+        #d.bode_open_loop_e_to_psi_dot(-v / rear.R, "e_to_psi_dot_{0}.pdf".format(int(v)))
         #d.bode_psi_r_to_psi_dot(-v / rear.R)
         #d.step_r_to_psi_dot(-v / rear.R, x0)
         #d.lqrlqg_zero_input(-v / rear.R, x0)
         #d.step_yr_cl(-v / rear.R, np.hstack((0, x0)))
+        continue
 
+    d.plant_evals_c()
+    #d.plant_evals_d()
     # Speed parameterized plots
     #d.controller_gains()
     #d.estimator_gains()
