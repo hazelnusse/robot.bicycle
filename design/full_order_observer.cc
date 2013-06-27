@@ -9,12 +9,6 @@
 
 int main(int argc, char ** argv)
 {
-//  if (argc != 2) {
-//    std::cout << "Filename must be supplied\n";
-//    return -1;
-//  }
-//  std::string filename_base(argv[1]);
-
   bicycle::Bicycle rb = bicycle::robot_bicycle();
 
   design_parameters params;
@@ -25,10 +19,10 @@ int main(int argc, char ** argv)
   // LQR design parameters
   constexpr double pi = M_PI;
   params.Q = Eigen::MatrixXd::Zero(4, 4);
-  params.Q(0, 0) = std::pow(30*pi/180, -2.0);
-  params.Q(1, 1) = std::pow(30*pi/180, -2.0);
-  params.Q(2, 2) = std::pow(200*pi/180, -2.0);
-  params.Q(3, 3) = std::pow(200*pi/180, -2.0);
+  params.Q(0, 0) = std::pow(30*pi/180, -2.0); // make this 5 degrees
+  params.Q(1, 1) = std::pow(30*pi/180, -2.0); // make this 10 or 15 degrees per second
+  params.Q(2, 2) = std::pow(200*pi/180, -2.0);// make this equal to the (0, 0) entry times the highest frequency of that state we want in the closed loop system
+  params.Q(3, 3) = std::pow(200*pi/180, -2.0);// make this equal to the (1, 1) entry times the highest frequency of that state we want in the closed loop system
   params.R.resize(1, 1);
   params.R << std::pow(.4, -2.0);
   params.pole_placement_factor = 3.0;
@@ -36,6 +30,5 @@ int main(int argc, char ** argv)
   std::vector<model_data> md = design_controller(params, rb);
   std::sort(md.begin(), md.end());
   firmware_generator(md);
-  //firmware_generator(md, filename_base);
 }
 
