@@ -112,8 +112,12 @@ msg_t ControlLoop::exec(const char * file_name)
     memset(&s, 0, sizeof(s));
     s.computation_time = STM32_TIM5->CNT - ti;
     // Similarly, encode failures will be delayed by one sample.
-    if (encode_failure) 
+    if (encode_failure)
       s.system_state |= systemstate::SampleBufferEncodeError;
+
+    // set hardware button set
+    if (hw_button_enabled())
+      s.system_state |= systemstate::HWButton;
 
     // Go to sleep until next interval
     chSysLock();
