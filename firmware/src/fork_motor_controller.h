@@ -24,14 +24,14 @@ class ForkMotorController : public MotorController {
 
   static void set_estimation_threshold_shell(BaseSequentialStream * chp,
                                              int argc, char * argv[]);
-  static void set_control_threshold_shell(BaseSequentialStream * chp,
+  static void set_control_delay_shell(BaseSequentialStream * chp,
                                           int argc, char * argv[]);
   static void set_thresholds_shell(BaseSequentialStream * chp,
                                    int argc, char * argv[]);
 
  private:
   void set_estimation_threshold(float speed);
-  void set_control_threshold(float speed);
+  void set_control_delay(uint32_t N);
   bool should_estimate(const Sample& s);
   bool should_control(const Sample& s);
 
@@ -39,13 +39,13 @@ class ForkMotorController : public MotorController {
   Motor m_;
   control::GainSchedule fork_control_;
 
+  control::first_order_discrete_filter<float> derivative_filter_;
   float yaw_rate_command_;
   float x_pi_;
   float estimation_threshold_; // in terms of rear wheel rate
-  float control_threshold_;    // in terms of rear wheel rate
-  control::first_order_discrete_filter<float> derivative_filter_;
   bool estimation_triggered_;
   bool control_triggered_;
+  uint32_t control_delay_;      // # number of sample periods
 };
 
 } // namespace hardware
