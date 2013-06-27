@@ -1,5 +1,7 @@
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <numeric>
 #include "constants.h"
 #include "fork_motor_controller.h"
 #include "MPU6050.h"
@@ -24,7 +26,8 @@ ForkMotorController::ForkMotorController()
   estimation_threshold_{-0.75f / constants::wheel_radius},
   estimation_triggered_{false},
   control_triggered_{false},
-  control_delay_{10u}
+  control_delay_{10u},
+  lean_array_{{}}, lean_i_{0}, system_time_prev_{0}
 {
   instances[fork] = this;
 }
@@ -158,7 +161,7 @@ bool ForkMotorController::should_estimate(const Sample& s)
     estimation_triggered_ = s.encoder.rear_wheel_rate < estimation_threshold_;
   } else {
     // if estimation not triggered, update the state
-    fork_control_.set_state(0.0f, s.encoder.steer,
+    fork_control_.set_state(guess_lean(s), s.encoder.steer,
                             s.mpu6050.gyroscope_y, s.encoder.steer_rate);
   }
   return estimation_triggered_;
@@ -169,6 +172,38 @@ bool ForkMotorController::should_control(const Sample& s)
   if (!control_triggered_)
     control_triggered_ = --control_delay_ == 0;
   return control_triggered_ && std::fabs(s.encoder.steer) < max_steer_angle;
+}
+
+float ForkMotorController::guess_lean(const Sample& s)
+{
+  float ax = s.mpu6050.accelerometer_x;
+  float ay = s.mpu6050.accelerometer_y;
+  float az = s.mpu6050.accelerometer_z;
+  float accel_mag = std::sqrt(ax*ax + ay*ay + az*az);
+  float lean_static = std::asin(ax / accel_mag);
+
+  // first pass, use static lean value
+  if (lean_array_[lean_i_] == 0.0f) {
+    lean_i_ = (lean_i_ + 1)  % lean_array_.size();
+    lean_array_[lean_i_] = lean_static;
+    return lean_static;
+  }
+
+  float lean_avg = (std::accumulate(lean_array_.begin(), lean_array_.end(), 0.0f) /
+                    lean_array_.size());
+
+  float new_lean;
+  if (std::fabs(lean_static - lean_avg) < 0.005) { // hardcode lean change limit
+    new_lean = lean_static;
+  } else {
+    float dt = ((s.system_time - system_time_prev_) *
+                constants::system_timer_seconds_per_count);
+    new_lean = lean_array_[lean_i_ ] + s.mpu6050.gyroscope_y * dt;
+  }
+  system_time_prev_ = s.system_time;
+  lean_i_ = (lean_i_ + 1) % lean_array_.size();
+  lean_array_[lean_i_] = new_lean;
+  return new_lean;
 }
 
 } // namespace hardware
