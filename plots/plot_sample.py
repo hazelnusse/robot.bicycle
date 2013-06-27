@@ -21,6 +21,7 @@ STATE_FLAGS = [
     ('sample_buffer_overflow', 0x00000400),
     ('sample_buffer_encode_error', 0x00000800),
     ('sample_buffer_init_error', 0x00001000),
+    ('hw_button', 0x00004000),
     ('collection_enabled', 0x00008000),
     ('I2C_Bus_Error', 0x00010000),
     ('I2C_Arbitration_Lost', 0x00020000),
