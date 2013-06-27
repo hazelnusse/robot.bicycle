@@ -16,6 +16,7 @@ enum StateFlags {RearWheelMotorEnable     = 0x00000001,
                  SampleBufferOverflow     = 0x00000400,
                  SampleBufferEncodeError  = 0x00000800,
                  SampleBufferInitError    = 0x00001000,
+                 HWButton                 = 0x00004000,
                  CollectionEnabled        = 0x00008000,// used primarily for GUI
                  I2C_Bus_Error            = 0x00010000,
                  I2C_Arbitration_Lost     = 0x00020000,

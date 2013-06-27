@@ -18,6 +18,7 @@ class ControlLoop {
 
  private:
   ControlLoop();
+  bool hw_button_enabled() const;
   msg_t exec(const char * file_name);
   static msg_t start(const char * file_name);
   static msg_t stop();
