@@ -3,6 +3,7 @@
 from itertools import cycle
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.integrate
 from plot_data import PlotData, PLOTY_SEP
 
 SECONDS_PER_CLOCK = 0.25e-6
@@ -46,6 +47,7 @@ class PlotSample(PlotData):
         self._mask_fields(['computation_time', 'sample_period'])
         self._convert_clocks_to_seconds(['system_time_c', 'computation_time',
                                          'sample_period'])
+        self._estimate_lean()
         self.set_default_x('system_time_s')
 
     def _correct_system_time(self):
@@ -92,6 +94,28 @@ class PlotSample(PlotData):
             self.dtype_c[field] = np.bool
             self.data_c[field] = np.bitwise_and(data,
                                                 state_bit).astype(np.bool)
+    def _estimate_lean(self):
+        """Add estimates of lean angle using measurements of accelerometer
+        and gyroscope. For the accelerometer calculation, the system is
+        assumed static.
+        """
+        data_ax = self.get_field_data('mpu6050.accelerometer_x')
+        data_ay = self.get_field_data('mpu6050.accelerometer_y')
+        data_az = self.get_field_data('mpu6050.accelerometer_z')
+        data_axayaz = np.vstack([data_ax, data_ay, data_az])
+        magnitude = np.apply_along_axis(np.linalg.norm, 0, data_axayaz)
+        self.dtype_c['lean_accel'] = np.float32
+        #self.data_c['lean_accel']= np.arcsin(data_ax / magnitude) * 180 / np.pi
+        self.data_c['lean_accel']= np.arcsin(data_ax / magnitude)
+
+        data_gyro = self.get_field_data('mpu6050.gyroscope_y')
+        data_time = self.get_field_data('system_time_s')
+        self.dtype_c['lean_gyro'] = np.float32
+        init_lean = self.get_field_data('lean_accel')[0]
+        self.data_c['lean_gyro'] = (scipy.integrate.cumtrapz(data_gyro,
+                                                             data_time,
+                                                             initial=0) +
+                                    init_lean)
 
     def _mask_fields(self, field_list):
         """Mask the first element in the given fields since they are invalid.
