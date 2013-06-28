@@ -181,13 +181,16 @@ class PlotSample(PlotData):
     def plot_estimates(self):
         fig, ax = plt.subplots(nrows=2, sharex=True)
         self._plotyy('system_time_s',
-                     ['encoder.steer', 'estimate.lean', 'estimate.steer'],
-                     ['forward_speed', 'motor_torque.steer'],
+                     ['encoder.steer', 'estimate.steer',
+                      'estimate.lean', 'lean_gyro'],
+                     ['forward_speed', 'motor_torque.steer',
+                      'system_state_hw_button'],
                      axes=ax[0])
         self._plotyy('system_time_s',
                      ['mpu6050.gyroscope_y', 'estimate.lean_rate',
                       'estimate.steer_rate', 'encoder.steer_rate'],
-                     ['forward_speed', 'motor_torque.steer'],
+                     ['forward_speed', 'motor_torque.steer',
+                      'system_state_hw_button'],
                      axes=ax[1])
         plt.show()
         return fig, ax
