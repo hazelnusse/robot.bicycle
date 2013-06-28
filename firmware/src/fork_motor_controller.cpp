@@ -181,22 +181,23 @@ float ForkMotorController::guess_lean(const Sample& s)
 
   // first pass, use static lean value
   if (lean_array_[lean_i_] == 0.0f) {
-    lean_i_ = (lean_i_ + 1)  % lean_array_.size();
     lean_array_[lean_i_] = lean_static;
+    lean_i_ = (lean_i_ + 1)  % lean_array_.size();
+    system_time_prev_ = s.system_time;
     return lean_static;
   }
 
-  float lean_avg = (std::accumulate(lean_array_.begin(), lean_array_.end(), 0.0f) /
-                    lean_array_.size());
+//  float lean_avg = (std::accumulate(lean_array_.begin(), lean_array_.end(), 0.0f) /
+//                    lean_array_.size());
 
   float new_lean;
-  if (std::fabs(lean_static - lean_avg) < 0.005) { // hardcode lean change limit
-    new_lean = lean_static;
-  } else {
-    float dt = ((s.system_time - system_time_prev_) *
-                constants::system_timer_seconds_per_count);
-    new_lean = lean_array_[lean_i_ ] + s.mpu6050.gyroscope_y * dt;
-  }
+//  if (std::fabs(lean_static - lean_avg) < 0.005) { // hardcode lean change limit
+//    new_lean = lean_static;
+//  } else {
+  float dt = ((s.system_time - system_time_prev_) *
+              constants::system_timer_seconds_per_count);
+  new_lean = lean_array_[lean_i_ ] + s.mpu6050.gyroscope_y * dt;
+//  }
   system_time_prev_ = s.system_time;
   lean_i_ = (lean_i_ + 1) % lean_array_.size();
   lean_array_[lean_i_] = new_lean;
