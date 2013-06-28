@@ -67,7 +67,7 @@ void compute_lqr_gains(const design_parameters & params,
   data.evecs_lqr = es.eigenvectors();
   std::cout << "continuous LQR gain:\n" << data.K_lqr << std::endl;
   std::cout << "Eigenvalues of A + B*K_lqr\n" << data.evals_lqr.transpose() << std::endl;
-  std::cout << "Eigenvectors of A + B*K_lqr\n" << data.evecs_lqr << std::endl;
+  //std::cout << "Eigenvectors of A + B*K_lqr\n" << data.evecs_lqr << std::endl;
 
   Eigen::ArrayXd tau(4);
   data.index_fastest_eval = 0;
@@ -80,10 +80,10 @@ void compute_lqr_gains(const design_parameters & params,
       data.index_fastest_eval = i;
   }
   data.tau_min = tau.minCoeff();
-  std::cout << "time constant = " << data.tau_min << " seconds" << std::endl;
+  //std::cout << "time constant = " << data.tau_min << " seconds" << std::endl;
   std::cout << "characteristic frequency = " << 1.0 / data.tau_min << " rad / s"
             << " = " << 1.0/(2.0*M_PI*data.tau_min) << " Hz" << std::endl;
-  std::cout << "Fastest eigenvalue index = " << data.index_fastest_eval << std::endl;
+  //std::cout << "Fastest eigenvalue index = " << data.index_fastest_eval << std::endl;
 
   // Using dlqr()
   matlab.eval("[K_lqr_d, S_d, e_d] = dlqr(sys_d.A, sys_d.B, Q, R); K_lqr_d = -K_lqr_d;");
@@ -92,8 +92,8 @@ void compute_lqr_gains(const design_parameters & params,
   data.evals_lqr_d = es_d.eigenvalues();
   data.evecs_lqr_d = es_d.eigenvectors();
   std::cout << "Discrete LQR gain:\n" << data.K_lqr_d << std::endl;
-  std::cout << "Eigenvalues of A_d + B_d*K_lqr_d\n" << data.evals_lqr_d.transpose() << std::endl;
-  std::cout << "Eigenvectors of A_d + B_d*K_lqr_d\n" << data.evecs_lqr_d << std::endl;
+  //std::cout << "Eigenvalues of A_d + B_d*K_lqr_d\n" << data.evals_lqr_d.transpose() << std::endl;
+  //std::cout << "Eigenvectors of A_d + B_d*K_lqr_d\n" << data.evecs_lqr_d << std::endl;
 
   Eigen::ArrayXd tau_d(4);
   data.index_fastest_eval_d = 0;
@@ -106,39 +106,53 @@ void compute_lqr_gains(const design_parameters & params,
       data.index_fastest_eval_d = i;
   }
   data.tau_min_d = tau_d.minCoeff();
-  std::cout << "time constant = " << data.tau_min_d << " seconds" << std::endl;
+  //std::cout << "time constant = " << data.tau_min_d << " seconds" << std::endl;
   std::cout << "characteristic frequency = " << 1.0 / data.tau_min_d << " rad / s"
             << " = " << 1.0/(2.0*M_PI*data.tau_min_d) << " Hz" << std::endl;
-  std::cout << "Fastest eigenvalue index = " << data.index_fastest_eval_d << std::endl;
+  //std::cout << "Fastest eigenvalue index = " << data.index_fastest_eval_d << std::endl;
 }
 
 void compute_observer_gains(const design_parameters & params,
                             bicycle::Bicycle & bike,
                             model_data & data)
 {
-  Eigen::MatrixXd C_obs(2, 4);
-  C_obs << 0, 1, 0, 0,
+  Eigen::MatrixXd C_meas(2, 4);
+  C_meas << 0, 1, 0, 0,
            0, 0, 1, 0;
-  matlab.put_Matrix(C_obs, "C_obs");
+  matlab.put_Matrix(C_meas, "C_meas");
   Eigen::MatrixXd poles(4, 1);
   poles(0, 0) = data.evals_lqr(data.index_fastest_eval).real() * params.pole_placement_factor;
   poles(1, 0) = poles(0, 0) - 0.2;
   poles(2, 0) = poles(0, 0) - 0.4;
   poles(3, 0) = poles(0, 0) - 0.6;
   matlab.put_Matrix(poles, "poles");
-  matlab.eval("[K_obs, prec, message] = place(A', C_obs', poles); K_obs = K_obs';");
+  matlab.eval("[K_obs, prec, message] = place(A', C_meas', poles); K_obs = K_obs';");
   data.K_obs = matlab.get_Matrix("K_obs");
   std::cout << "K_obs = \n" << data.K_obs << std::endl;
-  Eigen::EigenSolver<Eigen::MatrixXd> es(data.A - data.K_obs * C_obs);
+  Eigen::EigenSolver<Eigen::MatrixXd> es(data.A - data.K_obs * C_meas);
   std::cout << "Observer CL evals = \n" << es.eigenvalues().transpose() << std::endl;
-  matlab.eval("B_obs = [K_obs, B]; sys_obs_c = ss(A - K_obs * C_obs, B_obs, eye(4), zeros(4, 3));"
+  matlab.eval("B_obs = [K_obs, B]; sys_obs_c = ss(A - K_obs * C_meas, B_obs, eye(4), zeros(4, 3));"
               "sys_obs_d = c2d(sys_obs_c, Ts, 'tustin'); A_obs_d = sys_obs_d.A; B_obs_d = sys_obs_d.B;");
+  matlab.eval("observer_tf = zpk(sys_obs_c); observer_tf.DisplayFormat='frequency'; observer_tf");
   data.A_obs_d = matlab.get_Matrix("A_obs_d");
   data.B_obs_d = matlab.get_Matrix("B_obs_d");
-  std::cout << "Observer A matrix:\n" << data.A_obs_d << std::endl;
-  std::cout << "Observer B matrix:\n" << data.B_obs_d << std::endl;
-  Eigen::EigenSolver<Eigen::MatrixXd> es_d(data.A_obs_d);
-  std::cout << "Observer A_d evals:\n" << es_d.eigenvalues() << std::endl;
+  //std::cout << "Observer A matrix:\n" << data.A_obs_d << std::endl;
+  //std::cout << "Observer B matrix:\n" << data.B_obs_d << std::endl;
+  // std::cout << "Observer A_d evals:\n" << data.A_obs_d.eigenvalues().transpose() << std::endl;
+
+  // LQG Design
+  matlab.put_Matrix(params.W, "W");
+  matlab.put_Matrix(params.V, "V");
+  matlab.eval("sys_plant = ss(A, [B, eye(4)], C_meas, zeros(2, 5)); [kest, L, P] = kalman(sys_plant, W, V);");
+  matlab.eval("A_kalman = A - L * C_meas; B_kalman = [L, B]; sys_kalman = ss(A_kalman, B_kalman, eye(4), zeros(4, 3)); sys_kalman_d = c2d(sys_kalman, Ts, 'tustin'); A_kalman_d = sys_kalman_d.A; B_kalman_d = sys_kalman_d.B;");
+  matlab.eval("tf_kalman = zpk(sys_kalman); tf_kalman.DisplayFormat = 'frequency'; tf_kalman");
+  data.K_kalman = matlab.get_Matrix("L");
+  data.A_kalman = matlab.get_Matrix("A_kalman");
+  data.B_kalman = matlab.get_Matrix("B_kalman");
+  data.A_kalman_d = matlab.get_Matrix("A_kalman_d");
+  data.B_kalman_d = matlab.get_Matrix("B_kalman_d");
+  std::cout << "Kalman filter evals (continuous):\n" << data.A_kalman.eigenvalues().transpose() << std::endl;
+  //std::cout << "Kalman filter evals (discrete):\n" << data.A_kalman_d.eigenvalues() << std::endl;
 }
 
 std::vector<model_data> design_controller(const design_parameters & params,

@@ -31,21 +31,19 @@ struct model_data {
   Eigen::MatrixXd K_obs;
   Eigen::MatrixXd A_obs;
   Eigen::MatrixXd B_obs;
-  Eigen::MatrixXd C_obs;
-  Eigen::MatrixXd D_obs;
   
   // Discrete time version of observer state equation matrices
   Eigen::MatrixXd A_obs_d;
   Eigen::MatrixXd B_obs_d;
 
-  // Gain at s=0 and location of zero for the four transfer functions
-//  double delta_to_phi_gain,
-//         phi_dot_to_phi_gain,
-//         delta_dot_to_phi_gain,
-//         T_delta_to_phi_gain;
-//  double delta_to_phi_zero,
-//         phi_dot_to_phi_zero,
-//         delta_dot_to_phi_zero;
+  // Continuous time Kalman filter
+  Eigen::MatrixXd K_kalman;
+  Eigen::MatrixXd A_kalman;
+  Eigen::MatrixXd B_kalman;
+
+  // Discrete time version of Kalman filter
+  Eigen::MatrixXd A_kalman_d;
+  Eigen::MatrixXd B_kalman_d;
 
   bool operator<(const model_data & other) const {
       return theta_R_dot < other.theta_R_dot;
@@ -59,7 +57,9 @@ struct design_parameters {
   double highest_speed;          // m/s
   Eigen::MatrixXd Q;             // LQR Q weighting
   Eigen::MatrixXd R;             // LQR R weighting
-  double pole_placement_factor;  // Observer pole locations
+  double pole_placement_factor;  // Observer pole locations (for pole placement design)
+  Eigen::MatrixXd W;             // Process noise covariance (for LQG observer design)
+  Eigen::MatrixXd V;             // Measurement noise covariance (for LQG observer design)
 };
 
 void compute_state_space_matrices(const design_parameters & params,

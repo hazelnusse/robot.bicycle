@@ -18,14 +18,35 @@ int main(int argc, char ** argv)
   params.highest_speed = 10.0;
   // LQR design parameters
   constexpr double pi = M_PI;
+  constexpr double max_lean = 5.0*pi/180.0;     // rad
+  constexpr double max_steer = 10.0*pi/180.0;   // rad
+  constexpr double max_lean_frequency = pi;     // rad / s
+  constexpr double max_steer_frequency = 2*pi;  // rad / s
+  constexpr double max_steer_torque = 0.5;      // N * m
   params.Q = Eigen::MatrixXd::Zero(4, 4);
-  params.Q(0, 0) = std::pow(30*pi/180, -2.0); // make this 5 degrees
-  params.Q(1, 1) = std::pow(30*pi/180, -2.0); // make this 10 or 15 degrees per second
-  params.Q(2, 2) = std::pow(200*pi/180, -2.0);// make this equal to the (0, 0) entry times the highest frequency of that state we want in the closed loop system
-  params.Q(3, 3) = std::pow(200*pi/180, -2.0);// make this equal to the (1, 1) entry times the highest frequency of that state we want in the closed loop system
+  params.Q(0, 0) = std::pow(max_lean, -2.0);
+  params.Q(1, 1) = std::pow(max_steer, -2.0);
+  params.Q(2, 2) = std::pow(max_lean_frequency * max_lean, -2.0);
+  params.Q(3, 3) = std::pow(max_steer_frequency * max_steer, -2.0);
   params.R.resize(1, 1);
-  params.R << std::pow(.4, -2.0);
+  params.R << std::pow(max_steer_torque, -2.0);
+  // Observer pole placement factor
   params.pole_placement_factor = 3.0;
+  // Kalman design
+  constexpr double lean_vel_std = .6827;      // rad / s / s
+  constexpr double steer_vel_std = .6827;     // rad / s / s
+  constexpr double lean_acc_std = 1;          // rad / s / s
+  constexpr double steer_acc_std = 1;         // rad / s / s
+  params.W.resize(4, 4);          // Process noise covariance
+  params.W << std::pow(lean_vel_std, 2.0), 0.0, 0.0, 0.0,
+              0.0, std::pow(steer_vel_std, 2.0), 0.0, 0.0,
+              0.0, 0.0, std::pow(lean_acc_std, 2.0), 0.0,
+              0.0, 0.0, 0.0, std::pow(steer_acc_std, 2.0);
+
+  params.V.resize(2, 2);          // Measurement noise covariance
+  params.V << std::pow(2*pi/20000, 2.0), 0,
+              0, std::pow(0.00227631723111, 2.0);
+  params.V *= 0.01;
 
   std::vector<model_data> md = design_controller(params, rb);
   std::sort(md.begin(), md.end());
