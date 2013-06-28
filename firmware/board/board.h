@@ -160,8 +160,8 @@
 #define GPIOF_STEER_FAULT           9
 #define GPIOF_VIN_MON               10
 #define GPIOF_STEER_ENC_I           11
-#define GPIOF_PIN12                 12
-#define GPIOF_PIN13                 13
+#define GPIOF_LEAN_LED              12
+#define GPIOF_STEER_LED             13
 #define GPIOF_PIN14                 14
 #define GPIOF_PIN15                 15
 
@@ -855,8 +855,8 @@
                                      PIN_MODE_INPUT(GPIOF_STEER_FAULT) |      \
                                      PIN_MODE_INPUT(GPIOF_VIN_MON) |          \
                                      PIN_MODE_INPUT(GPIOF_STEER_ENC_I) |      \
-                                     PIN_MODE_INPUT(GPIOF_PIN12) |            \
-                                     PIN_MODE_INPUT(GPIOF_PIN13) |            \
+                                     PIN_MODE_OUTPUT(GPIOF_LEAN_LED) |            \
+                                     PIN_MODE_OUTPUT(GPIOF_STEER_LED) |            \
                                      PIN_MODE_INPUT(GPIOF_PIN14) |            \
                                      PIN_MODE_INPUT(GPIOF_PIN15))
 #define VAL_GPIOF_OTYPER            (PIN_OTYPE_OPENDRAIN(GPIOF_I2C2_SDA) |     \
@@ -871,8 +871,8 @@
                                      PIN_OTYPE_PUSHPULL(GPIOF_STEER_FAULT) |  \
                                      PIN_OTYPE_PUSHPULL(GPIOF_VIN_MON) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOF_STEER_ENC_I) |  \
-                                     PIN_OTYPE_PUSHPULL(GPIOF_PIN12) |        \
-                                     PIN_OTYPE_PUSHPULL(GPIOF_PIN13) |        \
+                                     PIN_OTYPE_PUSHPULL(GPIOF_LEAN_LED) |        \
+                                     PIN_OTYPE_PUSHPULL(GPIOF_STEER_LED) |        \
                                      PIN_OTYPE_PUSHPULL(GPIOF_PIN14) |        \
                                      PIN_OTYPE_PUSHPULL(GPIOF_PIN15))
 #define VAL_GPIOF_OSPEEDR           (PIN_OSPEED_2M(GPIOF_I2C2_SDA) |        \
@@ -887,8 +887,8 @@
                                      PIN_OSPEED_100M(GPIOF_STEER_FAULT) |     \
                                      PIN_OSPEED_100M(GPIOF_VIN_MON) |         \
                                      PIN_OSPEED_100M(GPIOF_STEER_ENC_I) |     \
-                                     PIN_OSPEED_100M(GPIOF_PIN12) |           \
-                                     PIN_OSPEED_100M(GPIOF_PIN13) |           \
+                                     PIN_OSPEED_100M(GPIOF_LEAN_LED) |           \
+                                     PIN_OSPEED_100M(GPIOF_STEER_LED) |           \
                                      PIN_OSPEED_100M(GPIOF_PIN14) |           \
                                      PIN_OSPEED_100M(GPIOF_PIN15))
 #define VAL_GPIOF_PUPDR             (PIN_PUPDR_PULLUP(GPIOF_I2C2_SDA) |       \
@@ -903,8 +903,8 @@
                                      PIN_PUPDR_PULLUP(GPIOF_STEER_FAULT) |    \
                                      PIN_PUPDR_FLOATING(GPIOF_VIN_MON) |      \
                                      PIN_PUPDR_FLOATING(GPIOF_STEER_ENC_I) |  \
-                                     PIN_PUPDR_PULLUP(GPIOF_PIN12) |          \
-                                     PIN_PUPDR_PULLUP(GPIOF_PIN13) |          \
+                                     PIN_PUPDR_FLOATING(GPIOF_LEAN_LED) |          \
+                                     PIN_PUPDR_FLOATING(GPIOF_STEER_LED) |          \
                                      PIN_PUPDR_PULLUP(GPIOF_PIN14) |          \
                                      PIN_PUPDR_PULLUP(GPIOF_PIN15))
 #define VAL_GPIOF_ODR               (PIN_ODR_HIGH(GPIOF_I2C2_SDA) |           \
@@ -919,8 +919,8 @@
                                      PIN_ODR_HIGH(GPIOF_STEER_FAULT) |        \
                                      PIN_ODR_HIGH(GPIOF_VIN_MON) |            \
                                      PIN_ODR_HIGH(GPIOF_STEER_ENC_I) |        \
-                                     PIN_ODR_HIGH(GPIOF_PIN12) |              \
-                                     PIN_ODR_HIGH(GPIOF_PIN13) |              \
+                                     PIN_ODR_LOW(GPIOF_LEAN_LED) |              \
+                                     PIN_ODR_LOW(GPIOF_STEER_LED) |              \
                                      PIN_ODR_HIGH(GPIOF_PIN14) |              \
                                      PIN_ODR_HIGH(GPIOF_PIN15))
 #define VAL_GPIOF_AFRL              (PIN_AFIO_AF(GPIOF_I2C2_SDA, 4) |         \
@@ -935,8 +935,8 @@
                                      PIN_AFIO_AF(GPIOF_STEER_FAULT, 0) |      \
                                      PIN_AFIO_AF(GPIOF_VIN_MON, 0) |          \
                                      PIN_AFIO_AF(GPIOF_STEER_ENC_I, 0) |      \
-                                     PIN_AFIO_AF(GPIOF_PIN12, 0) |            \
-                                     PIN_AFIO_AF(GPIOF_PIN13, 0) |            \
+                                     PIN_AFIO_AF(GPIOF_LEAN_LED, 0) |            \
+                                     PIN_AFIO_AF(GPIOF_STEER_LED, 0) |            \
                                      PIN_AFIO_AF(GPIOF_PIN14, 0) |            \
                                      PIN_AFIO_AF(GPIOF_PIN15, 0))
 
