@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
   constexpr double max_lean = 5.0*pi/180.0;     // rad
   constexpr double max_steer = 10.0*pi/180.0;   // rad
   constexpr double max_lean_frequency = 10*pi;  // rad / s
-  constexpr double max_steer_frequency = 20*pi; // rad / s
+  constexpr double max_steer_frequency = 10*pi; // rad / s
   constexpr double max_steer_torque = 200.0;    // N * m
   params.Q = Eigen::MatrixXd::Zero(4, 4);
   params.Q(0, 0) = std::pow(max_lean, -2.0);

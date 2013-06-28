@@ -81,6 +81,8 @@ void RearMotorController::update(Sample & s)
   s.motor_torque.desired_rear_wheel = torque;
   if (m_.set_torque(torque))  // integrate if we haven't saturated motor
     error_integral_ = error_integral_update;
+  else
+    error_integral_ = 0.0f;
 
   system_time_prev_ = s.system_time;
   rear_wheel_count_prev_ = s.encoder.rear_wheel_count;
