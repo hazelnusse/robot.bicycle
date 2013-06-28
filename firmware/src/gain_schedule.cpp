@@ -94,14 +94,14 @@ void GainSchedule::set_state(float lean, float steer, float lean_rate, float ste
 
 void GainSchedule::state_estimate(float torque_prev)
 {
-  state_estimate_time_ = s_->loop_count;
-  vector_t<observer_input_size> input {{s_->encoder.steer, s_->mpu6050.gyroscope_y,
-                                        torque_prev}};
+  //state_estimate_time_ = s_->loop_count;
+  //vector_t<observer_input_size> input {{s_->encoder.steer, s_->mpu6050.gyroscope_y,
+  //                                      torque_prev}};
 
-  // update observer state
-  auto state_lower = ss_lower_->estimator.update(state_, input);
-  auto state_upper = ss_upper_->estimator.update(state_, input);
-  state_ = alpha_ * (state_upper - state_lower) + state_lower;
+  //// update observer state
+  //auto state_lower = ss_lower_->estimator.update(state_, input);
+  //auto state_upper = ss_upper_->estimator.update(state_, input);
+  //state_ = alpha_ * (state_upper - state_lower) + state_lower;
   s_->estimate.lean = state_(0, 0);
   s_->estimate.steer = state_(0, 1);
   s_->estimate.lean_rate = state_(0, 2);
