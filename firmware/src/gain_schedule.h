@@ -62,7 +62,7 @@ class GainSchedule {
   GainSchedule();
   float rate() const;
   bool set_sample(Sample& s);
-  void set_state(float lean, float steer, float lean_rate, float steer_rate);
+  void set_state(float phi, float delta, float phi_dot, float delta_dot);
   float compute_updated_torque(float torque_prev);
  private:
   bool set_rate(float rate);
