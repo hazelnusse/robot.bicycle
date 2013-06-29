@@ -19,7 +19,7 @@ int main(int argc, char ** argv)
   // LQR design parameters
   constexpr double pi = M_PI;
   constexpr double max_lean = 2.0*pi/180.0;    // rad
-  constexpr double max_steer = 5.0*pi/180.0;   // rad
+  constexpr double max_steer = 2.0*pi/180.0;   // rad
   constexpr double max_lean_frequency = 1*pi;  // rad / s
   constexpr double max_steer_frequency = 20*pi;// rad / s
   constexpr double max_steer_torque = 2.00;     // N * m
