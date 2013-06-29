@@ -1,0 +1,76 @@
+\documentclass[letterpaper,11pt]{article}
+\usepackage[round]{natbib}
+\usepackage[margin=1in,centering]{geometry}
+\usepackage{fancyhdr}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[pdftex]{hyperref}
+\hypersetup{
+    pdftitle={Control of the unstable subspace},
+    pdfauthor={Dale Lukas Peterson},
+    pdfsubject={Subject},
+    pdfkeywords={Keywords}}
+
+\pagestyle{fancy}
+\fancyhead[L]{Control of the unstable subspace}
+\fancyhead[R]{\thepage}  % page number on the right
+\fancyfoot[L,C,R]{}  %  No footer on left, center or right, on even or odd pages
+
+\begin{document}
+Consider the bicycle dynamic equations in state space form
+\[
+  \dot{x} = A x + B u
+\]
+where $A \in \mathbf{R}^{4 \times 4}, B \in \mathbf{R}^{4 x 1}, x = \left[\phi,
+\delta, \dot{\phi}, \dot{\delta} \right]^T$, and $u = T_\delta$. Consider an
+ordered real Schur decomposition of $A$:
+\[
+  A = UTU^T
+\]
+where $U \in \mathbf{R}^{4 \times 4}$ is an orthogonal real matrix ($U^TU =
+UU^T = I$), $T\in\mathbf{R}^{4 \times 4}$ is a real quasi-upper triangular
+matrix. The diagonal entries of the upper left block of $T$ are the stable
+eigenvalues, and the lower block has the unstable eigenvalues on the diagonal.
+Complex eigenvalues result in 2x2 blocks, hence the ``qausi'' in quasi-upper
+triangular.  Since the bicycle may be stable without control at some speeds,
+the unstable subspace of $A$ may be empty.
+
+Consider a change of coordinates $z \triangleq U^T x$.  This implies
+\begin{align*}
+\dot{z} &= Tz + U^TBu\\
+&= \left[\begin{smallmatrix}T_{s} & T_{su} \\ 0 & T_{u}
+\end{smallmatrix}\right]\left[\begin{smallmatrix}z_s \\ z_u
+\end{smallmatrix}\right] + \left[\begin{smallmatrix}B_s \\
+B_u\end{smallmatrix}\right] u
+\end{align*}
+where $T_s \in \mathbf{R}^{4-p \times 4-p}, T_u \in \mathbf{R}^{p \times p}$,
+and $p$ is the number of unstable eigenvalues of $A$. Since $T_s$ is Hurwitz,
+we needn't try to stabilize it.  Instead, we can design a controller to
+stabilize the pair $(T_u, B_u)$.  If $(T_u, B_u)$ is controllable, the
+eigenvalues of $T_u + B_u K_u$ can be assigned arbitrarily with with the linear
+state feedback law
+\begin{align*}
+  u &= K_u z_u + r
+\end{align*}
+where $K_u \in \mathbf{R}^{1 \times p}$, and $r \in \mathbf{R}$ is an additive
+disturbance torque. $z_u$ is obtained by multiplying the bottom $p$ rows of
+$U^T$ by $x$; if the unstable subspace is empty ($p=0$), the control law
+reduces to $u = r$. If $p\ne0$, the control law becomes
+\begin{align*}
+  u &= K x + r
+\end{align*}
+where $K\in\mathbf{R}^{1 \times 4}$ is the product of $K_u$ and the bottom $p$
+rows of $U^T$.  This linear state feedback control law involves all four state
+variables, but it has the effect of stabilizing \textit{only} the unstable
+subspace of the bicycle; the stable subspace is unaffected.
+
+The unstable eigenvalues of the bicycle at low speeds are a real pair or a
+complex pair; in both cases, the real portion of the eigenvalues are no more
+than 5 or 6 rad / s. At high speeds, the unstable eigenvalue is real and less than
+.5 rad / s.  In both cases, it seems profitable to only spend control effort
+moving the unstable eigenvalues rather than trying to fight the natural
+dynamics by moving the naturally stable poles.
+
+\end{document}
+
