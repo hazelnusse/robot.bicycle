@@ -8,11 +8,12 @@ message Sample {
 
   optional InvensenseMPU6050 mpu6050 = 7;    // 28 bytes
   optional Estimator estimate = 8;           // 24 bytes
-  optional PIController yaw_rate_pi = 9;     // 16 bytes
+  optional PIController yaw_rate_pi = 9;     // 28 bytes
+  optional PIController wheel_rate_pi = 12;  // 28 bytes
   optional Threshold threshold = 11;         //  8 bytes
 
   required uint32 loop_count = 10;           // loop count
-                                   // Total:   116 bytes
+                                   // Total:   172 bytes
   // ** The following fields store information from the previous time step:
   //   - computation_time
   //   - system_state::FileSystemWriteTriggered bit
@@ -64,12 +65,15 @@ message Estimator {
   required float steer_rate = 6;
 }
 
-// Size: 4 * 4 = 16 bytes
+// Size: 7 * 4 = 28 bytes
 message PIController {
-  required float e = 1;
-  required float Kp = 2;
-  required float Ki = 3;
-  required float x = 4;
+  required float x = 1;
+  required float e = 2;
+  required float e_s = 3;
+  required float K = 4;
+  required float Ti = 5;
+  required float Tt = 6;
+  required float dt = 7;
 }
 
 // Size: 2 * 4 = 8 bytes
@@ -77,3 +81,4 @@ message Threshold {
   required float estimation = 1;
   required float control = 2;
 }
+
