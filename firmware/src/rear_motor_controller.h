@@ -26,9 +26,10 @@ class RearMotorController : public MotorController {
   Encoder e_;
   Motor m_;
   float theta_R_dot_command_;
-  float error_integral_;
-  float Kp_, Ki_;
+  float integrator_state_;
+  float K_, Ti_, Tt_;
   float rear_wheel_rate_prev_;
+  float desired_torque_prev_;
   uint32_t system_time_prev_;
   uint32_t rear_wheel_count_prev_;
   control::first_order_discrete_filter<float> low_pass_filter_;
