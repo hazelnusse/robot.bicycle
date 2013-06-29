@@ -1,6 +1,7 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
+#include <cmath>
 #include <cstdint>
 #include "hal.h"
 
@@ -29,6 +30,7 @@ class Motor {
   bool set_torque(float torque);
   float get_torque() const { return torque_; }
   float get_current() const { return current_; }
+  bool would_saturate(float torque) const { return std::abs(torque) >= max_torque_; }
 
   void disable();
   void enable();
