@@ -133,9 +133,9 @@ void MPU6050::convertData(Sample & s, int16_t ar[7])
 {
   using namespace constants;
   s.has_mpu6050 = true;
-  s.mpu6050.accelerometer_x = ar[0] * accelerometer_sensitivity;
-  s.mpu6050.accelerometer_y = ar[1] * accelerometer_sensitivity;
-  s.mpu6050.accelerometer_z = ar[2] * accelerometer_sensitivity;
+  s.mpu6050.accelerometer_x = ar[0] * accelerometer_sensitivity - acc_x_bias;
+  s.mpu6050.accelerometer_y = ar[1] * accelerometer_sensitivity - acc_y_bias;
+  s.mpu6050.accelerometer_z = ar[2] * accelerometer_sensitivity - acc_z_bias;
   s.mpu6050.temperature = ar[3] * thermometer_sensitivity + thermometer_offset;
   s.mpu6050.gyroscope_x = ar[4] * gyroscope_sensitivity - gyro_x_bias;
   s.mpu6050.gyroscope_y = ar[5] * gyroscope_sensitivity - gyro_y_bias;

@@ -1,6 +1,7 @@
 #ifndef CONTROL_LOOP_INL_H
 #define CONTROL_LOOP_INL_H
 
+#include <cmath>
 #include "board.h"
 #include "bitband.h"
 
@@ -16,8 +17,11 @@ bool ControlLoop::hw_button_enabled() const
 inline
 void ControlLoop::illuminate_lean_steer(const Sample & s)
 {
+  const float mag = std::sqrt(std::pow(s.mpu6050.accelerometer_x, 2.0f)
+                            + std::pow(s.mpu6050.accelerometer_y, 2.0f)
+                            + std::pow(s.mpu6050.accelerometer_z, 2.0f));
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)),
-                   GPIOF_LEAN_LED)) = (std::abs(s.estimate.lean) < 1.0f * constants::rad_per_degree) ? 1 : 0;
+                   GPIOF_LEAN_LED)) = (std::abs(s.mpu6050.accelerometer_x / mag) < 1.0f * constants::rad_per_degree) ? 1 : 0;
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)),
                    GPIOF_STEER_LED)) = (std::abs(s.encoder.steer) < 1.0f * constants::rad_per_degree) ? 1 : 0;
 

@@ -35,6 +35,9 @@ constexpr float gyroscope_sensitivity = rad_per_degree / 131.0f * gyro_scale;
 constexpr float thermometer_offset = 36.53f;
 constexpr float thermometer_sensitivity = 1.0f / 340.0f;
 
+constexpr float acc_x_bias = 0.219491423264f;  // Obtained from static hanging configuration
+constexpr float acc_y_bias = 0.0f;             // TODO: calibrate?
+constexpr float acc_z_bias = 0.0f;             // TODO: calibrate?
 constexpr float gyro_x_bias = -0.12831133410801182f;
 constexpr float gyro_y_bias = 0.032857218962598515f;
 constexpr float gyro_z_bias = 0.010641128707006363f;
