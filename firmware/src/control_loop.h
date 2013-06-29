@@ -18,6 +18,7 @@ class ControlLoop {
 
  private:
   ControlLoop();
+  ~ControlLoop();
   bool hw_button_enabled() const;
   msg_t exec(const char * file_name);
   static void illuminate_lean_steer(const Sample &);

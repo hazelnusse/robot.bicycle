@@ -1,3 +1,4 @@
+#include <cmath>
 #include "control_loop.h"
 #include "SystemState.h"
 
@@ -131,15 +132,6 @@ msg_t ControlLoop::exec(const char * file_name)
   } // for
   
   return sample_buffer.flush_and_close();
-}
-
-void ControlLoop::illuminate_lean_steer(const Sample & s)
-{
-    MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)),
-                     GPIOF_LEAN_LED)) = (std::fabs(s.estimate.lean) < 1.0 * constants::rad_per_degree) ? 1 : 0;
-    MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)),
-                     GPIOF_STEER_LED)) = (std::fabs(s.encoder.steer) < 1.0 * constants::rad_per_degree) ? 1 : 0;
-
 }
 
 }
