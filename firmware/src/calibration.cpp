@@ -20,12 +20,6 @@ std::array<int16_t, 16> encoder_counts;
 // triggered.
 volatile uint8_t number_of_edges_detected;
 
-// Initially has the value from contants.h, but can be changed by the
-// fork_encoder_calibration function if recalibration is needed without
-// changing the hard coded value (obtained from a calibration experiment) that
-// is in constants.h.
-int32_t fork_encoder_index_offset = constants::fork_encoder_index_offset;
-
 // An interface class to the encoder on the fork motor.
 hardware::Encoder fork_encoder(STM32_TIM3,
                                constants::fork_counts_per_revolution);
@@ -46,7 +40,7 @@ CH_IRQ_HANDLER(fork_encoder_calibration_ISR)
 
 CH_IRQ_HANDLER(fork_encoder_home_ISR)
 {
-  fork_encoder.set_count(fork_encoder_index_offset);
+  fork_encoder.set_count(constants::fork_encoder_index_offset);
   EXTI->PR = (1 << 11);   // clear the pending bit.
   number_of_edges_detected = 0;
 }
@@ -104,9 +98,10 @@ void fork_encoder_calibration(BaseSequentialStream * chp, int, char **)
     }
   }
   float mean_both_runs = (mean[0] + mean[1])/2.0f;
+  int32_t fork_encoder_index_offset = round(mean_both_runs);
+
   chprintf(chp, "Mean: %f\r\n", mean_both_runs);
-  fork_encoder_index_offset = round(mean_both_runs);
-  chprintf(chp, "Steer offset set to (as integer): %d\r\n", fork_encoder_index_offset);
+  chprintf(chp, "Change hard coded constants::fork_encoder_index_offset to: %d\r\n", fork_encoder_index_offset);
 }
 
 void fork_encoder_home(BaseSequentialStream * chp, int, char **)
