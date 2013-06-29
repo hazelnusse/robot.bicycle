@@ -43,7 +43,7 @@ bool Motor::set_torque(float torque)
   else
     set_direction_positive();
 
-  if (std::fabs(torque) > max_torque_) {
+  if (std::abs(torque) > max_torque_) {
     if (torque > 0.0f)
       torque = max_torque_;
     else
@@ -53,7 +53,7 @@ bool Motor::set_torque(float torque)
 
   torque_ = torque;
   current_ = torque * inv_torque_constant_;
-  set_ccr(current_to_ccr(std::fabs(current_)));
+  set_ccr(current_to_ccr(std::abs(current_)));
   return torque_set;
 }
 

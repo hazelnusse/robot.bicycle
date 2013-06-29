@@ -168,7 +168,7 @@ bool ForkMotorController::should_control(const Sample& s)
 {
   if (!control_triggered_)
     control_triggered_ = --control_delay_ == 0;
-  return control_triggered_ && std::fabs(s.encoder.steer) < max_steer_angle;
+  return control_triggered_ && std::abs(s.encoder.steer) < max_steer_angle;
 }
 
 float ForkMotorController::guess_lean(const Sample& s)
@@ -191,7 +191,7 @@ float ForkMotorController::guess_lean(const Sample& s)
 //                    lean_array_.size());
 
   float new_lean;
-//  if (std::fabs(lean_static - lean_avg) < 0.005) { // hardcode lean change limit
+//  if (std::abs(lean_static - lean_avg) < 0.005) { // hardcode lean change limit
 //    new_lean = lean_static;
 //  } else {
   float dt = ((s.system_time - system_time_prev_) *
