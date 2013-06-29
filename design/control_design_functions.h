@@ -10,9 +10,14 @@ struct model_data {
   Eigen::MatrixXd B;
   Eigen::MatrixXd C_yaw_rate;
 
+  Eigen::MatrixXcd plant_evals_c;
+  Eigen::MatrixXcd plant_evecs_c;
+
   // Discrete time versions of A and B
   Eigen::MatrixXd A_d;
   Eigen::MatrixXd B_d;
+  Eigen::MatrixXcd plant_evals_d;
+  Eigen::MatrixXcd plant_evecs_d;
 
   // LQR Optimal state feedback control gain
   Eigen::MatrixXd K_lqr;        // Computed with care()
@@ -26,6 +31,14 @@ struct model_data {
   Eigen::MatrixXcd evecs_lqr_d; // Eigenvectors of (A_d + B_d * K_lqr_d)
   double tau_min_d;             // Time constant of fastest eigenvalue of (A_d + B_d * K_lqr_d)
   int index_fastest_eval_d;       // Index into eigenalue array of fastest eigenvalue
+
+  // Unstable subspace method
+  Eigen::MatrixXd K_u;
+  Eigen::MatrixXd K_u_d;
+  Eigen::MatrixXcd evals_u;   // Eigenvalues of (A + B * K_u)
+  Eigen::MatrixXcd evecs_u;   // Eigenvectors of (A + B * K_u)
+  Eigen::MatrixXcd evals_u_d;   // Eigenvalues of (A_d + B_d * K_ud)
+  Eigen::MatrixXcd evecs_u_d;   // Eigenvectors of (A_d + B_d * K_ud)
 
   // Reduced order observer gains
   Eigen::MatrixXd K_obs;

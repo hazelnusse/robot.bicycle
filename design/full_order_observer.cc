@@ -18,11 +18,11 @@ int main(int argc, char ** argv)
   params.highest_speed = 10.0;
   // LQR design parameters
   constexpr double pi = M_PI;
-  constexpr double max_lean = 2.0*pi/180.0;     // rad
+  constexpr double max_lean = 2.0*pi/180.0;    // rad
   constexpr double max_steer = 5.0*pi/180.0;   // rad
   constexpr double max_lean_frequency = 1*pi;  // rad / s
-  constexpr double max_steer_frequency = 20*pi; // rad / s
-  constexpr double max_steer_torque = 4.0;    // N * m
+  constexpr double max_steer_frequency = 20*pi;// rad / s
+  constexpr double max_steer_torque = 0.05;     // N * m
   params.Q = Eigen::MatrixXd::Zero(4, 4);
   params.Q(0, 0) = std::pow(max_lean, -2.0);
   params.Q(1, 1) = std::pow(max_steer, -2.0);
