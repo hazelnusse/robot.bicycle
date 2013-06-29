@@ -127,7 +127,8 @@ void ForkMotorController::update(Sample & s)
 
   s.motor_torque.desired_steer = 0.0f;
   if (should_estimate(s) && fork_control_.set_sample(s)) {
-    const float torque = fork_control_.compute_updated_torque(m_.get_torque());
+    const float torque = fork_control_.compute_updated_torque(m_.get_torque(),
+                                                              guess_lean(s));
     if (should_control(s)) {
       s.motor_torque.desired_steer = torque;
       m_.set_torque(torque);
@@ -157,10 +158,10 @@ void ForkMotorController::update(Sample & s)
 // should occur when speed > threshold which is equivalent to rate < threshold.
 bool ForkMotorController::should_estimate(const Sample& s)
 {
-  fork_control_.set_state(guess_lean(s), s.encoder.steer,
-                          s.mpu6050.gyroscope_y, s.encoder.steer_rate);
   if (!estimation_triggered_)
     estimation_triggered_ = s.encoder.rear_wheel_rate < estimation_threshold_;
+    fork_control_.set_state(guess_lean(s), s.encoder.steer,
+                            s.mpu6050.gyroscope_y, s.encoder.steer_rate);
   return estimation_triggered_;
 }
 

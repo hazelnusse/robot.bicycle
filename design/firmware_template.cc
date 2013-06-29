@@ -69,8 +69,8 @@ class GainSchedule {
   float compute_updated_torque(float torque_prev);
  private:
   bool set_rate(float rate);
-  void state_estimate(float torque_prev);
-  float lqr_output() const;
+  void state_estimate(float torque_prev, float lean);
+  float lqr_output(float lean) const;
   float pi_output() const;
 
   Sample * s_;
