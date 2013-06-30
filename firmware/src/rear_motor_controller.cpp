@@ -21,7 +21,7 @@ RearMotorController::RearMotorController()
   m_{GPIOF, GPIOF_RW_DIR, GPIOF_RW_ENABLE, GPIOF_RW_FAULT,
      STM32_TIM1, ccr_channel, max_current, torque_constant, true},
   theta_R_dot_command_{0.0f}, integrator_state_{0.0f},
-  K_{100.0f},
+  K_{50.0f},
   rear_wheel_rate_prev_{0.0f},
   system_time_prev_{0}, rear_wheel_count_prev_{0},
   low_pass_filter_{n0, n1, d0, constants::loop_period_s},
