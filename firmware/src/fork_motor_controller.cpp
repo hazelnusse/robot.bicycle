@@ -23,7 +23,7 @@ ForkMotorController::ForkMotorController()
                      10*2*constants::pi, constants::loop_period_s},
   yaw_rate_command_{0.0f},
   x_pi_{0.0f},
-  estimation_threshold_{-0.75f / constants::wheel_radius},
+  estimation_threshold_{-1.0f / constants::wheel_radius},
   estimation_triggered_{false},
   control_triggered_{false},
   control_delay_{10u},
