@@ -9,7 +9,7 @@ WORKING_AREA(ControlLoop::waControlThread, 4096);
 Thread * ControlLoop::tp_control_ = 0;
 
 ControlLoop::ControlLoop()
-  : front_wheel_encoder_{STM32_TIM4, 800}
+  : startup_{false}, front_wheel_encoder_{STM32_TIM4, 800}
 {
   front_wheel_encoder_.set_count(0);
   STM32_TIM5->CNT = 0;
@@ -85,7 +85,8 @@ void ControlLoop::set_gyro_lean(Sample& s)
   static uint32_t system_time_prev = 0;
 
   // first pass, use static lean value
-  if (lean_array[lean_i] == 0.0f) {
+  s.gyro_lean.startup = startup_;
+  if (startup_) {
     float ax = s.mpu6050.accelerometer_x;
     float ay = s.mpu6050.accelerometer_y;
     float az = s.mpu6050.accelerometer_z;
@@ -94,19 +95,19 @@ void ControlLoop::set_gyro_lean(Sample& s)
 
     lean_array[lean_i] = lean_static;
     lean_i = (lean_i + 1)  % lean_array.size();
-    system_time_prev = s.system_time;
 
     // after lean_array.size() samples, set the average value
-    if (lean_i == 0 && lean_array[0] != 0.0f) {
+    if (lean_i == 0) {
       float lean_avg = (std::accumulate(lean_array.begin(),
                                         lean_array.end(), 0.0f) /
                         lean_array.size());
       lean_array[0] = lean_avg;
       s.gyro_lean.angle = lean_avg;
+      startup_ = false;
     } else {
       s.gyro_lean.angle = lean_static;
     }
-    s.gyro_lean.startup = true;
+    system_time_prev = s.system_time;
     return;
   }
 
@@ -116,10 +117,9 @@ void ControlLoop::set_gyro_lean(Sample& s)
               constants::system_timer_seconds_per_count);
   gyro_lean = lean_array[0] + s.mpu6050.gyroscope_y * dt;
 
-  system_time_prev = s.system_time;
   lean_array[0] = gyro_lean;
-  s.gyro_lean.startup = false;
   s.gyro_lean.angle = gyro_lean;
+  system_time_prev = s.system_time;
   return;
 }
 
@@ -178,7 +178,7 @@ msg_t ControlLoop::exec(const char * file_name)
       chThdSleepS(sleep_time);
     chSysUnlock();
   } // for
-  
+
   return sample_buffer.flush_and_close();
 }
 
