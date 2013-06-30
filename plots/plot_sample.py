@@ -187,7 +187,7 @@ class PlotSample(PlotData):
         fig, ax = plt.subplots(nrows=2, sharex=True)
         self._plotyy('system_time_s',
                      ['encoder.steer', 'estimate.steer',
-                      'estimate.lean', 'lean_gyro'],
+                      'estimate.lean', 'gyro_lean.angle', 'gyro_lean.startup'],
                      ['forward_speed', 'motor_torque.steer',
                       'system_state_hw_button'],
                      axes=ax[0])
