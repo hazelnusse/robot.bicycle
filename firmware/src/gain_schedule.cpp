@@ -108,13 +108,13 @@ void GainSchedule::state_estimate(float torque_prev)
   s_->estimate.steer_rate = state_(0, 3);
 }
 
-float GainSchedule::lqr_output(float lean) const
+float GainSchedule::lqr_output() const
 {
 //  vector_t<plant_model_state_size> state = {{s_->estimate.lean,
 //                                             s_->estimate.steer,
 //                                             s_->estimate.lean_rate,
 //                                             s_->estimate.steer_rate}};
-  vector_t<plant_model_state_size> state = {{lean,
+  vector_t<plant_model_state_size> state = {{s_->gyro_lean.angle,
                                              s_->encoder.steer,
                                              s_->mpu6050.gyroscope_y,
                                              s_->encoder.steer_rate}};
@@ -137,10 +137,10 @@ float GainSchedule::pi_output() const
   return alpha_ * (t1 - t0) + t0;
 }
 
-float GainSchedule::compute_updated_torque(float torque_prev, float lean)
+float GainSchedule::compute_updated_torque(float torque_prev)
 {
   state_estimate(torque_prev);
-  return lqr_output(lean); //  + pi_output();
+  return lqr_output(); //  + pi_output();
 }
 
 } // namespace control

@@ -35,7 +35,7 @@ class ForkMotorController : public MotorController {
   void set_control_delay(uint32_t N);
   bool should_estimate(const Sample& s);
   bool should_control(const Sample& s);
-  float guess_lean(const Sample& s);
+  void set_gyro_lean(Sample& s);
 
   Encoder e_;
   Motor m_;
@@ -48,10 +48,6 @@ class ForkMotorController : public MotorController {
   bool estimation_triggered_;
   bool control_triggered_;
   uint32_t control_delay_;      // # number of sample periods
-
-  std::array<float, 100> lean_array_;
-  int lean_i_;
-  uint32_t system_time_prev_;
 };
 
 } // namespace hardware

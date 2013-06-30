@@ -11,6 +11,7 @@ message Sample {
   optional PIController yaw_rate_pi = 9;     // 28 bytes
   optional PIController wheel_rate_pi = 12;  // 28 bytes
   optional Threshold threshold = 11;         //  8 bytes
+  optional GyroLean gyro_lean = 13;
 
   required uint32 loop_count = 10;           // loop count
                                    // Total:   172 bytes
@@ -82,3 +83,8 @@ message Threshold {
   required float control = 2;
 }
 
+// Size: 2 * 4 = 8 bytes
+message GyroLean {
+  required float angle = 1;
+  required bool startup = 2;
+}

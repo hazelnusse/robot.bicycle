@@ -26,8 +26,7 @@ ForkMotorController::ForkMotorController()
   estimation_threshold_{-0.75f / constants::wheel_radius},
   estimation_triggered_{false},
   control_triggered_{false},
-  control_delay_{10u},
-  lean_array_{{}}, lean_i_{0}, system_time_prev_{0}
+  control_delay_{10u}
 {
   instances[fork] = this;
 }
@@ -98,9 +97,7 @@ void ForkMotorController::set_control_delay_shell(BaseSequentialStream *chp,
 }
 
 void ForkMotorController::set_thresholds_shell(BaseSequentialStream *chp,
-                                               int argc, char *argv[])
-{
-  if (argc == 2) {
+                                               int argc, char *argv[]) { if (argc == 2) {
       ForkMotorController* fmc = reinterpret_cast<ForkMotorController*>(instances[fork]);
       fmc->set_estimation_threshold(tofloat(argv[0]));
       uint32_t N = std::atoi(argv[0]);
@@ -119,6 +116,7 @@ void ForkMotorController::update(Sample & s)
   s.encoder.steer = e_.get_angle();
   s.encoder.steer_rate = derivative_filter_.output(s.encoder.steer);
   derivative_filter_.update(s.encoder.steer); // update for next iteration
+  set_gyro_lean(s);
 
   s.set_point.psi_dot = yaw_rate_command_;
   s.yaw_rate_pi.e = s.set_point.psi_dot - MPU6050::psi_dot(s);
@@ -127,8 +125,7 @@ void ForkMotorController::update(Sample & s)
 
   s.motor_torque.desired_steer = 0.0f;
   if (should_estimate(s) && fork_control_.set_sample(s)) {
-    const float torque = fork_control_.compute_updated_torque(m_.get_torque(),
-                                                              guess_lean(s));
+    const float torque = fork_control_.compute_updated_torque(m_.get_torque());
     if (should_control(s)) {
       s.motor_torque.desired_steer = torque;
       m_.set_torque(torque);
@@ -160,7 +157,7 @@ bool ForkMotorController::should_estimate(const Sample& s)
 {
   if (!estimation_triggered_)
     estimation_triggered_ = s.encoder.rear_wheel_rate < estimation_threshold_;
-    fork_control_.set_state(guess_lean(s), s.encoder.steer,
+    fork_control_.set_state(s.gyro_lean.angle, s.encoder.steer,
                             s.mpu6050.gyroscope_y, s.encoder.steer_rate);
   return estimation_triggered_;
 }
@@ -172,42 +169,50 @@ bool ForkMotorController::should_control(const Sample& s)
   return control_triggered_ && std::abs(s.encoder.steer) < max_steer_angle;
 }
 
-float ForkMotorController::guess_lean(const Sample& s)
+void ForkMotorController::set_gyro_lean(Sample& s)
 {
+  s.has_gyro_lean = true;
+  static std::array<float, 100> lean_array {{}};
+  static int lean_i = 0;
+  static uint32_t system_time_prev = 0;
 
   // first pass, use static lean value
-  if (lean_array_[lean_i_] == 0.0f) {
+  if (lean_array[lean_i] == 0.0f) {
     float ax = s.mpu6050.accelerometer_x;
     float ay = s.mpu6050.accelerometer_y;
     float az = s.mpu6050.accelerometer_z;
     float accel_mag = std::sqrt(ax*ax + ay*ay + az*az);
     float lean_static = std::asin(ax / accel_mag);
 
-    lean_array_[lean_i_] = lean_static;
-    lean_i_ = (lean_i_ + 1)  % lean_array_.size();
-    system_time_prev_ = s.system_time;
+    lean_array[lean_i] = lean_static;
+    lean_i = (lean_i + 1)  % lean_array.size();
+    system_time_prev = s.system_time;
 
-    // after lean_array_.size() samples, set the average value
-    if (lean_i_ == 0 && lean_array_[0] != 0.0f) {
-      float lean_avg = (std::accumulate(lean_array_.begin(),
-                                        lean_array_.end(), 0.0f) /
-                        lean_array_.size());
-      lean_array_[0] = lean_avg;
-      return lean_avg;
+    // after lean_array.size() samples, set the average value
+    if (lean_i == 0 && lean_array[0] != 0.0f) {
+      float lean_avg = (std::accumulate(lean_array.begin(),
+                                        lean_array.end(), 0.0f) /
+                        lean_array.size());
+      lean_array[0] = lean_avg;
+      s.gyro_lean.angle = lean_avg;
     } else {
-      return lean_static;
+      s.gyro_lean.angle = lean_static;
     }
+    s.gyro_lean.startup = true;
+    return;
   }
 
   // after setting average static lean, use gyro lean
   float gyro_lean;
-  float dt = ((s.system_time - system_time_prev_) *
+  float dt = ((s.system_time - system_time_prev) *
               constants::system_timer_seconds_per_count);
-  gyro_lean = lean_array_[0] + s.mpu6050.gyroscope_y * dt;
+  gyro_lean = lean_array[0] + s.mpu6050.gyroscope_y * dt;
 
-  system_time_prev_ = s.system_time;
-  lean_array_[0] = gyro_lean;
-  return gyro_lean;
+  system_time_prev = s.system_time;
+  lean_array[0] = gyro_lean;
+  s.gyro_lean.startup = false;
+  s.gyro_lean.angle = gyro_lean;
+  return;
 }
 
 } // namespace hardware
