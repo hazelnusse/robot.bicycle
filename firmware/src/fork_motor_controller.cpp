@@ -97,15 +97,17 @@ void ForkMotorController::set_control_delay_shell(BaseSequentialStream *chp,
 }
 
 void ForkMotorController::set_thresholds_shell(BaseSequentialStream *chp,
-                                               int argc, char *argv[]) { if (argc == 2) {
-      ForkMotorController* fmc = reinterpret_cast<ForkMotorController*>(instances[fork]);
-      fmc->set_estimation_threshold(tofloat(argv[0]));
-      uint32_t N = std::atoi(argv[0]);
-      fmc->set_control_delay(N);
-      chprintf(chp, "%s estimation threshold set to %f.\r\n", fmc->name(),
-               fmc->estimation_threshold_);
-      chprintf(chp, "%s control delay set to begin %u samples after estimation.\r\n", fmc->name(),
-               fmc->control_delay_);
+                                               int argc, char *argv[])
+{
+  if (argc == 2) {
+    ForkMotorController* fmc = reinterpret_cast<ForkMotorController*>(instances[fork]);
+    fmc->set_estimation_threshold(tofloat(argv[0]));
+    uint32_t N = std::atoi(argv[0]);
+    fmc->set_control_delay(N);
+    chprintf(chp, "%s estimation threshold set to %f.\r\n", fmc->name(),
+             fmc->estimation_threshold_);
+    chprintf(chp, "%s control delay set to begin %u samples after estimation.\r\n",
+             fmc->name(), fmc->control_delay_);
   } else {
     chprintf(chp, "Invalid usage.\r\n");
   }
@@ -155,10 +157,11 @@ void ForkMotorController::update(Sample & s)
 // should occur when speed > threshold which is equivalent to rate < threshold.
 bool ForkMotorController::should_estimate(const Sample& s)
 {
-  if (!estimation_triggered_)
+  if (!estimation_triggered_) {
     estimation_triggered_ = s.encoder.rear_wheel_rate < estimation_threshold_;
     fork_control_.set_state(s.gyro_lean.angle, s.encoder.steer,
                             s.mpu6050.gyroscope_y, s.encoder.steer_rate);
+  }
   return estimation_triggered_;
 }
 
