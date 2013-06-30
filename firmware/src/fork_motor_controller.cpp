@@ -174,35 +174,40 @@ bool ForkMotorController::should_control(const Sample& s)
 
 float ForkMotorController::guess_lean(const Sample& s)
 {
-  float ax = s.mpu6050.accelerometer_x;
-  float ay = s.mpu6050.accelerometer_y;
-  float az = s.mpu6050.accelerometer_z;
-  float accel_mag = std::sqrt(ax*ax + ay*ay + az*az);
-  float lean_static = std::asin(ax / accel_mag);
 
   // first pass, use static lean value
   if (lean_array_[lean_i_] == 0.0f) {
+    float ax = s.mpu6050.accelerometer_x;
+    float ay = s.mpu6050.accelerometer_y;
+    float az = s.mpu6050.accelerometer_z;
+    float accel_mag = std::sqrt(ax*ax + ay*ay + az*az);
+    float lean_static = std::asin(ax / accel_mag);
+
     lean_array_[lean_i_] = lean_static;
     lean_i_ = (lean_i_ + 1)  % lean_array_.size();
     system_time_prev_ = s.system_time;
-    return lean_static;
+
+    // after lean_array_.size() samples, set the average value
+    if (lean_i_ == 0 && lean_array_[0] != 0.0f) {
+      float lean_avg = (std::accumulate(lean_array_.begin(),
+                                        lean_array_.end(), 0.0f) /
+                        lean_array_.size());
+      lean_array_[0] = lean_avg;
+      return lean_avg;
+    } else {
+      return lean_static;
+    }
   }
 
-//  float lean_avg = (std::accumulate(lean_array_.begin(), lean_array_.end(), 0.0f) /
-//                    lean_array_.size());
-
-  float new_lean;
-//  if (std::abs(lean_static - lean_avg) < 0.005) { // hardcode lean change limit
-//    new_lean = lean_static;
-//  } else {
+  // after setting average static lean, use gyro lean
+  float gyro_lean;
   float dt = ((s.system_time - system_time_prev_) *
               constants::system_timer_seconds_per_count);
-  new_lean = lean_array_[lean_i_ ] + s.mpu6050.gyroscope_y * dt;
-//  }
+  gyro_lean = lean_array_[0] + s.mpu6050.gyroscope_y * dt;
+
   system_time_prev_ = s.system_time;
-  lean_i_ = (lean_i_ + 1) % lean_array_.size();
-  lean_array_[lean_i_] = new_lean;
-  return new_lean;
+  lean_array_[0] = gyro_lean;
+  return gyro_lean;
 }
 
 } // namespace hardware

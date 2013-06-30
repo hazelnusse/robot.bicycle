@@ -49,7 +49,7 @@ class ForkMotorController : public MotorController {
   bool control_triggered_;
   uint32_t control_delay_;      // # number of sample periods
 
-  std::array<float, 5> lean_array_;
+  std::array<float, 100> lean_array_;
   int lean_i_;
   uint32_t system_time_prev_;
 };
