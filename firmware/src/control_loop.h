@@ -28,6 +28,7 @@ class ControlLoop {
   static msg_t thread_function(void * arg);
   static WORKING_AREA(waControlThread, 4096);
   static Thread * tp_control_;
+  bool startup_;
 
   MPU6050 imu_;
   RearMotorController rear_motor_controller_;
