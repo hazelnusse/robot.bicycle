@@ -21,11 +21,10 @@ RearMotorController::RearMotorController()
   m_{GPIOF, GPIOF_RW_DIR, GPIOF_RW_ENABLE, GPIOF_RW_FAULT,
      STM32_TIM1, ccr_channel, max_current, torque_constant, true},
   theta_R_dot_command_{0.0f}, integrator_state_{0.0f},
-  K_{10.0f}, Ti_{2.0f}, Tt_{0.05f},
-  rear_wheel_rate_prev_{0.0f}, desired_torque_prev_{0.0f},
+  K_{10.0f},
+  rear_wheel_rate_prev_{0.0f},
   system_time_prev_{0}, rear_wheel_count_prev_{0},
   low_pass_filter_{n0, n1, d0, constants::loop_period_s},
-  sg_data_{{}}, sg_insert_index_{0},
   dthetadt_array_{{}}, dthetadt_elem_{0}
 {
   instances[rear_wheel] = this;
@@ -73,13 +72,8 @@ void RearMotorController::update(Sample & s)
   low_pass_filter_.update(dthetadt);
   s.encoder.rear_wheel_rate = low_pass_filter_.output(dthetadt);
 
-  // Anti windup PI control, as shown in Section 8.5 of Astrom 1997
-  const float e =  theta_R_dot_command_ - s.encoder.rear_wheel_rate;
-  const float e_s = m_.get_torque() - desired_torque_prev_;
-  integrator_state_ += dt * (K_ / Ti_ * e + e_s / Tt_);
-
-  desired_torque_prev_ = s.motor_torque.desired_rear_wheel = integrator_state_ + K_ * e;
-  m_.set_torque(desired_torque_prev_);
+  s.motor_torque.desired_rear_wheel = K_ * (theta_R_dot_command_ - s.encoder.rear_wheel_rate);
+  m_.set_torque(s.motor_torque.desired_rear_wheel);         // desired torque
   s.motor_torque.rear_wheel = m_.get_torque();              // saturated torque
 
   system_time_prev_ = s.system_time;
@@ -94,23 +88,6 @@ void RearMotorController::update(Sample & s)
     s.system_state |= systemstate::RearWheelMotorFault;
   if (m_.current_direction())
     s.system_state |= systemstate::RearWheelMotorCurrentDir;
-}
-
-float RearMotorController::sg_smoother(float dthetadt)
-{
-  static const uint8_t N = 5;
-  static const std::array<float, N> sg_coefficients = {{-3.0f, 12.0f, 17.0f, 12.0f, -3.0f}};
-  sg_data_[sg_insert_index_] = dthetadt;
-  float result = 0.0f;
-  uint8_t index = sg_insert_index_;
-  for (auto rit = sg_coefficients.rbegin();
-       rit != sg_coefficients.rend();
-       ++rit, index = (index + N - 1) % N) {
-    result += *rit * sg_data_[index];
-  }
-   
-  sg_insert_index_ = (sg_insert_index_ + 1) % N;
-  return result;
 }
 
 } // namespace hardware
