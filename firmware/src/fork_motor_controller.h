@@ -35,7 +35,6 @@ class ForkMotorController : public MotorController {
   void set_control_delay(uint32_t N);
   bool should_estimate(const Sample& s);
   bool should_control(const Sample& s);
-  void set_gyro_lean(Sample& s);
 
   Encoder e_;
   Motor m_;

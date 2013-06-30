@@ -1,7 +1,6 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
-#include <numeric>
 #include "constants.h"
 #include "fork_motor_controller.h"
 #include "MPU6050.h"
@@ -118,7 +117,6 @@ void ForkMotorController::update(Sample & s)
   s.encoder.steer = e_.get_angle();
   s.encoder.steer_rate = derivative_filter_.output(s.encoder.steer);
   derivative_filter_.update(s.encoder.steer); // update for next iteration
-  set_gyro_lean(s);
 
   s.set_point.psi_dot = yaw_rate_command_;
   s.yaw_rate_pi.e = s.set_point.psi_dot - MPU6050::psi_dot(s);
@@ -170,52 +168,6 @@ bool ForkMotorController::should_control(const Sample& s)
   if (!control_triggered_)
     control_triggered_ = --control_delay_ == 0;
   return control_triggered_ && std::abs(s.encoder.steer) < max_steer_angle;
-}
-
-void ForkMotorController::set_gyro_lean(Sample& s)
-{
-  s.has_gyro_lean = true;
-  static std::array<float, 100> lean_array {{}};
-  static int lean_i = 0;
-  static uint32_t system_time_prev = 0;
-
-  // first pass, use static lean value
-  if (lean_array[lean_i] == 0.0f) {
-    float ax = s.mpu6050.accelerometer_x;
-    float ay = s.mpu6050.accelerometer_y;
-    float az = s.mpu6050.accelerometer_z;
-    float accel_mag = std::sqrt(ax*ax + ay*ay + az*az);
-    float lean_static = std::asin(ax / accel_mag);
-
-    lean_array[lean_i] = lean_static;
-    lean_i = (lean_i + 1)  % lean_array.size();
-    system_time_prev = s.system_time;
-
-    // after lean_array.size() samples, set the average value
-    if (lean_i == 0 && lean_array[0] != 0.0f) {
-      float lean_avg = (std::accumulate(lean_array.begin(),
-                                        lean_array.end(), 0.0f) /
-                        lean_array.size());
-      lean_array[0] = lean_avg;
-      s.gyro_lean.angle = lean_avg;
-    } else {
-      s.gyro_lean.angle = lean_static;
-    }
-    s.gyro_lean.startup = true;
-    return;
-  }
-
-  // after setting average static lean, use gyro lean
-  float gyro_lean;
-  float dt = ((s.system_time - system_time_prev) *
-              constants::system_timer_seconds_per_count);
-  gyro_lean = lean_array[0] + s.mpu6050.gyroscope_y * dt;
-
-  system_time_prev = s.system_time;
-  lean_array[0] = gyro_lean;
-  s.gyro_lean.startup = false;
-  s.gyro_lean.angle = gyro_lean;
-  return;
 }
 
 } // namespace hardware
