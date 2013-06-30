@@ -9,7 +9,7 @@ WORKING_AREA(ControlLoop::waControlThread, 4096);
 Thread * ControlLoop::tp_control_ = 0;
 
 ControlLoop::ControlLoop()
-  : startup_{false}, front_wheel_encoder_{STM32_TIM4, 800}
+  : startup_{true}, front_wheel_encoder_{STM32_TIM4, 800}
 {
   front_wheel_encoder_.set_count(0);
   STM32_TIM5->CNT = 0;
