@@ -88,6 +88,15 @@ void RearMotorController::update(Sample & s)
     s.system_state |= systemstate::RearWheelMotorFault;
   if (m_.current_direction())
     s.system_state |= systemstate::RearWheelMotorCurrentDir;
+
+  //s.wheel_rate_pi.x = theta_R_dot_command_;
+  //s.wheel_rate_pi.e = e;
+  //s.wheel_rate_pi.e_s = e_s;
+  //s.wheel_rate_pi.K = K_;
+  //s.wheel_rate_pi.Ti = Ti_;
+  //s.wheel_rate_pi.Tt = Tt_;
+  //s.wheel_rate_pi.dt = dt;
+  //s.has_wheel_rate_pi = true;
 }
 
 } // namespace hardware

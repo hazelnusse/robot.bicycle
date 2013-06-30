@@ -38,6 +38,7 @@ STATE_FLAGS = [
 class PlotSample(PlotData):
     def __init__(self, datafile=None):
         super(PlotSample, self).__init__('sample_pb2', 'Sample', datafile)
+        self.filename = datafile
         self.default_x = None
         self._correct_system_time()
         self._add_sample_period()
@@ -141,12 +142,16 @@ class PlotSample(PlotData):
         """
         return self.plot(self.default_x, *args, **kwargs)
 
-    def _plotyy(self, x, y1, y2, axes=None):
+    def _plotyy(self, x, y1, y2, scale1=None, scale2=None, axes=None):
         if axes is None:
             fig, ax = plt.subplots(1)
         else:
             ax = axes
             fig = ax.get_figure()
+        if scale1 is None:
+            scale1 = 1
+        if scale2 is None:
+            scale2 = 1
 
         if isinstance(y1, list):
             y1 = [item for sublist in map(self.expand_field, y1)
@@ -158,16 +163,16 @@ class PlotSample(PlotData):
                   for item in sublist]
         else:
             y2 = self.expand_field(y2)
-        self._set_color_cycle(ax, len(y1 + y2) + 1)
+        self._set_color_cycle(ax, len(y1 + y2) + 2)
 
         xdata = self.get_field_data(self.expand_field(x)[0])
-        add_plot = lambda ax, y: ax.plot(xdata, self.get_field_data(y),
-                                         label=y)
+        add_plot = lambda ax, y, s: ax.plot(xdata, s * self.get_field_data(y),
+                                            label=y)
         for y in y1:
-            add_plot(ax, y)
+            add_plot(ax, y, scale1)
         axt = ax.twinx()
         for y in y2:
-            add_plot(axt, y)
+            add_plot(axt, y, scale2)
 
         ax.set_xlabel(x)
         ax.set_ylabel(', '.join(y1))
@@ -192,12 +197,24 @@ class PlotSample(PlotData):
                      ['forward_speed', 'motor_torque.steer',
                       'system_state_hw_button'],
                      axes=ax[1])
+        ax[0].set_title("estimates, file '{0}'".format(self.filename))
         plt.show()
         return fig, ax
 
     def plot_forward_speed(self):
         return self.plot_d(['forward_speed', 'threshold_speed_estimation',
                             'threshold_speed_control'])
+
+    def plot_rear_wheel(self):
+        fig, ax = self._plotyy('system_time_s',
+                               ['set_point.theta_R_dot',
+                                'encoder.rear_wheel_rate',
+                                'threshold.estimation'],
+                               ['motor_torque.rear_wheel',
+                                'motor_torque.desired_rear_wheel'],
+                               scale1=-WHEEL_RADIUS, scale2=-1)
+        ax.set_title("rear wheel, file '{0}'".format(self.filename))
+        return fig, ax
 
     def plot_system_state(self, enable_all=False, disable_func=None):
         """Plot the system state boolean fields. Fields are scaled from 0.75
@@ -234,7 +251,7 @@ class PlotSample(PlotData):
         ax.grid(True)
         ax.set_xlabel(self.default_x)
         ax.set_ylabel('system state')
-        ax.set_title('system state')
+        ax.set_title("system state, file '{0}'".format(self.filename))
         plt.show()
         return fig, ax
 

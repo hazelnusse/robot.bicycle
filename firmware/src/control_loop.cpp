@@ -1,4 +1,5 @@
 #include <cmath>
+#include <numeric>
 #include "control_loop.h"
 #include "SystemState.h"
 
@@ -76,6 +77,52 @@ msg_t ControlLoop::thread_function(void * arg)
   return loop.exec(static_cast<const char *>(const_cast<const void *>(arg)));
 }
 
+void ControlLoop::set_gyro_lean(Sample& s)
+{
+  s.has_gyro_lean = true;
+  static std::array<float, 100> lean_array {{}};
+  static int lean_i = 0;
+  static uint32_t system_time_prev = 0;
+
+  // first pass, use static lean value
+  if (lean_array[lean_i] == 0.0f) {
+    float ax = s.mpu6050.accelerometer_x;
+    float ay = s.mpu6050.accelerometer_y;
+    float az = s.mpu6050.accelerometer_z;
+    float accel_mag = std::sqrt(ax*ax + ay*ay + az*az);
+    float lean_static = std::asin(ax / accel_mag);
+
+    lean_array[lean_i] = lean_static;
+    lean_i = (lean_i + 1)  % lean_array.size();
+    system_time_prev = s.system_time;
+
+    // after lean_array.size() samples, set the average value
+    if (lean_i == 0 && lean_array[0] != 0.0f) {
+      float lean_avg = (std::accumulate(lean_array.begin(),
+                                        lean_array.end(), 0.0f) /
+                        lean_array.size());
+      lean_array[0] = lean_avg;
+      s.gyro_lean.angle = lean_avg;
+    } else {
+      s.gyro_lean.angle = lean_static;
+    }
+    s.gyro_lean.startup = true;
+    return;
+  }
+
+  // after setting average static lean, use gyro lean
+  float gyro_lean;
+  float dt = ((s.system_time - system_time_prev) *
+              constants::system_timer_seconds_per_count);
+  gyro_lean = lean_array[0] + s.mpu6050.gyroscope_y * dt;
+
+  system_time_prev = s.system_time;
+  lean_array[0] = gyro_lean;
+  s.gyro_lean.startup = false;
+  s.gyro_lean.angle = gyro_lean;
+  return;
+}
+
 // Caller: Control thread
 msg_t ControlLoop::exec(const char * file_name)
 {
@@ -94,6 +141,7 @@ msg_t ControlLoop::exec(const char * file_name)
     imu_.acquire_data(s);
     s.encoder.front_wheel = front_wheel_encoder_.get_angle();
     s.system_state |= systemstate::CollectionEnabled;
+    set_gyro_lean(s);
     // End pre control data collection
 
     // Begin control

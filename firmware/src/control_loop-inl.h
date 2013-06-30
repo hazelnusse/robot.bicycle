@@ -17,6 +17,12 @@ bool ControlLoop::hw_button_enabled() const
 inline
 void ControlLoop::illuminate_lean_steer(const Sample & s)
 {
+  if (s.gyro_lean.startup) {
+    MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_LEAN_LED)) = 1;
+    MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_STEER_LED)) = 1;
+    return;
+  }
+
   const float mag = std::sqrt(std::pow(s.mpu6050.accelerometer_x, 2.0f)
                             + std::pow(s.mpu6050.accelerometer_y, 2.0f)
                             + std::pow(s.mpu6050.accelerometer_z, 2.0f));

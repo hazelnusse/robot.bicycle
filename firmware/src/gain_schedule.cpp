@@ -94,14 +94,14 @@ void GainSchedule::set_state(float lean, float steer, float lean_rate, float ste
 
 void GainSchedule::state_estimate(float torque_prev)
 {
-  //state_estimate_time_ = s_->loop_count;
-  //vector_t<observer_input_size> input {{s_->encoder.steer, s_->mpu6050.gyroscope_y,
-  //                                      torque_prev}};
+  state_estimate_time_ = s_->loop_count;
+  vector_t<observer_input_size> input {{s_->encoder.steer, s_->mpu6050.gyroscope_y,
+                                        torque_prev}};
 
-  //// update observer state
-  //auto state_lower = ss_lower_->estimator.update(state_, input);
-  //auto state_upper = ss_upper_->estimator.update(state_, input);
-  //state_ = alpha_ * (state_upper - state_lower) + state_lower;
+  // update observer state
+  auto state_lower = ss_lower_->estimator.update(state_, input);
+  auto state_upper = ss_upper_->estimator.update(state_, input);
+  state_ = alpha_ * (state_upper - state_lower) + state_lower;
   s_->estimate.lean = state_(0, 0);
   s_->estimate.steer = state_(0, 1);
   s_->estimate.lean_rate = state_(0, 2);
@@ -110,10 +110,15 @@ void GainSchedule::state_estimate(float torque_prev)
 
 float GainSchedule::lqr_output() const
 {
-  vector_t<plant_model_state_size> state = {{s_->estimate.lean,
-                                             s_->estimate.steer,
-                                             s_->estimate.lean_rate,
-                                             s_->estimate.steer_rate}};
+//  vector_t<plant_model_state_size> state = {{s_->estimate.lean,
+//                                             s_->estimate.steer,
+//                                             s_->estimate.lean_rate,
+//                                             s_->estimate.steer_rate}};
+  vector_t<plant_model_state_size> state = {{s_->gyro_lean.angle,
+                                             s_->encoder.steer,
+                                             s_->mpu6050.gyroscope_y,
+                                             s_->encoder.steer_rate}};
+
   const float t0 = ss_lower_->lqr.update(state)(0, 0);
   const float t1 = ss_upper_->lqr.update(state)(0, 0);
   return alpha_ * (t1 - t0) + t0;
