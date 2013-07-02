@@ -10,7 +10,8 @@ const uint8_t ccr_channel = 1;              // PWM Channel 1
 const float max_current = 24.0f;            // Copley Controls ACJ-090-36
                                             // Configured 24.0A peak, 12.0A
                                             // continuous
-const float torque_constant = 6.654987675770698f;  // Experimentally determined
+const float torque_constant = 6.654987675770698f;  // Experimentally determined, N*m/A
+const float max_torque = max_current * torque_constant;
 const float d0 = 10.0f * constants::two_pi; // filter pole at -d0 rad / s
 const float n0 = d0;
 const float n1 = 0.0f;
@@ -21,11 +22,11 @@ RearMotorController::RearMotorController()
   m_{GPIOF, GPIOF_RW_DIR, GPIOF_RW_ENABLE, GPIOF_RW_FAULT,
      STM32_TIM1, ccr_channel, max_current, torque_constant, true},
   theta_R_dot_command_{0.0f}, integrator_state_{0.0f},
-  K_{50.0f},
+  K_{50.0f}, Ti_{100.0f},
   rear_wheel_rate_prev_{0.0f},
   system_time_prev_{0}, rear_wheel_count_prev_{0},
   low_pass_filter_{n0, n1, d0, constants::loop_period_s},
-  dthetadt_array_{{}}, dthetadt_elem_{0}
+  dthetadt_array_{{}}, dthetadt_elem_{0}, setpoint_reached_{true}
 {
   instances[rear_wheel] = this;
   e_.set_count(0);
@@ -38,7 +39,11 @@ RearMotorController::~RearMotorController()
 
 void RearMotorController::set_reference(float speed)
 {
-  theta_R_dot_command_ = speed / -constants::wheel_radius;
+  float theta_R_dot_command_new = speed / -constants::wheel_radius;
+  if (theta_R_dot_command_new < theta_R_dot_command_) {
+    setpoint_reached_ = false;
+    integrator_state_ = 0.0f;
+  }
 }
 
 void RearMotorController::disable()
@@ -72,7 +77,15 @@ void RearMotorController::update(Sample & s)
   low_pass_filter_.update(dthetadt);
   s.encoder.rear_wheel_rate = low_pass_filter_.output(dthetadt);
 
-  s.motor_torque.desired_rear_wheel = K_ * (theta_R_dot_command_ - s.encoder.rear_wheel_rate);
+  const float error = theta_R_dot_command_ - s.encoder.rear_wheel_rate;
+  if (setpoint_reached_) { // do PI control
+    integrator_state_ += K_ / Ti_ * error * dt;
+    s.motor_torque.desired_rear_wheel = K_ * error + integrator_state_;
+  } else {                 // do full blast acceleration
+    s.motor_torque.desired_rear_wheel = copysign(max_torque, error);
+    setpoint_reached_ = error > 0.0f;   // assumes set point is negative
+  }
+
   m_.set_torque(s.motor_torque.desired_rear_wheel);         // desired torque
   s.motor_torque.rear_wheel = m_.get_torque();              // saturated torque
 
