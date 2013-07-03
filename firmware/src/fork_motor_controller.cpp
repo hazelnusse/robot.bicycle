@@ -157,7 +157,7 @@ bool ForkMotorController::should_estimate(const Sample& s)
 {
   if (!estimation_triggered_) {
     estimation_triggered_ = s.encoder.rear_wheel_rate < estimation_threshold_;
-    fork_control_.set_state(s.gyro_lean.angle, s.encoder.steer,
+    fork_control_.set_state(0.0f, s.encoder.steer,
                             s.mpu6050.gyroscope_y, s.encoder.steer_rate);
   }
   return estimation_triggered_;
