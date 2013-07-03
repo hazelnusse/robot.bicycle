@@ -7,12 +7,15 @@ namespace hardware {
 
 WORKING_AREA(ControlLoop::waControlThread, 4096);
 Thread * ControlLoop::tp_control_ = 0;
+float ControlLoop::acc_x_thresh_ = 1.0f * constants::rad_per_degree;
+ControlLoop * ControlLoop::instance_ = 0;
 
 ControlLoop::ControlLoop()
   : startup_{true}, front_wheel_encoder_{STM32_TIM4, 800}
 {
   front_wheel_encoder_.set_count(0);
   STM32_TIM5->CNT = 0;
+  instance_ = this;
 }
 
 // Caller: shell thread
@@ -180,6 +183,15 @@ msg_t ControlLoop::exec(const char * file_name)
   } // for
 
   return sample_buffer.flush_and_close();
+}
+
+void ControlLoop::set_lean_threshold_shell(BaseSequentialStream *chp, int argc, char *argv[])
+{
+  if (argc > 1 || argc < 0) {
+    chprintf(chp, "Invalid usage.\r\n");
+    return;
+  }
+  acc_x_thresh_ = tofloat(argv[0]) * constants::rad_per_degree;
 }
 
 }

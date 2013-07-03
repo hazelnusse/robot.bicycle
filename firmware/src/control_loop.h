@@ -15,6 +15,7 @@ namespace hardware {
 class ControlLoop {
  public:
   static void shell_command(BaseSequentialStream *chp, int argc, char *argv[]);
+  static void set_lean_threshold_shell(BaseSequentialStream *chp, int argc, char *argv[]);
 
  private:
   ControlLoop();
@@ -34,6 +35,8 @@ class ControlLoop {
   RearMotorController rear_motor_controller_;
   ForkMotorController fork_motor_controller_;
   Encoder front_wheel_encoder_;
+  static float acc_x_thresh_;
+  static ControlLoop * instance_;
 };
 
 }

@@ -27,7 +27,7 @@ void ControlLoop::illuminate_lean_steer(const Sample & s)
                             + std::pow(s.mpu6050.accelerometer_y, 2.0f)
                             + std::pow(s.mpu6050.accelerometer_z, 2.0f));
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)),
-                   GPIOF_LEAN_LED)) = (std::abs(s.mpu6050.accelerometer_x / mag) < 1.0f * constants::rad_per_degree) ? 1 : 0;
+                   GPIOF_LEAN_LED)) = (std::abs(s.mpu6050.accelerometer_x / mag) < acc_x_thresh_) ? 1 : 0;
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)),
                    GPIOF_STEER_LED)) = (std::abs(s.encoder.steer) < 1.0f * constants::rad_per_degree) ? 1 : 0;
 
@@ -38,6 +38,7 @@ ControlLoop::~ControlLoop()
 {
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_LEAN_LED)) = 0;
   MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)), GPIOF_STEER_LED)) = 0;
+  instance_ = 0;
 }
 
 

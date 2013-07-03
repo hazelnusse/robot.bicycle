@@ -129,7 +129,7 @@ static const ShellCommand commands[] = {
   {"e_thresh", hardware::ForkMotorController::set_estimation_threshold_shell},
   {"c_thresh", hardware::ForkMotorController::set_control_delay_shell},
   {"thresh", hardware::ForkMotorController::set_thresholds_shell},
-//  {"pi", YawRateController::togglePI},
+  {"l_thresh", hardware::ControlLoop::set_lean_threshold_shell},
   {"yaw_rate", hardware::set_reference_shell<hardware::fork>},
   {"speed", hardware::set_reference_shell<hardware::rear_wheel>},
   {NULL, NULL}
