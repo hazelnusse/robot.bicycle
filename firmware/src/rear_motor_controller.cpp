@@ -44,6 +44,7 @@ void RearMotorController::set_reference(float speed)
     setpoint_reached_ = false;
     integrator_state_ = 0.0f;
   }
+  theta_R_dot_command_ = theta_R_dot_command_new;
 }
 
 void RearMotorController::disable()
