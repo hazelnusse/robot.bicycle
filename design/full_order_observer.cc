@@ -33,10 +33,10 @@ int main(int argc, char ** argv)
   // Observer pole placement factor
   params.pole_placement_factor = 3.0;
   // Kalman design
-  constexpr double lean_vel_std = .6827;      // rad / s / s
-  constexpr double steer_vel_std = .6827;     // rad / s / s
-  constexpr double lean_acc_std = 1;          // rad / s / s
-  constexpr double steer_acc_std = 1;         // rad / s / s
+  constexpr double lean_acc_std = 1e-3;          // rad / s / s
+  constexpr double steer_acc_std = 1e-2;         // rad / s / s
+  constexpr double lean_vel_std = .6827 * lean_acc_std;      // rad / s
+  constexpr double steer_vel_std = .6827 * steer_acc_std;     // rad / s
   params.W.resize(4, 4);          // Process noise covariance
   params.W << std::pow(lean_vel_std, 2.0), 0.0, 0.0, 0.0,
               0.0, std::pow(steer_vel_std, 2.0), 0.0, 0.0,
@@ -46,7 +46,6 @@ int main(int argc, char ** argv)
   params.V.resize(2, 2);          // Measurement noise covariance
   params.V << std::pow(2*pi/20000, 2.0), 0,
               0, std::pow(0.00227631723111, 2.0);
-  params.V *= 0.01;
 
   std::vector<model_data> md = design_controller(params, rb);
   std::sort(md.begin(), md.end());
