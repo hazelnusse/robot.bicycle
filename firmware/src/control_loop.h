@@ -35,7 +35,7 @@ class ControlLoop {
   RearMotorController rear_motor_controller_;
   ForkMotorController fork_motor_controller_;
   Encoder front_wheel_encoder_;
-  static float acc_x_thresh_;
+  float acc_x_thresh_;
   static ControlLoop * instance_;
 };
 
