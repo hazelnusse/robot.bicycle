@@ -6,10 +6,11 @@
 
 namespace constants {
 
+constexpr float pi_over_four = std::atan(1.0f);
+constexpr float pi_over_two = 2.0f * std::atan(1.0f);
 constexpr float pi = 4.0f * std::atan(1.0f);
-constexpr float pi_2 = 2.0f * std::atan(1.0f);
-constexpr float pi_4 = std::atan(1.0f);
-constexpr float two_pi = 2.0f * pi;
+constexpr float three_pi_over_two = 6.0f * std::atan(1.0f);
+constexpr float two_pi = 8.0f * std::atan(1.0f);
 constexpr float rad_per_degree = pi / 180.0f;
 constexpr float degree_per_rad = 180.0f / pi;
 constexpr float e = std::exp(1.0f);
