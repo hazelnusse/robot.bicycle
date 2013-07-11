@@ -105,6 +105,7 @@ CPPSRC = src/calibration.cpp \
 				src/MPU6050.cpp \
 				src/rear_motor_controller.cpp \
 				src/sample_buffer.cpp \
+				src/sine_table.cpp \
 				src/system_commands.cpp \
 				src/textutilities.cpp \
 				src/vector_table.cpp
