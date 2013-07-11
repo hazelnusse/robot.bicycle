@@ -31,23 +31,24 @@ constexpr float wheel_radius = 0.3359f;
 // with calculation of lean using acceleration for the system in a
 // quasi-static setting.
 constexpr float gyro_scale = 1.0f;
-constexpr float accelerometer_sensitivity = g / 16384.0f;
+constexpr float accelerometer_sensitivity = 1.0f;
 constexpr float gyroscope_sensitivity = rad_per_degree / 131.0f * gyro_scale;
 constexpr float thermometer_offset = 36.53f;
 constexpr float thermometer_sensitivity = 1.0f / 340.0f;
 
-constexpr float acc_x_bias = 0.219491423264f;  // Obtained from static hanging configuration
-constexpr float acc_y_bias = 0.0f;             // TODO: calibrate?
-constexpr float acc_z_bias = 0.0f;             // TODO: calibrate?
-constexpr float gyro_x_bias = -0.12831133410801182f;
-constexpr float gyro_y_bias = 0.032857218962598515f;
-constexpr float gyro_z_bias = 0.010641128707006363f;
-constexpr float dcm[6] = {-0.894519492243436f,
-                      -0.0635181679465503f,
-                      0.0608731305741522f,
-                      0.446568482938378f,
-                      0.997939373875708f,
-                      0.0202846750691697f};
+constexpr float acc_x_bias = 0.0f;  // TODO: calibrate
+constexpr float acc_y_bias = 0.0f;  // TODO: calibrate
+constexpr float acc_z_bias = 0.0f;  // TODO: calibrate
+constexpr float gyro_x_bias = 0.0f; // TODO: calibrate while bike is in reference configuration
+constexpr float gyro_y_bias = 0.0f; // TODO: calibrate while bike is in reference configuration
+constexpr float gyro_z_bias = 0.0f; // TODO: calibrate while bike is in reference configuration
+// TODO: determine dcm relating sensor axes to bike fixed axes
+//constexpr float dcm[6] = {-0.894519492243436f,
+//                      -0.0635181679465503f,
+//                      0.0608731305741522f,
+//                      0.446568482938378f,
+//                      0.997939373875708f,
+//                      0.0202846750691697f};
 
 constexpr int32_t fork_encoder_index_offset = -402;
 
