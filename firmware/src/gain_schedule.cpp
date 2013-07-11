@@ -3,6 +3,7 @@
 
 #include "gain_schedule.h"
 #include "MPU6050.h"
+#include "sine_table.h"
 
 namespace control {
 
@@ -140,7 +141,10 @@ float GainSchedule::pi_output() const
 float GainSchedule::compute_updated_torque(float torque_prev)
 {
   state_estimate(torque_prev);
-  return lqr_output(); //  + pi_output();
+  float torque = lqr_output();
+  // torque += 0.01 * control::sin(0.0f); // disturbance
+  // torque += pi_output();               // yaw rate pi control
+  return torque;
 }
 
 } // namespace control
