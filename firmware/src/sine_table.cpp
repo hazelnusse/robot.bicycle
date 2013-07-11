@@ -1008,21 +1008,34 @@ std::array<float, 1001> table = {{
   0.9999987663f,
   1.0f}};
 
+constexpr float dx = constants::pi_over_two / (table.size() - 1);
+constexpr float one_over_dx = 1.0f / dx;
+
 float sin(float x)
 {
-  x = std::fmod(x, constants::two_pi);
+  x = std::fmod(x, constants::two_pi);          // -2*pi < x < 2*pi
+  if (x < 0.0f)
+    x += constants::two_pi;                     // 0 <= x < 2*pi
   
-  if (x < constants::pi_over_two) { // 1st quadrant
-
-  } else if (x < constants::pi) { // 2nd quadrant
-
-  } else if (x < constants::three_pi_over_two) { // 3rd quadrant
-
-  } else { // 4th quadrant
-
+  float sign = 1.0f;
+  if (x > constants::three_pi_over_two) {       // 4th quadrant
+    x = constants::two_pi - x;                  // 0 < x < pi / 2
+    sign = -1.0f;
+  } else if (x > constants::pi) {               // 3rd quadrant
+    x -= constants::pi;                         // 0 < x <= pi / 2
+    sign = -1.0f;
+  } else if (x > constants::pi_over_two) {      // 2nd quadrant
+    x = constants::pi - x;                      // 0 < x < pi / 2
   }
+  // Invariant:  0 <= x <= pi / 2
+  const unsigned int low_bound = x * one_over_dx;
+  // Catch special case when x == pi / 2
+  if (low_bound == (table.size() - 1))
+    return sign * table[low_bound];
 
-  return table[0];
+  // Perform linear interpolation
+  const float alpha = (table[low_bound + 1] - table[low_bound]) * one_over_dx;
+  return sign * (alpha * x + table[low_bound]);
 }
 
 }
