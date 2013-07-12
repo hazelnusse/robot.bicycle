@@ -10,7 +10,8 @@ runs = [PlotSample(x) for x in ["phi_000_theta_000.dat",
                                 "phi_000_theta_180.dat",
                                 "phi_000_theta_270.dat",
                                 "phi_090_theta_000.dat",
-                                "phi_270_theta_000.dat",]]
+                                "phi_270_theta_000.dat",
+                                "reference.dat"]]
 for r in runs:
     print("Processing file {0}".format(r.filename))
     data = r.get_field_data("mpu6050").data
