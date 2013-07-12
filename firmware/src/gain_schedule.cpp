@@ -96,7 +96,7 @@ void GainSchedule::set_state(float lean, float steer, float lean_rate, float ste
 void GainSchedule::state_estimate(float torque_prev)
 {
   state_estimate_time_ = s_->loop_count;
-  vector_t<observer_input_size> input {{s_->encoder.steer, s_->mpu6050.gyroscope_y,
+  vector_t<observer_input_size> input {{s_->encoder.steer, s_->mpu6050.gyroscope_x,
                                         torque_prev}};
 
   // update observer state
@@ -117,7 +117,7 @@ float GainSchedule::lqr_output() const
                                              s_->estimate.steer_rate}};
 //  vector_t<plant_model_state_size> state = {{s_->gyro_lean.angle,
 //                                             s_->encoder.steer,
-//                                             s_->mpu6050.gyroscope_y,
+//                                             s_->mpu6050.gyroscope_x,
 //                                             s_->encoder.steer_rate}};
 
   const float t0 = ss_lower_->lqr.update(state)(0, 0);

@@ -118,10 +118,15 @@ void ForkMotorController::update(Sample & s)
   s.encoder.steer_rate = derivative_filter_.output(s.encoder.steer);
   derivative_filter_.update(s.encoder.steer); // update for next iteration
 
-  s.set_point.psi_dot = yaw_rate_command_;
-  s.yaw_rate_pi.e = s.set_point.psi_dot - MPU6050::psi_dot(s);
+  s.set_point.yaw_rate = yaw_rate_command_;
+  // TODO: move to appropriate control code location when estimation is
+  // happening
+  s.estimate.yaw_rate = (std::sin(s.estimate.lean) * s.mpu6050.gyroscope_y +
+                     std::cos(s.estimate.lean) * s.mpu6050.gyroscope_z);
+  s.yaw_rate_pi.e = s.set_point.yaw_rate - s.estimate.yaw_rate;
   x_pi_ += s.yaw_rate_pi.e;
   s.yaw_rate_pi.x = x_pi_;
+  // END TODO
 
   s.motor_torque.desired_steer = 0.0f;
   if (should_estimate(s) && fork_control_.set_sample(s)) {
@@ -158,7 +163,7 @@ bool ForkMotorController::should_estimate(const Sample& s)
   if (!estimation_triggered_) {
     estimation_triggered_ = s.encoder.rear_wheel_rate < estimation_threshold_;
     fork_control_.set_state(0.0f, s.encoder.steer,
-                            s.mpu6050.gyroscope_y, s.encoder.steer_rate);
+                            s.mpu6050.gyroscope_x, s.encoder.steer_rate);
   }
   return estimation_triggered_;
 }

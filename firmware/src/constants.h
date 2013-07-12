@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include "matrix.h"
 
 namespace constants {
 
@@ -26,22 +27,39 @@ constexpr float Nm_per_ozfin = 0.00706155182175f;
 
 constexpr float wheel_radius = 0.3359f;
 
-// Accelerometer constexprants
-// gyro_scale calculated experimentally by comparing integration of lean rate
-// with calculation of lean using acceleration for the system in a
-// quasi-static setting.
-constexpr float gyro_scale = 1.0f;
-constexpr float accelerometer_sensitivity = 1.0f;
-constexpr float gyroscope_sensitivity = rad_per_degree / 131.0f * gyro_scale;
 constexpr float thermometer_offset = 36.53f;
 constexpr float thermometer_sensitivity = 1.0f / 340.0f;
 
-constexpr float acc_x_bias = 0.0f;  // TODO: calibrate
-constexpr float acc_y_bias = 0.0f;  // TODO: calibrate
-constexpr float acc_z_bias = 0.0f;  // TODO: calibrate
-constexpr float gyro_x_bias = 0.0f; // TODO: calibrate while bike is in reference configuration
-constexpr float gyro_y_bias = 0.0f; // TODO: calibrate while bike is in reference configuration
-constexpr float gyro_z_bias = 0.0f; // TODO: calibrate while bike is in reference configuration
+// Accelerometer calibration results in
+// a_calibrated = S_acc * a_measured + b_acc
+// Accelerometer sensitivity matrix
+constexpr control::Matrix<float, 3, 3> S_acc = {{
+     5.98965439e-04f, -5.47664577e-07f,  1.92721134e-06f,
+    -5.47664577e-07f,  5.95347246e-04f, -1.64554051e-06f,
+     1.92721134e-06f, -1.64554051e-06f,  5.82882068e-04f}};
+
+// Accelerometer bias vector
+constexpr control::Matrix<float, 3, 1> b_acc = {{
+    -0.56998783f,
+     0.05138561f,
+     1.16912488f}};
+
+// Gyroscope sensitivity is assumed to be as published in MPU6050 datasheet
+// this assumes all three axes have equal sensitivity and that there is no
+// cross axis sensitivity
+constexpr float S_gyro = rad_per_degree / 131.0f;
+
+// Gyroscope biases
+constexpr control::Matrix<float, 3, 1> b_gyro = {{
+    0.12041638f,
+   -0.03156526f,
+   -0.00995525f}};
+
+constexpr control::Matrix<float, 3, 3> dcm_sensor_to_lean = {{
+    0.0034306349717862f, 0.999533673476719f,   0.0303424839099496f,
+   -0.999847113313713f,  0.00290829696853493f, 0.0172421520401969f,
+    0.017145866613409f, -0.0303969964779088f,  0.999390835390838f}};
+
 // TODO: determine dcm relating sensor axes to bike fixed axes
 //constexpr float dcm[6] = {-0.894519492243436f,
 //                      -0.0635181679465503f,

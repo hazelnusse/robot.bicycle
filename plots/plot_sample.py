@@ -109,7 +109,7 @@ class PlotSample(PlotData):
         #self.data_c['lean_accel']= np.arcsin(data_ax / magnitude) * 180 / np.pi
         self.data_c['lean_accel']= np.arcsin(data_ax / magnitude)
 
-        data_gyro = self.get_field_data('mpu6050.gyroscope_y')
+        data_gyro = self.get_field_data('mpu6050.gyroscope_x')
         data_time = self.get_field_data('system_time_s')
         self.dtype_c['lean_gyro'] = np.float32
         init_lean = self.get_field_data('lean_accel')[0]
@@ -192,7 +192,7 @@ class PlotSample(PlotData):
                       'system_state_hw_button'],
                      axes=ax[0])
         self._plotyy('system_time_s',
-                     ['mpu6050.gyroscope_y', 'estimate.lean_rate',
+                     ['mpu6050.gyroscope_x', 'estimate.lean_rate',
                       'estimate.steer_rate', 'encoder.steer_rate'],
                      ['forward_speed', 'motor_torque.steer',
                       'system_state_hw_button'],

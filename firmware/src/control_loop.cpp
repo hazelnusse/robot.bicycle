@@ -118,7 +118,7 @@ void ControlLoop::set_gyro_lean(Sample& s)
   float gyro_lean;
   float dt = ((s.system_time - system_time_prev) *
               constants::system_timer_seconds_per_count);
-  gyro_lean = lean_array[0] + s.mpu6050.gyroscope_y * dt;
+  gyro_lean = lean_array[0] + s.mpu6050.gyroscope_x * dt;
 
   lean_array[0] = gyro_lean;
   s.gyro_lean.angle = gyro_lean;
