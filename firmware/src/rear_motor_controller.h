@@ -19,8 +19,10 @@ class RearMotorController : public MotorController {
   virtual void disable();
   virtual void enable();
   virtual void update(Sample & s);
+  static void speed_limit_shell(BaseSequentialStream *chp, int argc, char *argv[]);
 
  private:
+  void set_distance_limit(float distance);
   float update_dthetadt(uint32_t wheel_count, uint32_t time);
   Encoder e_;
   Motor m_;
@@ -36,6 +38,8 @@ class RearMotorController : public MotorController {
   std::array<std::pair<uint32_t, uint32_t>, averaging_size_> dthetadt_array_;
   int dthetadt_elem_;
 
+  float distance_;
+  float distance_limit_;
 };
 
 } // namespace hardware
