@@ -11,7 +11,7 @@ ControlLoop * ControlLoop::instance_ = 0;
 
 ControlLoop::ControlLoop()
   : startup_{true}, front_wheel_encoder_{STM32_TIM4, 800},
-  acc_x_thresh_{constants::rad_per_degree}
+  acc_y_thresh_{constants::rad_per_degree}
 {
   front_wheel_encoder_.set_count(0);
   STM32_TIM5->CNT = 0;
@@ -94,7 +94,7 @@ void ControlLoop::set_gyro_lean(Sample& s)
     float ay = s.mpu6050.accelerometer_y;
     float az = s.mpu6050.accelerometer_z;
     float accel_mag = std::sqrt(ax*ax + ay*ay + az*az);
-    float lean_static = std::asin(ax / accel_mag);
+    float lean_static = std::asin(ay / accel_mag);
 
     lean_array[lean_i] = lean_static;
     lean_i = (lean_i + 1)  % lean_array.size();
@@ -189,8 +189,8 @@ void ControlLoop::set_lean_threshold_shell(BaseSequentialStream *chp, int argc, 
 {
   if (argc == 1) {
     if (instance_) {
-      instance_->acc_x_thresh_ = tofloat(argv[0]) * constants::rad_per_degree;
-      chprintf(chp, "Lean thresh hold set to %f.\r\n", instance_->acc_x_thresh_);
+      instance_->acc_y_thresh_ = tofloat(argv[0]) * constants::rad_per_degree;
+      chprintf(chp, "Lean thresh hold set to %f.\r\n", instance_->acc_y_thresh_);
     } else {
       chprintf(chp, "Start collection first.\r\n");
     }
