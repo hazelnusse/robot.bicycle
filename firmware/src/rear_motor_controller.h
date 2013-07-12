@@ -35,7 +35,6 @@ class RearMotorController : public MotorController {
   static const int averaging_size_ = 20; // 5 ms * 20 = 100 ms
   std::array<std::pair<uint32_t, uint32_t>, averaging_size_> dthetadt_array_;
   int dthetadt_elem_;
-  bool setpoint_reached_;
 
 };
 

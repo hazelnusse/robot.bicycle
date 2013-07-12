@@ -26,7 +26,7 @@ RearMotorController::RearMotorController()
   rear_wheel_rate_prev_{0.0f},
   system_time_prev_{0}, rear_wheel_count_prev_{0},
   low_pass_filter_{n0, n1, d0, constants::loop_period_s},
-  dthetadt_array_{{}}, dthetadt_elem_{0}, setpoint_reached_{true}
+  dthetadt_array_{{}}, dthetadt_elem_{0}
 {
   instances[rear_wheel] = this;
   e_.set_count(0);
@@ -41,7 +41,6 @@ void RearMotorController::set_reference(float speed)
 {
   float theta_R_dot_command_new = speed / -constants::wheel_radius;
   if (theta_R_dot_command_new < theta_R_dot_command_) {
-    setpoint_reached_ = false;
     integrator_state_ = 0.0f;
   }
   theta_R_dot_command_ = theta_R_dot_command_new;
@@ -79,16 +78,14 @@ void RearMotorController::update(Sample & s)
   s.encoder.rear_wheel_rate = low_pass_filter_.output(dthetadt);
 
   const float error = theta_R_dot_command_ - s.encoder.rear_wheel_rate;
-  if (setpoint_reached_) { // do PI control
-    integrator_state_ += K_ / Ti_ * error * dt;
-    s.motor_torque.desired_rear_wheel = K_ * error + integrator_state_;
-  } else {                 // do full blast acceleration
-    s.motor_torque.desired_rear_wheel = copysign(max_torque, error);
-    setpoint_reached_ = error > 0.0f;   // assumes set point is negative
-  }
+  s.motor_torque.desired_rear_wheel = K_ * error + integrator_state_;
 
   m_.set_torque(s.motor_torque.desired_rear_wheel);         // desired torque
   s.motor_torque.rear_wheel = m_.get_torque();              // saturated torque
+
+  // update integrator state if torque not saturating
+  if (s.motor_torque.rear_wheel == s.motor_torque.desired_rear_wheel)
+    integrator_state_ += K_ / Ti_ * error * dt;
 
   system_time_prev_ = s.system_time;
   rear_wheel_count_prev_ = s.encoder.rear_wheel_count;
