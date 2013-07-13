@@ -138,10 +138,9 @@ void ControlLoop::illuminate_lean_steer(const Sample & s)
     const float mag = std::sqrt(std::pow(s.mpu6050.accelerometer_x, 2.0f)
                               + std::pow(s.mpu6050.accelerometer_y, 2.0f)
                               + std::pow(s.mpu6050.accelerometer_z, 2.0f));
-    lean_led  = (std::abs(s.mpu6050.accelerometer_y / mag) <
-            instance_->acc_y_thresh_) ? 1 : 0;
-    steer_led = (std::abs(s.encoder.steer) < 1.0f * constants::rad_per_degree)
-        ? 1 : 0;
+    lean_led  = std::abs(s.mpu6050.accelerometer_y / mag) <
+      instance_->acc_y_thresh_;
+    steer_led = std::abs(s.encoder.steer) < 1.0f * constants::rad_per_degree;
   } else if (s.bike_state == BikeState::RUNNING) {
     // turn on led within 5% of setpoint
     lean_led = std::abs(s.encoder.rear_wheel_rate - s.set_point.theta_R_dot) <
@@ -150,7 +149,7 @@ void ControlLoop::illuminate_lean_steer(const Sample & s)
         std::abs(0.05 * s.set_point.yaw_rate);
 
   } else if (s.bike_state == BikeState::RAMPDOWN) {
-    lean_led = (s.system_time % 10) % 2;
+    lean_led = (s.loop_count % 20) % 2;
     steer_led = !lean_led;
   }
 

@@ -64,10 +64,12 @@ void RearMotorController::update(Sample & s)
   s.encoder.rear_wheel = e_.get_angle();
   s.set_point.theta_R_dot = theta_R_dot_command_;
 
-  if (s.set_point.theta_R_dot == 0.0f)
+  if (s.set_point.theta_R_dot == 0.0f) {
     s.bike_state = BikeState::COLLECT;
-  else
-    s.bike_state = BikeState::RUNNING;
+  } else {
+    if (s.bike_state != BikeState::RAMPDOWN)
+      s.bike_state = BikeState::RUNNING;
+  }
 
   // moving average for rear_wheel_rate
   auto& now = dthetadt_array_[dthetadt_elem_];
@@ -96,7 +98,7 @@ void RearMotorController::update(Sample & s)
 
   // update distance travelled
   distance_ += ((s.encoder.rear_wheel_count - rear_wheel_count_prev_) *
-                e_.get_rad_per_count() * constants::wheel_radius);
+                e_.get_rad_per_count() * -constants::wheel_radius);
   // step down speed setpoint if distance limit has been reached and
   // distance limit is positive
   if (distance_limit_ > 0.0f && distance_ > distance_limit_) {
@@ -104,8 +106,7 @@ void RearMotorController::update(Sample & s)
     // Set the reference speed to be a small value that allows a person to
     // catch up to the bike but large enough such that the bike balances.
     set_reference(1.0f);
-    if (s.bike_state == BikeState::RUNNING)
-      s.bike_state = BikeState::RAMPDOWN;
+    s.bike_state = BikeState::RAMPDOWN;
   }
 
   system_time_prev_ = s.system_time;
