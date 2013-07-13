@@ -124,7 +124,7 @@ void ForkMotorController::disturb_shell(BaseSequentialStream *chp,
 {
   if (argc == 2) {
     ForkMotorController* fmc = reinterpret_cast<ForkMotorController*>(instances[fork]);
-    float A = tofloat(argv[0]);
+    float A = tofloat(argv[0]) * 0.01f;
     float f = tofloat(argv[1]);
     fmc->set_sinusoidal_disturbance(A, f);
     chprintf(chp, "Sinusoidal disturbance enabled.\r\n");
