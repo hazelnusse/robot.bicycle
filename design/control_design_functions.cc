@@ -217,7 +217,7 @@ void compute_pi_gains(const design_parameters & params,
   matlab.eval("A_lqrobs_cl = [A, B*K_lqr; K_obs*C_meas, A_obs + B*K_lqr];"
               "B_lqrobs_cl = [B; B];"
               "sys_lqrobs_cl = ss(A_lqrobs_cl, B_lqrobs_cl, [C_yaw_rate, zeros(1, 4)], 0);"
-              "[sys_pi, info] = pidtune(sys_lqrobs_cl, 'pi', 0.1*2*pi)");
+              "[sys_pi, info] = pidtune(sys_lqrobs_cl, 'pi')");
   matlab.eval("sys_pi_d = c2d(sys_pi, Ts)");
   matlab.eval("Kp = sys_pi.Kp;"
               "Ki = sys_pi.Ki;"
