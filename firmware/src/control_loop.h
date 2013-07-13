@@ -39,6 +39,7 @@ class ControlLoop {
   static ControlLoop * instance_;
 };
 
+namespace BikeState { enum bike_state_t {STARTUP, COLLECT, RUNNING, RAMPDOWN}; }
 }
 
 #include "control_loop-inl.h"
