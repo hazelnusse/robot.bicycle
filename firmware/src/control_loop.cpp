@@ -145,11 +145,9 @@ void ControlLoop::illuminate_lean_steer(const Sample & s)
     // turn on led within 5% of setpoint
     lean_led = std::abs(s.encoder.rear_wheel_rate - s.set_point.theta_R_dot) <
         std::abs(0.05 * s.set_point.theta_R_dot);
-    steer_led = std::abs(s.estimate.yaw_rate - s.set_point.yaw_rate) <
-        std::abs(0.05 * s.set_point.yaw_rate);
-
+    steer_led = std::abs(s.estimate.yaw_rate - s.set_point.yaw_rate) < 0.05f;
   } else if (s.bike_state == BikeState::RAMPDOWN) {
-    lean_led = (s.loop_count % 20) % 2;
+    lean_led = (s.loop_count / 20) % 2;
     steer_led = !lean_led;
   }
 

@@ -97,8 +97,9 @@ void RearMotorController::update(Sample & s)
     integrator_state_ += K_ / Ti_ * error * dt;
 
   // update distance travelled
-  distance_ += ((s.encoder.rear_wheel_count - rear_wheel_count_prev_) *
-                e_.get_rad_per_count() * -constants::wheel_radius);
+  distance_ += static_cast<int16_t>(s.encoder.rear_wheel_count -
+      rear_wheel_count_prev_) * e_.get_rad_per_count() *
+    -constants::wheel_radius;
   // step down speed setpoint if distance limit has been reached and
   // distance limit is positive
   if (distance_limit_ > 0.0f && distance_ > distance_limit_) {
