@@ -44,9 +44,6 @@ RearMotorController::~RearMotorController()
 void RearMotorController::set_reference(float speed)
 {
   float theta_R_dot_command_new = speed / -constants::wheel_radius;
-  if (theta_R_dot_command_new < theta_R_dot_command_) {
-    integrator_state_ = 0.0f;
-  }
   theta_R_dot_command_ = theta_R_dot_command_new;
 }
 
