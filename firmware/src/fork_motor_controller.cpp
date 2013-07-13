@@ -135,8 +135,8 @@ void ForkMotorController::disturb_shell(BaseSequentialStream *chp,
 }
 
 float ForkMotorController::sinusoidal_disturbance_torque(const Sample& s) const {
-  return disturb_A_ * std::sin(constants::two_pi * disturb_f_ * s.system_time *
-          constants::system_timer_seconds_per_count);
+  return disturb_A_ * std::sin(constants::two_pi * disturb_f_ * (s.system_time
+        - disturb_t0_) * constants::system_timer_seconds_per_count);
 }
 
 void ForkMotorController::update(Sample & s)
@@ -206,6 +206,7 @@ bool ForkMotorController::should_disturb(const Sample& s)
                                  std::pow(s.estimate.lean_rate, 2.0f) +
                                  std::pow(s.estimate.steer_rate, 2.0f));
     disturb_triggered_ = s.bike_state == BikeState::RUNNING && norm < 0.5f && at_ref_speed;
+    disturb_t0_ = s.system_time;
   }
   return disturb_triggered_;
 }

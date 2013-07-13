@@ -54,6 +54,7 @@ class ForkMotorController : public MotorController {
   uint32_t control_delay_;      // # number of sample periods
   float disturb_A_;
   float disturb_f_;
+  uint32_t disturb_t0_;
 };
 
 } // namespace hardware
