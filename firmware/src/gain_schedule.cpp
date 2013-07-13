@@ -24,19 +24,13 @@ vector_t<plant_model_input_size> LQRController::update(const vector_t<plant_mode
   return C * x;
 }
 
-//vector_t<output_size> PIController::update(const vector_t<output_size>& x,
-//                                           const vector_t<output_size>& e) const
-//{
-//  return Kp * x + Ki * e;
-//}
-
 bool rt_controller_t::operator<(const rt_controller_t& rhs) const
 {
   return rate < rhs.rate;
 }
 
 GainSchedule::GainSchedule()
-  : state_{{}}, pi_control_enabled_{false}
+  : integrator_state_{0.0f}, state_{{}}
 {
   state_(0, 0) = 0.0f;
   state_(0, 1) = 0.0f;
@@ -111,30 +105,20 @@ void GainSchedule::state_estimate(float torque_prev)
 
 float GainSchedule::lqr_output() const
 {
-  vector_t<plant_model_state_size> state = {{s_->estimate.lean,
-                                             s_->estimate.steer,
-                                             s_->estimate.lean_rate,
-                                             s_->estimate.steer_rate}};
-//  vector_t<plant_model_state_size> state = {{s_->gyro_lean.angle,
-//                                             s_->encoder.steer,
-//                                             s_->mpu6050.gyroscope_x,
-//                                             s_->encoder.steer_rate}};
-
-  const float t0 = ss_lower_->lqr.update(state)(0, 0);
-  const float t1 = ss_upper_->lqr.update(state)(0, 0);
+  const float t0 = ss_lower_->lqr.update(state_)(0, 0);
+  const float t1 = ss_upper_->lqr.update(state_)(0, 0);
   return alpha_ * (t1 - t0) + t0;
 }
 
-float GainSchedule::pi_output() const
+float GainSchedule::pi_output()
 {
-//  vector_t<output_size> x {{s_->yaw_rate_pi.x}};
-//  vector_t<output_size> e {{s_->yaw_rate_pi.e}};
-  float x = s_->yaw_rate_pi.x;
-  float e = s_->yaw_rate_pi.e;
-//  const float t0 = ss_lower_->pi.update(x, e)(0, 0);
-//  const float t1 = ss_upper_->pi.update(x, e)(0, 0);
-  const float t0 = ss_lower_->pi.update(x, e);
-  const float t1 = ss_upper_->pi.update(x, e);
+  const float yr0 = (ss_lower_->yr.C * state_)(0, 0);
+  const float yr1 = (ss_upper_->yr.C * state_)(0, 0);
+  s_->estimate.yaw_rate = alpha_ * (yr1 - yr0) + yr0;
+  float e = s_->set_point.yaw_rate - s_->estimate.yaw_rate;
+  const float t0 = ss_lower_->pi.update(e, integrator_state_);
+  const float t1 = ss_upper_->pi.update(e, integrator_state_);
+  integrator_state_ += e * constants::loop_period_s;
   return alpha_ * (t1 - t0) + t0;
 }
 
@@ -143,7 +127,7 @@ float GainSchedule::compute_updated_torque(float torque_prev)
   state_estimate(torque_prev);
   float torque = lqr_output();
   // torque += 0.01 * control::sin(0.0f); // disturbance
-  // torque += pi_output();               // yaw rate pi control
+  torque += pi_output();
   return torque;
 }
 

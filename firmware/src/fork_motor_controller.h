@@ -42,7 +42,6 @@ class ForkMotorController : public MotorController {
 
   control::first_order_discrete_filter<float> derivative_filter_;
   float yaw_rate_command_;
-  float x_pi_;
   float estimation_threshold_; // in terms of rear wheel rate
   bool estimation_triggered_;
   bool control_triggered_;

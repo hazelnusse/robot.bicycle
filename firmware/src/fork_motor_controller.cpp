@@ -21,7 +21,6 @@ ForkMotorController::ForkMotorController()
   derivative_filter_{0, 10*2*constants::pi,
                      10*2*constants::pi, constants::loop_period_s},
   yaw_rate_command_{0.0f},
-  x_pi_{0.0f},
   estimation_threshold_{-1.0f / constants::wheel_radius},
   estimation_triggered_{false},
   control_triggered_{false},
@@ -119,14 +118,6 @@ void ForkMotorController::update(Sample & s)
   derivative_filter_.update(s.encoder.steer); // update for next iteration
 
   s.set_point.yaw_rate = yaw_rate_command_;
-  // TODO: move to appropriate control code location when estimation is
-  // happening
-  s.estimate.yaw_rate = (std::sin(s.estimate.lean) * s.mpu6050.gyroscope_y +
-                     std::cos(s.estimate.lean) * s.mpu6050.gyroscope_z);
-  s.yaw_rate_pi.e = s.set_point.yaw_rate - s.estimate.yaw_rate;
-  x_pi_ += s.yaw_rate_pi.e;
-  s.yaw_rate_pi.x = x_pi_;
-  // END TODO
 
   s.motor_torque.desired_steer = 0.0f;
   if (should_estimate(s) && fork_control_.set_sample(s)) {

@@ -39,18 +39,19 @@ struct LQRController {
 };
 
 struct PIController {
-//  matrix_t<output_size, output_size> Kp;
-//  matrix_t<output_size, output_size> Ki;
-//  vector_t<output_size> update(const vector_t<output_size>& x,
-//                               const vector_t<output_size>& e) const;
   float Kp, Ki;
-  float update(float x, float e) const { return x + Ki * constants::loop_period_s * e; }
+  float update(float e, float x) const { return Kp * e + Ki * x; }
+};
+
+struct YawRateMeasurement {
+  matrix_t<plant_model_input_size, plant_model_state_size> C;
 };
 
 struct controller_t {
   StateEstimator estimator;
   LQRController lqr;
   PIController pi;
+  YawRateMeasurement yr;
 };
 
 struct rt_controller_t {
@@ -71,16 +72,16 @@ class GainSchedule {
   bool set_rate(float rate);
   void state_estimate(float torque_prev);
   float lqr_output() const;
-  float pi_output() const;
+  float pi_output();
 
   Sample * s_;
   float rate_;
   float alpha_;
+  float integrator_state_;
   uint32_t state_estimate_time_;
   vector_t<observer_state_size> state_;
   controller_t *ss_lower_, *ss_upper_;
   rt_controller_t r;
-  bool pi_control_enabled_;
   static const std::array<rt_controller_t, num_gains> schedule_;
 };
 
