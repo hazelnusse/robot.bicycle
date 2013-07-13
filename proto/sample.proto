@@ -12,6 +12,7 @@ message Sample {
   optional PIController wheel_rate_pi = 12;  // 28 bytes
   optional Threshold threshold = 11;         //  8 bytes
   optional GyroLean gyro_lean = 13;
+  optional uint32 bike_state = 14;
 
   required uint32 loop_count = 10;           // loop count
                                    // Total:   172 bytes

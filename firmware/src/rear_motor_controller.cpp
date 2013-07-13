@@ -2,6 +2,7 @@
 #include <cmath>
 #include "ch.h"
 #include "chprintf.h"
+#include "control_loop.h"
 #include "constants.h"
 #include "rear_motor_controller.h"
 #include "SystemState.h"
@@ -63,6 +64,11 @@ void RearMotorController::update(Sample & s)
   s.encoder.rear_wheel = e_.get_angle();
   s.set_point.theta_R_dot = theta_R_dot_command_;
 
+  if (s.set_point.theta_R_dot == 0.0f)
+    s.bike_state = BikeState::COLLECT;
+  else
+    s.bike_state = BikeState::RUNNING;
+
   // moving average for rear_wheel_rate
   auto& now = dthetadt_array_[dthetadt_elem_];
   now.first = s.system_time;
@@ -98,6 +104,8 @@ void RearMotorController::update(Sample & s)
     // Set the reference speed to be a small value that allows a person to
     // catch up to the bike but large enough such that the bike balances.
     set_reference(1.0f);
+    if (s.bike_state == BikeState::RUNNING)
+      s.bike_state = BikeState::RAMPDOWN;
   }
 
   system_time_prev_ = s.system_time;

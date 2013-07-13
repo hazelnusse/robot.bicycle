@@ -106,6 +106,7 @@ void ControlLoop::set_gyro_lean(Sample& s)
                         lean_array.size());
       lean_array[0] = lean_avg;
       s.gyro_lean.angle = lean_avg;
+      s.bike_state = BikeState::COLLECT;
       startup_ = false;
     } else {
       s.gyro_lean.angle = lean_static;
@@ -126,12 +127,46 @@ void ControlLoop::set_gyro_lean(Sample& s)
   return;
 }
 
+void ControlLoop::illuminate_lean_steer(const Sample & s)
+{
+  uint32_t lean_led = 0; // green
+  uint32_t steer_led = 0; // yellow
+  if (s.bike_state == BikeState::STARTUP) {
+    lean_led = 1;
+    steer_led = 1;
+  } else if (s.bike_state == BikeState::COLLECT) {
+    const float mag = std::sqrt(std::pow(s.mpu6050.accelerometer_x, 2.0f)
+                              + std::pow(s.mpu6050.accelerometer_y, 2.0f)
+                              + std::pow(s.mpu6050.accelerometer_z, 2.0f));
+    lean_led  = (std::abs(s.mpu6050.accelerometer_x / mag) <
+            instance_->acc_x_thresh_) ? 1 : 0;
+    steer_led = (std::abs(s.encoder.steer) < 1.0f * constants::rad_per_degree)
+        ? 1 : 0;
+  } else if (s.bike_state == BikeState::RUNNING) {
+    // turn on led within 5% of setpoint
+    lean_led = std::abs(s.encoder.rear_wheel_rate - s.set_point.theta_R_dot) <
+        std::abs(0.05 * s.set_point.theta_R_dot);
+    steer_led = std::abs(s.estimate.yaw_rate - s.set_point.yaw_rate) <
+        std::abs(0.05 * s.set_point.yaw_rate);
+
+  } else if (s.bike_state == BikeState::RAMPDOWN) {
+    lean_led = (s.system_time % 10) % 2;
+    steer_led = !lean_led;
+  }
+
+  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)),
+                   GPIOF_LEAN_LED)) = lean_led;
+  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)),
+                   GPIOF_STEER_LED)) = steer_led;
+}
+
 // Caller: Control thread
 msg_t ControlLoop::exec(const char * file_name)
 {
   logging::SampleBuffer sample_buffer(file_name);
   Sample s;
   memset(&s, 0, sizeof(s));
+  s.bike_state = BikeState::STARTUP;
 
   systime_t time = chTimeNow();     // Initial time
   systime_t sleep_time;
@@ -164,7 +199,9 @@ msg_t ControlLoop::exec(const char * file_name)
     // is done to ensure that encoding computation is part of timing
     // measurement.
     uint32_t ti = s.system_time;
+    uint32_t bike_state = s.bike_state;
     memset(&s, 0, sizeof(s));
+    s.bike_state = bike_state;
     s.computation_time = STM32_TIM5->CNT - ti;
     // Similarly, encode failures will be delayed by one sample.
     if (encode_failure)
