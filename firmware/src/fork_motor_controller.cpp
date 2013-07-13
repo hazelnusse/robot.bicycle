@@ -1,6 +1,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include "control_loop.h"
 #include "constants.h"
 #include "fork_motor_controller.h"
 #include "MPU6050.h"
@@ -12,7 +13,6 @@ const uint8_t ccr_channel = 2;                 // PWM Channel 2
 const float max_current = 6.0f;                // Copley Controls ACJ-055-18
 const float torque_constant = 106.459f * constants::Nm_per_ozfin;
 const float max_steer_angle = 45.0f * constants::rad_per_degree;
-
 ForkMotorController::ForkMotorController()
   : MotorController("Fork"),
   e_(STM32_TIM3, constants::fork_counts_per_revolution),
@@ -24,7 +24,8 @@ ForkMotorController::ForkMotorController()
   estimation_threshold_{-1.0f / constants::wheel_radius},
   estimation_triggered_{false},
   control_triggered_{false},
-  control_delay_{10u}
+  control_delay_{10u},
+  disturb_A_{0.0f}, disturb_f_{0.0f}
 {
   instances[fork] = this;
 }
@@ -47,6 +48,12 @@ void ForkMotorController::set_estimation_threshold(float speed)
 void ForkMotorController::set_control_delay(uint32_t N)
 {
   control_delay_= N;
+}
+
+void ForkMotorController::set_sinusoidal_disturbance(float A, float f)
+{
+  disturb_A_ = A;
+  disturb_f_ = f;
 }
 
 void ForkMotorController::disable()
@@ -111,6 +118,26 @@ void ForkMotorController::set_thresholds_shell(BaseSequentialStream *chp,
   }
 }
 
+void ForkMotorController::disturb_shell(BaseSequentialStream *chp,
+                                        int argc, char *argv[])
+{
+  if (argc == 2) {
+    ForkMotorController* fmc = reinterpret_cast<ForkMotorController*>(instances[fork]);
+    float A = tofloat(argv[0]);
+    float f = tofloat(argv[1]);
+    fmc->set_sinusoidal_disturbance(A, f);
+    chprintf(chp, "Sinusoidal disturbance enabled.\r\n");
+    chprintf(chp, "A = %f, f = %f.\r\n", A, f);
+  } else {
+    chprintf(chp, "Invalid usage.\r\n");
+  }
+}
+
+float ForkMotorController::sinusoidal_disturbance_torque(const Sample& s) const {
+  return disturb_A_ * std::sin(constants::two_pi * disturb_f_ * s.system_time *
+          constants::system_timer_seconds_per_count);
+}
+
 void ForkMotorController::update(Sample & s)
 {
   s.encoder.steer = e_.get_angle();
@@ -121,8 +148,10 @@ void ForkMotorController::update(Sample & s)
 
   s.motor_torque.desired_steer = 0.0f;
   if (should_estimate(s) && fork_control_.set_sample(s)) {
-    const float torque = fork_control_.compute_updated_torque(m_.get_torque());
+    float torque = fork_control_.compute_updated_torque(m_.get_torque());
     if (should_control(s)) {
+      if (should_disturb(s) && s.bike_state == BikeState::RUNNING)
+        torque += sinusoidal_disturbance_torque(s);
       s.motor_torque.desired_steer = torque;
       m_.set_torque(torque);
     } else {
@@ -164,6 +193,18 @@ bool ForkMotorController::should_control(const Sample& s)
   if (!control_triggered_)
     control_triggered_ = --control_delay_ == 0;
   return control_triggered_ && std::abs(s.encoder.steer) < max_steer_angle;
+}
+
+bool ForkMotorController::should_disturb(const Sample& s)
+{
+  if (!disturb_triggered_) {
+    const float norm = std::sqrt(std::pow(s.estimate.lean, 2.0f) +
+                                 std::pow(s.estimate.steer, 2.0f) +
+                                 std::pow(s.estimate.lean_rate, 2.0f) +
+                                 std::pow(s.estimate.steer_rate, 2.0f));
+    disturb_triggered_ = s.bike_state == BikeState::RUNNING && norm < 0.5;
+  }
+  return disturb_triggered_;
 }
 
 } // namespace hardware

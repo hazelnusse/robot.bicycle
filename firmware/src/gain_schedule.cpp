@@ -126,7 +126,6 @@ float GainSchedule::compute_updated_torque(float torque_prev)
 {
   state_estimate(torque_prev);
   float torque = lqr_output();
-  // torque += 0.01 * control::sin(0.0f); // disturbance
   torque += pi_output();
   return torque;
 }
