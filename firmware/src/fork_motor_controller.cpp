@@ -24,6 +24,7 @@ ForkMotorController::ForkMotorController()
   estimation_threshold_{-1.0f / constants::wheel_radius},
   estimation_triggered_{false},
   control_triggered_{false},
+  disturb_triggered_{false},
   control_delay_{10u},
   disturb_A_{0.0f}, disturb_f_{0.0f}
 {
@@ -198,11 +199,13 @@ bool ForkMotorController::should_control(const Sample& s)
 bool ForkMotorController::should_disturb(const Sample& s)
 {
   if (!disturb_triggered_) {
+    bool at_ref_speed = std::abs(s.encoder.rear_wheel_rate - s.set_point.theta_R_dot) <
+                        std::abs(0.05f * s.set_point.theta_R_dot);
     const float norm = std::sqrt(std::pow(s.estimate.lean, 2.0f) +
                                  std::pow(s.estimate.steer, 2.0f) +
                                  std::pow(s.estimate.lean_rate, 2.0f) +
                                  std::pow(s.estimate.steer_rate, 2.0f));
-    disturb_triggered_ = s.bike_state == BikeState::RUNNING && norm < 0.5;
+    disturb_triggered_ = s.bike_state == BikeState::RUNNING && norm < 0.5f && at_ref_speed;
   }
   return disturb_triggered_;
 }
