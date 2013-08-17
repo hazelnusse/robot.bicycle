@@ -181,8 +181,11 @@ void compute_observer_gains(const design_parameters & params,
   Eigen::EigenSolver<Eigen::MatrixXd> es(data.A - data.K_obs * C_meas);
   std::cout << "Observer CL evals = \n" << es.eigenvalues().transpose() << std::endl;
   matlab.eval("B_obs = [K_obs, B]; sys_obs_c = ss(A - K_obs * C_meas, B_obs, eye(4), zeros(4, 3));"
+              "A_obs = sys_obs_c.A;"
               "sys_obs_d = c2d(sys_obs_c, Ts, 'tustin'); A_obs_d = sys_obs_d.A; B_obs_d = sys_obs_d.B;");
   // matlab.eval("observer_tf = zpk(sys_obs_c); observer_tf.DisplayFormat='frequency'; observer_tf");
+  data.A_obs = matlab.get_Matrix("A_obs");
+  data.B_obs = matlab.get_Matrix("B_obs");
   data.A_obs_d = matlab.get_Matrix("A_obs_d");
   data.B_obs_d = matlab.get_Matrix("B_obs_d");
   //std::cout << "Observer A matrix:\n" << data.A_obs_d << std::endl;
@@ -204,12 +207,41 @@ void compute_observer_gains(const design_parameters & params,
   //std::cout << "Kalman filter evals (discrete):\n" << data.A_kalman_d.eigenvalues() << std::endl;
 }
 
+
+void compute_pi_gains(const design_parameters & params,
+                      bicycle::Bicycle & bike,
+                      model_data & data)
+{
+  std::cout << "C_yaw_rate = " << data.C_yaw_rate << std::endl;
+  matlab.put_Matrix(data.C_yaw_rate, "C_yaw_rate");
+  matlab.eval("A_lqrobs_cl = [A, B*K_lqr; K_obs*C_meas, A_obs + B*K_lqr];"
+              "B_lqrobs_cl = [B; B];"
+              "sys_lqrobs_cl = ss(A_lqrobs_cl, B_lqrobs_cl, [C_yaw_rate, zeros(1, 4)], 0);"
+              "[sys_pi, info] = pidtune(sys_lqrobs_cl, 'pi')");
+  matlab.eval("sys_pi_d = c2d(sys_pi, Ts)");
+  matlab.eval("Kp = sys_pi.Kp;"
+              "Ki = sys_pi.Ki;"
+              "Kp_d = sys_pi_d.Kp;"
+              "Ki_d = sys_pi_d.Ki;"
+              "speed_array(i) = v_i;"
+              "pi_array(:, i) = [Kp; Ki];");
+  data.Kp = matlab.get_Matrix("Kp")(0, 0);
+  data.Ki = matlab.get_Matrix("Ki")(0, 0);
+  data.Kp_d = matlab.get_Matrix("Kp_d")(0, 0);
+  data.Ki_d = matlab.get_Matrix("Ki_d")(0, 0);
+}
+
 std::vector<model_data> design_controller(const design_parameters & params,
                                           bicycle::Bicycle & bike)
 {
   std::vector<model_data> bicycle_speed_data;
   bicycle_speed_data.reserve(params.N);              // reserve room for N model_data's
 
+  Eigen::MatrixXd N(1, 1); N << params.N;
+  matlab.put_Matrix(N, "N");
+  matlab.eval("pi_array = zeros(2, N);"
+              "speed_array = zeros(1, N);"
+              "i = 1;");
   // Speeds used for calculations
   Eigen::ArrayXd v = Eigen::ArrayXd::LinSpaced(params.N,
                                                std::log(params.lowest_speed),
@@ -218,12 +250,17 @@ std::vector<model_data> design_controller(const design_parameters & params,
     model_data data;
     data.theta_R_dot = -v[i] / (bicycle::rear.R + bicycle::rear.r);
     std::cout << "Speed = " << v[i] << std::endl;
+    Eigen::MatrixXd speed(1, 1); speed << v[i]; matlab.put_Matrix(speed, "v_i");
     compute_state_space_matrices(params, bike, data);
     compute_lqr_gains(params, bike, data);
     compute_observer_gains(params, bike, data); //  observer_to_controller_ratio, delta_to_delta_dot_ratio, k0);
+    compute_pi_gains(params, bike, data);
 
     std::cout << "\n";
     bicycle_speed_data.push_back(data);
+    matlab.eval("i = i + 1;");
   }
+//  matlab.eval("plot(speed_array, pi_array)");
+//  fgetc(stdin);
   return bicycle_speed_data;
 }

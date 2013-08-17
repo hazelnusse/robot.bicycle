@@ -15,6 +15,7 @@ void firmware_generator(const std::vector<model_data> & md)
   //const int observer_output_size = 1;   // estimate of roll angle
   const int plant_model_state_size = 4; // roll, steer, roll rate, steer rate
   const int plant_model_input_size = 1; // torque
+  const int plant_model_output_size = 1; // yaw rate
 
   std::string header_body{};
   header_body += "const uint32_t num_gains = "
@@ -29,6 +30,8 @@ void firmware_generator(const std::vector<model_data> & md)
               + std::to_string(plant_model_state_size) + ";\n";
   header_body += "const uint32_t plant_model_input_size = "
               + std::to_string(plant_model_input_size) + ";\n";
+  header_body += "const uint32_t plant_model_output_size = "
+              + std::to_string(plant_model_output_size) + ";\n";
 
   std::ofstream header_file("gain_schedule.h");
   header_file << firmware_template::preamble
@@ -50,6 +53,7 @@ std::string generate_source(const std::vector<model_data> & md, std::string file
   out << "const std::array<rt_controller_t, " << md.size();
   out << "> GainSchedule::schedule_ {{\n";
 
+  out.precision(16); out << std::scientific;
   for(auto it = md.begin(); it != md.end(); ++it) {
     out << "\t{\n";
     out << "\t\t" << it->theta_R_dot <<"f, // theta_R_dot\n";
@@ -65,8 +69,12 @@ std::string generate_source(const std::vector<model_data> & md, std::string file
     out << "\t\t\t},\n"; // LQRController End
 
     out << "\t\t\t{ // PIController\n"; // PIController Start
-    out << "\t\t\t\t0, 0\n";
-    out << "\t\t\t}\n"; // PIController End
+    out << "\t\t\t\t" << it->Kp_d << "f, " << it->Ki_d << "f\n";
+    out << "\t\t\t},\n"; // PIController End
+
+    out << "\t\t\t{ // Yaw rate measurement matrix\n"; // Yaw rate measurement Start
+    out << "\t\t\t\t" << it->C_yaw_rate.format(printfmt) << "\n";
+    out << "\t\t\t}\n"; // Yaw rate measurement End
 
     out << "\t\t}\n"; // controllers end
     if (it + 1 == md.end()) {

@@ -35,10 +35,11 @@ class ControlLoop {
   RearMotorController rear_motor_controller_;
   ForkMotorController fork_motor_controller_;
   Encoder front_wheel_encoder_;
-  float acc_x_thresh_;
+  float acc_y_thresh_;
   static ControlLoop * instance_;
 };
 
+namespace BikeState { enum bike_state_t {STARTUP, COLLECT, RUNNING, RAMPDOWN}; }
 }
 
 #include "control_loop-inl.h"

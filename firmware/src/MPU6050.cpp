@@ -133,23 +133,26 @@ void MPU6050::convertData(Sample & s, int16_t ar[7])
 {
   using namespace constants;
   s.has_mpu6050 = true;
-  s.mpu6050.accelerometer_x = ar[0] * accelerometer_sensitivity - acc_x_bias;
-  s.mpu6050.accelerometer_y = ar[1] * accelerometer_sensitivity - acc_y_bias;
-  s.mpu6050.accelerometer_z = ar[2] * accelerometer_sensitivity - acc_z_bias;
+  control::Matrix<float, 3, 1> acc_measured = {{static_cast<float>(ar[0]),
+                                                static_cast<float>(ar[1]),
+                                                static_cast<float>(ar[2])}};
+  auto acc_lean = constants::dcm_sensor_to_lean
+                    * (constants::S_acc * acc_measured + constants::b_acc);
+
+  control::Matrix<float, 3, 1> gyro_measured = {{static_cast<float>(ar[4]),
+                                                 static_cast<float>(ar[5]),
+                                                 static_cast<float>(ar[6])}};
+  auto gyro_lean = constants::dcm_sensor_to_lean
+                    * (constants::S_gyro * gyro_measured + constants::b_gyro);
+
+  s.mpu6050.accelerometer_x = acc_lean(0, 0);
+  s.mpu6050.accelerometer_y = acc_lean(1, 0);
+  s.mpu6050.accelerometer_z = acc_lean(2, 0);
   s.mpu6050.temperature = ar[3] * thermometer_sensitivity + thermometer_offset;
-  s.mpu6050.gyroscope_x = ar[4] * gyroscope_sensitivity - gyro_x_bias;
-  s.mpu6050.gyroscope_y = ar[5] * gyroscope_sensitivity - gyro_y_bias;
-  s.mpu6050.gyroscope_z = ar[6] * gyroscope_sensitivity - gyro_z_bias;
-}
-
-float MPU6050::phi_dot(const Sample & s)
-{
-  return s.mpu6050.gyroscope_y;
-}
-
-float MPU6050::psi_dot(const Sample & s)
-{
-  return s.mpu6050.gyroscope_z;
+  s.mpu6050.gyroscope_x = gyro_lean(0, 0);
+  s.mpu6050.gyroscope_y = gyro_lean(1, 0);
+  s.mpu6050.gyroscope_z = gyro_lean(2, 0);
 }
 
 } // namespace hardware
+

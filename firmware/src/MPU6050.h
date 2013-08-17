@@ -17,8 +17,6 @@ class MPU6050 {
   bool acquire_data(Sample & s) const;
   bool is_initialized() const { return initialized_; }
 
-  static float phi_dot(const Sample & s);
-  static float psi_dot(const Sample & s);
   static void convertData(Sample & s, int16_t ar[7]);
 
  private:

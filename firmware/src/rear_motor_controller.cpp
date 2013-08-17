@@ -1,8 +1,12 @@
 #include <cstdint>
 #include <cmath>
+#include "ch.h"
+#include "chprintf.h"
+#include "control_loop.h"
 #include "constants.h"
 #include "rear_motor_controller.h"
 #include "SystemState.h"
+#include "textutilities.h"
 
 namespace hardware {
 
@@ -26,7 +30,8 @@ RearMotorController::RearMotorController()
   rear_wheel_rate_prev_{0.0f},
   system_time_prev_{0}, rear_wheel_count_prev_{0},
   low_pass_filter_{n0, n1, d0, constants::loop_period_s},
-  dthetadt_array_{{}}, dthetadt_elem_{0}, setpoint_reached_{true}
+  dthetadt_array_{{}}, dthetadt_elem_{0},
+  distance_{0.0f}, distance_limit_{0.0f}
 {
   instances[rear_wheel] = this;
   e_.set_count(0);
@@ -40,10 +45,6 @@ RearMotorController::~RearMotorController()
 void RearMotorController::set_reference(float speed)
 {
   float theta_R_dot_command_new = speed / -constants::wheel_radius;
-  if (theta_R_dot_command_new < theta_R_dot_command_) {
-    setpoint_reached_ = false;
-    integrator_state_ = 0.0f;
-  }
   theta_R_dot_command_ = theta_R_dot_command_new;
 }
 
@@ -63,6 +64,13 @@ void RearMotorController::update(Sample & s)
   s.encoder.rear_wheel = e_.get_angle();
   s.set_point.theta_R_dot = theta_R_dot_command_;
 
+  if (s.set_point.theta_R_dot == 0.0f) {
+    s.bike_state = BikeState::COLLECT;
+  } else {
+    if (s.bike_state != BikeState::RAMPDOWN)
+      s.bike_state = BikeState::RUNNING;
+  }
+
   // moving average for rear_wheel_rate
   auto& now = dthetadt_array_[dthetadt_elem_];
   now.first = s.system_time;
@@ -79,16 +87,28 @@ void RearMotorController::update(Sample & s)
   s.encoder.rear_wheel_rate = low_pass_filter_.output(dthetadt);
 
   const float error = theta_R_dot_command_ - s.encoder.rear_wheel_rate;
-  if (setpoint_reached_) { // do PI control
-    integrator_state_ += K_ / Ti_ * error * dt;
-    s.motor_torque.desired_rear_wheel = K_ * error + integrator_state_;
-  } else {                 // do full blast acceleration
-    s.motor_torque.desired_rear_wheel = copysign(max_torque, error);
-    setpoint_reached_ = error > 0.0f;   // assumes set point is negative
-  }
+  s.motor_torque.desired_rear_wheel = K_ * error + integrator_state_;
 
   m_.set_torque(s.motor_torque.desired_rear_wheel);         // desired torque
   s.motor_torque.rear_wheel = m_.get_torque();              // saturated torque
+
+  // update integrator state if torque not saturating
+  if (s.motor_torque.rear_wheel == s.motor_torque.desired_rear_wheel)
+    integrator_state_ += K_ / Ti_ * error * dt;
+
+  // update distance travelled
+  distance_ += static_cast<int16_t>(s.encoder.rear_wheel_count -
+      rear_wheel_count_prev_) * e_.get_rad_per_count() *
+    -constants::wheel_radius;
+  // step down speed setpoint if distance limit has been reached and
+  // distance limit is positive
+  if (distance_limit_ > 0.0f && distance_ > distance_limit_) {
+    distance_limit_ = 0.0f;
+    // Set the reference speed to be a small value that allows a person to
+    // catch up to the bike but large enough such that the bike balances.
+    set_reference(1.0f);
+    s.bike_state = BikeState::RAMPDOWN;
+  }
 
   system_time_prev_ = s.system_time;
   rear_wheel_count_prev_ = s.encoder.rear_wheel_count;
@@ -111,6 +131,24 @@ void RearMotorController::update(Sample & s)
   //s.wheel_rate_pi.Tt = Tt_;
   //s.wheel_rate_pi.dt = dt;
   //s.has_wheel_rate_pi = true;
+}
+
+void RearMotorController::set_distance_limit(float distance)
+{
+  distance_limit_ = distance;
+}
+
+void RearMotorController::speed_limit_shell(BaseSequentialStream *chp,
+                                            int argc, char *argv[])
+{
+  if (argc == 2) {
+    RearMotorController* fmc = reinterpret_cast<RearMotorController*>(
+                                        instances[rear_wheel]);
+    fmc->set_reference_shell(chp, argc - 1, argv);
+    fmc->set_distance_limit(tofloat(argv[1]));
+  } else {
+    chprintf(chp, "Invalid usage.\r\n");
+  }
 }
 
 } // namespace hardware

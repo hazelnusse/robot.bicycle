@@ -58,6 +58,12 @@ struct model_data {
   Eigen::MatrixXd A_kalman_d;
   Eigen::MatrixXd B_kalman_d;
 
+  // PI yaw rate controller in parallel form is:
+  // Kp + Ki / s
+  double Kp, Ki;
+  // Discrete time yaw rate PI controller gains in pform
+  double Kp_d, Ki_d;
+
   bool operator<(const model_data & other) const {
       return theta_R_dot < other.theta_R_dot;
   }
@@ -86,6 +92,10 @@ void compute_lqr_gains(const design_parameters & params,
 void compute_observer_gains(const design_parameters & params,
                             bicycle::Bicycle & bike,
                             model_data & data);
+
+void compute_pi_gains(const design_parameters & params,
+                      bicycle::Bicycle & bike,
+                      model_data & data);
 
 std::vector<model_data> design_controller(const design_parameters & params,
                                           bicycle::Bicycle & bike);

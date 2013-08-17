@@ -1,0 +1,70 @@
+The files in this directory were collected for the purpose of determining the
+orientation of the accelerometer sensor axes relative to the bicycle frame.
+The reference frame which is most convenient for describing the bicycle frame
+has one unit vector parallel to the steer axis, another unit vector
+perpendicular to the frame plane of symmetry, and the third as the cross
+product of the other two.
+
+Level used: Pratt & Whitney 12" level, 0.0005" / foot / graduation
+
+Coordinates:  phi:  roll angle of bicycle
+            theta:  pitch angle of bicycle (zero pitch: vertical steer axis)
+
+All data collection was done for approximately 10 seconds, except for the first
+drive side configuration, which was shorter, about 7 or 8 seconds.
+
+Files and the description of the method used to configure the bicyle:
+
+dsideup01, dsideup02:  phi = -pi/2
+dsidedown01, dsidedown02 = pi/2
+This data was collect with the drive side up and down respectively.  V-blocks
+were placed on the granite table in the student machine shop of Bainer Hall.
+The top and seat tubes are the same diameter, so two small v-blocks (matched pair)
+were placed under the seat tube on a large steel cube.  The seat tube was
+subsequently made level with shim stock placed under the cube.  The top tube
+was supported by a single v-block, and by raising/lowering this vblock, the top
+tube was made level.  Raising and lower the vblock under the top tube
+effectively rotated the frame about the seat-tube.  By making both the seat and
+top tubes level, the frame was assumed to be level.  Two sets of data were
+taken in each configuration and the leveling procedure was performed in both
+configurations.
+
+savup01, savup02: phi = 0, theta = 0
+The fork drop outs were placed on the ground and the bottom bracket was
+supported by a stack of books with the bicycle frame symmetry plane in a
+vertical plane.  By adjusting the height of the stack of books, the top of the
+aluminum box section that the steer motor mounts to was made level in one
+direction.  It was made level in the second direction by placing shims under
+the left side of the fork.  The procedure required a bit of iteration.  Two
+sets of data were collected in this configuration.
+
+savdo01, savdo02:   phi=0, theta=pi
+The top of the aluminum box section was clamped face down on a work bench,
+shims were incrementally added underneath the right and back sides until the
+underside of the box section was made level in two directions.  Two sets of
+data were collected.
+
+sahfup01, sahfup02: phi=0, theta = pi/2
+The bicycle was supported by a horizontal 1/2" round steel rod between the
+junction of the steer tube and the down tube, outside the front triangle.  The
+rod was supported between two tables.  The steer axis calibration fixture was
+was placed in the fork and the rear dropouts to hold the fork steady and to
+provide a surface on which to level the rear axle.  The heigh of the rod was
+adjusted so that the top of the "T" end of the fixture was about 1" above the
+ground and could be pushed in two directions in the ground plane, thereby
+allowing the pitch and roll of the frame to be very carefully adjusted.
+Flat 1/2" tall by 6" square weights from Maury Hull's calibration rig  were
+used to manipulate the end of the T so that once the steer axis and rear axle
+were made level, the frame would not move.  Two sets of data were collected.
+
+sahfd01, sahfd02, sahfd03, sahfd04:  phi=0, theta = pi/2
+The sides of the aluminum box section were gently clamped in the vice on a
+wooden workbench.  The bolts fastening the vice to the workbench were loosened
+so that the vice could be raised/lowered in such a way to make the rear axle
+horizontal, while the steer axis was made horizontal by rotating the frame
+about an axis perpendicular to the faces of the vice.  These two leveling
+procedures were iterated to obtain a horizontal rear axle and a horizontal
+steer axis.  The first two data sets were suspiciously the exact same file
+size, so two more sets of data were collected to verify that collection was
+working properly.  It appears that the data collection just happened to be
+exactly the same length for the first two runs.

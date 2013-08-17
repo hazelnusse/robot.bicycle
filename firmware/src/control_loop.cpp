@@ -11,7 +11,7 @@ ControlLoop * ControlLoop::instance_ = 0;
 
 ControlLoop::ControlLoop()
   : startup_{true}, front_wheel_encoder_{STM32_TIM4, 800},
-  acc_x_thresh_{constants::rad_per_degree}
+  acc_y_thresh_{constants::rad_per_degree}
 {
   front_wheel_encoder_.set_count(0);
   STM32_TIM5->CNT = 0;
@@ -94,7 +94,7 @@ void ControlLoop::set_gyro_lean(Sample& s)
     float ay = s.mpu6050.accelerometer_y;
     float az = s.mpu6050.accelerometer_z;
     float accel_mag = std::sqrt(ax*ax + ay*ay + az*az);
-    float lean_static = std::asin(ax / accel_mag);
+    float lean_static = std::asin(ay / accel_mag);
 
     lean_array[lean_i] = lean_static;
     lean_i = (lean_i + 1)  % lean_array.size();
@@ -106,6 +106,7 @@ void ControlLoop::set_gyro_lean(Sample& s)
                         lean_array.size());
       lean_array[0] = lean_avg;
       s.gyro_lean.angle = lean_avg;
+      s.bike_state = BikeState::COLLECT;
       startup_ = false;
     } else {
       s.gyro_lean.angle = lean_static;
@@ -118,12 +119,42 @@ void ControlLoop::set_gyro_lean(Sample& s)
   float gyro_lean;
   float dt = ((s.system_time - system_time_prev) *
               constants::system_timer_seconds_per_count);
-  gyro_lean = lean_array[0] + s.mpu6050.gyroscope_y * dt;
+  gyro_lean = lean_array[0] + s.mpu6050.gyroscope_x * dt;
 
   lean_array[0] = gyro_lean;
   s.gyro_lean.angle = gyro_lean;
   system_time_prev = s.system_time;
   return;
+}
+
+void ControlLoop::illuminate_lean_steer(const Sample & s)
+{
+  uint32_t lean_led = 0; // green
+  uint32_t steer_led = 0; // yellow
+  if (s.bike_state == BikeState::STARTUP) {
+    lean_led = 1;
+    steer_led = 1;
+  } else if (s.bike_state == BikeState::COLLECT) {
+    const float mag = std::sqrt(std::pow(s.mpu6050.accelerometer_x, 2.0f)
+                              + std::pow(s.mpu6050.accelerometer_y, 2.0f)
+                              + std::pow(s.mpu6050.accelerometer_z, 2.0f));
+    lean_led  = std::abs(s.mpu6050.accelerometer_y / mag) <
+      instance_->acc_y_thresh_;
+    steer_led = std::abs(s.encoder.steer) < 1.0f * constants::rad_per_degree;
+  } else if (s.bike_state == BikeState::RUNNING) {
+    // turn on led within 5% of setpoint
+    lean_led = std::abs(s.encoder.rear_wheel_rate - s.set_point.theta_R_dot) <
+        std::abs(0.05 * s.set_point.theta_R_dot);
+    steer_led = std::abs(s.estimate.yaw_rate - s.set_point.yaw_rate) < 0.05f;
+  } else if (s.bike_state == BikeState::RAMPDOWN) {
+    lean_led = (s.loop_count / 20) % 2;
+    steer_led = !lean_led;
+  }
+
+  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)),
+                   GPIOF_LEAN_LED)) = lean_led;
+  MEM_ADDR(BITBAND(reinterpret_cast<uint32_t>(&(GPIOF->ODR)),
+                   GPIOF_STEER_LED)) = steer_led;
 }
 
 // Caller: Control thread
@@ -132,6 +163,7 @@ msg_t ControlLoop::exec(const char * file_name)
   logging::SampleBuffer sample_buffer(file_name);
   Sample s;
   memset(&s, 0, sizeof(s));
+  s.bike_state = BikeState::STARTUP;
 
   systime_t time = chTimeNow();     // Initial time
   systime_t sleep_time;
@@ -164,7 +196,9 @@ msg_t ControlLoop::exec(const char * file_name)
     // is done to ensure that encoding computation is part of timing
     // measurement.
     uint32_t ti = s.system_time;
+    uint32_t bike_state = s.bike_state;
     memset(&s, 0, sizeof(s));
+    s.bike_state = bike_state;
     s.computation_time = STM32_TIM5->CNT - ti;
     // Similarly, encode failures will be delayed by one sample.
     if (encode_failure)
@@ -189,8 +223,8 @@ void ControlLoop::set_lean_threshold_shell(BaseSequentialStream *chp, int argc, 
 {
   if (argc == 1) {
     if (instance_) {
-      instance_->acc_x_thresh_ = tofloat(argv[0]) * constants::rad_per_degree;
-      chprintf(chp, "Lean thresh hold set to %f.\r\n", instance_->acc_x_thresh_);
+      instance_->acc_y_thresh_ = tofloat(argv[0]) * constants::rad_per_degree;
+      chprintf(chp, "Lean thresh hold set to %f.\r\n", instance_->acc_y_thresh_);
     } else {
       chprintf(chp, "Start collection first.\r\n");
     }

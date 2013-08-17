@@ -13,7 +13,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='sample.proto',
   package='',
-  serialized_pb='\n\x0csample.proto\"\x88\x03\n\x06Sample\x12\x13\n\x0bsystem_time\x18\x01 \x02(\r\x12\x18\n\x10\x63omputation_time\x18\x02 \x02(\r\x12\x14\n\x0csystem_state\x18\x03 \x02(\r\x12\x19\n\x07\x65ncoder\x18\x04 \x02(\x0b\x32\x08.Encoder\x12\x1c\n\tset_point\x18\x05 \x02(\x0b\x32\t.SetPoint\x12\"\n\x0cmotor_torque\x18\x06 \x02(\x0b\x32\x0c.MotorTorque\x12#\n\x07mpu6050\x18\x07 \x01(\x0b\x32\x12.InvensenseMPU6050\x12\x1c\n\x08\x65stimate\x18\x08 \x01(\x0b\x32\n.Estimator\x12\"\n\x0byaw_rate_pi\x18\t \x01(\x0b\x32\r.PIController\x12$\n\rwheel_rate_pi\x18\x0c \x01(\x0b\x32\r.PIController\x12\x1d\n\tthreshold\x18\x0b \x01(\x0b\x32\n.Threshold\x12\x1c\n\tgyro_lean\x18\r \x01(\x0b\x32\t.GyroLean\x12\x12\n\nloop_count\x18\n \x02(\r\"\xb2\x01\n\x11InvensenseMPU6050\x12\x17\n\x0f\x61\x63\x63\x65lerometer_x\x18\x01 \x02(\x02\x12\x17\n\x0f\x61\x63\x63\x65lerometer_y\x18\x02 \x02(\x02\x12\x17\n\x0f\x61\x63\x63\x65lerometer_z\x18\x03 \x02(\x02\x12\x13\n\x0btemperature\x18\x04 \x02(\x02\x12\x13\n\x0bgyroscope_x\x18\x05 \x02(\x02\x12\x13\n\x0bgyroscope_y\x18\x06 \x02(\x02\x12\x13\n\x0bgyroscope_z\x18\x07 \x02(\x02\"\x88\x01\n\x07\x45ncoder\x12\x18\n\x10rear_wheel_count\x18\x01 \x02(\r\x12\x12\n\nrear_wheel\x18\x02 \x02(\x02\x12\r\n\x05steer\x18\x03 \x02(\x02\x12\x12\n\nsteer_rate\x18\x06 \x02(\x02\x12\x13\n\x0b\x66ront_wheel\x18\x04 \x02(\x02\x12\x17\n\x0frear_wheel_rate\x18\x05 \x02(\x02\"c\n\x0bMotorTorque\x12\x12\n\nrear_wheel\x18\x01 \x02(\x02\x12\r\n\x05steer\x18\x02 \x02(\x02\x12\x1a\n\x12\x64\x65sired_rear_wheel\x18\x03 \x02(\x02\x12\x15\n\rdesired_steer\x18\x04 \x02(\x02\"0\n\x08SetPoint\x12\x13\n\x0btheta_R_dot\x18\x01 \x02(\x02\x12\x0f\n\x07psi_dot\x18\x02 \x02(\x02\"\x85\x01\n\tEstimator\x12\x19\n\x11theta_R_dot_lower\x18\x01 \x02(\x02\x12\x19\n\x11theta_R_dot_upper\x18\x02 \x02(\x02\x12\x0c\n\x04lean\x18\x03 \x02(\x02\x12\r\n\x05steer\x18\x04 \x02(\x02\x12\x11\n\tlean_rate\x18\x05 \x02(\x02\x12\x12\n\nsteer_rate\x18\x06 \x02(\x02\"`\n\x0cPIController\x12\t\n\x01x\x18\x01 \x02(\x02\x12\t\n\x01\x65\x18\x02 \x02(\x02\x12\x0b\n\x03\x65_s\x18\x03 \x02(\x02\x12\t\n\x01K\x18\x04 \x02(\x02\x12\n\n\x02Ti\x18\x05 \x02(\x02\x12\n\n\x02Tt\x18\x06 \x02(\x02\x12\n\n\x02\x64t\x18\x07 \x02(\x02\"0\n\tThreshold\x12\x12\n\nestimation\x18\x01 \x02(\x02\x12\x0f\n\x07\x63ontrol\x18\x02 \x02(\x02\"*\n\x08GyroLean\x12\r\n\x05\x61ngle\x18\x01 \x02(\x02\x12\x0f\n\x07startup\x18\x02 \x02(\x08')
+  serialized_pb='\n\x0csample.proto\"\x9c\x03\n\x06Sample\x12\x13\n\x0bsystem_time\x18\x01 \x02(\r\x12\x18\n\x10\x63omputation_time\x18\x02 \x02(\r\x12\x14\n\x0csystem_state\x18\x03 \x02(\r\x12\x19\n\x07\x65ncoder\x18\x04 \x02(\x0b\x32\x08.Encoder\x12\x1c\n\tset_point\x18\x05 \x02(\x0b\x32\t.SetPoint\x12\"\n\x0cmotor_torque\x18\x06 \x02(\x0b\x32\x0c.MotorTorque\x12#\n\x07mpu6050\x18\x07 \x01(\x0b\x32\x12.InvensenseMPU6050\x12\x1c\n\x08\x65stimate\x18\x08 \x01(\x0b\x32\n.Estimator\x12\"\n\x0byaw_rate_pi\x18\t \x01(\x0b\x32\r.PIController\x12$\n\rwheel_rate_pi\x18\x0c \x01(\x0b\x32\r.PIController\x12\x1d\n\tthreshold\x18\x0b \x01(\x0b\x32\n.Threshold\x12\x1c\n\tgyro_lean\x18\r \x01(\x0b\x32\t.GyroLean\x12\x12\n\nbike_state\x18\x0e \x01(\r\x12\x12\n\nloop_count\x18\n \x02(\r\"\xb2\x01\n\x11InvensenseMPU6050\x12\x17\n\x0f\x61\x63\x63\x65lerometer_x\x18\x01 \x02(\x02\x12\x17\n\x0f\x61\x63\x63\x65lerometer_y\x18\x02 \x02(\x02\x12\x17\n\x0f\x61\x63\x63\x65lerometer_z\x18\x03 \x02(\x02\x12\x13\n\x0btemperature\x18\x04 \x02(\x02\x12\x13\n\x0bgyroscope_x\x18\x05 \x02(\x02\x12\x13\n\x0bgyroscope_y\x18\x06 \x02(\x02\x12\x13\n\x0bgyroscope_z\x18\x07 \x02(\x02\"\x88\x01\n\x07\x45ncoder\x12\x18\n\x10rear_wheel_count\x18\x01 \x02(\r\x12\x12\n\nrear_wheel\x18\x02 \x02(\x02\x12\r\n\x05steer\x18\x03 \x02(\x02\x12\x12\n\nsteer_rate\x18\x06 \x02(\x02\x12\x13\n\x0b\x66ront_wheel\x18\x04 \x02(\x02\x12\x17\n\x0frear_wheel_rate\x18\x05 \x02(\x02\"c\n\x0bMotorTorque\x12\x12\n\nrear_wheel\x18\x01 \x02(\x02\x12\r\n\x05steer\x18\x02 \x02(\x02\x12\x1a\n\x12\x64\x65sired_rear_wheel\x18\x03 \x02(\x02\x12\x15\n\rdesired_steer\x18\x04 \x02(\x02\"1\n\x08SetPoint\x12\x13\n\x0btheta_R_dot\x18\x01 \x02(\x02\x12\x10\n\x08yaw_rate\x18\x02 \x02(\x02\"\x97\x01\n\tEstimator\x12\x19\n\x11theta_R_dot_lower\x18\x01 \x02(\x02\x12\x19\n\x11theta_R_dot_upper\x18\x02 \x02(\x02\x12\x0c\n\x04lean\x18\x03 \x02(\x02\x12\r\n\x05steer\x18\x04 \x02(\x02\x12\x11\n\tlean_rate\x18\x05 \x02(\x02\x12\x12\n\nsteer_rate\x18\x06 \x02(\x02\x12\x10\n\x08yaw_rate\x18\x07 \x02(\x02\"`\n\x0cPIController\x12\t\n\x01x\x18\x01 \x02(\x02\x12\t\n\x01\x65\x18\x02 \x02(\x02\x12\x0b\n\x03\x65_s\x18\x03 \x02(\x02\x12\t\n\x01K\x18\x04 \x02(\x02\x12\n\n\x02Ti\x18\x05 \x02(\x02\x12\n\n\x02Tt\x18\x06 \x02(\x02\x12\n\n\x02\x64t\x18\x07 \x02(\x02\"0\n\tThreshold\x12\x12\n\nestimation\x18\x01 \x02(\x02\x12\x0f\n\x07\x63ontrol\x18\x02 \x02(\x02\"*\n\x08GyroLean\x12\r\n\x05\x61ngle\x18\x01 \x02(\x02\x12\x0f\n\x07startup\x18\x02 \x02(\x08')
 
 
 
@@ -110,7 +110,14 @@ _SAMPLE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='loop_count', full_name='Sample.loop_count', index=12,
+      name='bike_state', full_name='Sample.bike_state', index=12,
+      number=14, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='loop_count', full_name='Sample.loop_count', index=13,
       number=10, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -126,7 +133,7 @@ _SAMPLE = _descriptor.Descriptor(
   is_extendable=False,
   extension_ranges=[],
   serialized_start=17,
-  serialized_end=409,
+  serialized_end=429,
 )
 
 
@@ -195,8 +202,8 @@ _INVENSENSEMPU6050 = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=412,
-  serialized_end=590,
+  serialized_start=432,
+  serialized_end=610,
 )
 
 
@@ -258,8 +265,8 @@ _ENCODER = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=593,
-  serialized_end=729,
+  serialized_start=613,
+  serialized_end=749,
 )
 
 
@@ -307,8 +314,8 @@ _MOTORTORQUE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=731,
-  serialized_end=830,
+  serialized_start=751,
+  serialized_end=850,
 )
 
 
@@ -327,7 +334,7 @@ _SETPOINT = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='psi_dot', full_name='SetPoint.psi_dot', index=1,
+      name='yaw_rate', full_name='SetPoint.yaw_rate', index=1,
       number=2, type=2, cpp_type=6, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -342,8 +349,8 @@ _SETPOINT = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=832,
-  serialized_end=880,
+  serialized_start=852,
+  serialized_end=901,
 )
 
 
@@ -396,6 +403,13 @@ _ESTIMATOR = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='yaw_rate', full_name='Estimator.yaw_rate', index=6,
+      number=7, type=2, cpp_type=6, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -405,8 +419,8 @@ _ESTIMATOR = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=883,
-  serialized_end=1016,
+  serialized_start=904,
+  serialized_end=1055,
 )
 
 
@@ -475,8 +489,8 @@ _PICONTROLLER = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1018,
-  serialized_end=1114,
+  serialized_start=1057,
+  serialized_end=1153,
 )
 
 
@@ -510,8 +524,8 @@ _THRESHOLD = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1116,
-  serialized_end=1164,
+  serialized_start=1155,
+  serialized_end=1203,
 )
 
 
@@ -545,8 +559,8 @@ _GYROLEAN = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1166,
-  serialized_end=1208,
+  serialized_start=1205,
+  serialized_end=1247,
 )
 
 _SAMPLE.fields_by_name['encoder'].message_type = _ENCODER
