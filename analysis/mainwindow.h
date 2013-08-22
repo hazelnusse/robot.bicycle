@@ -10,6 +10,7 @@
 #include <QMutex>
 #include "qcustomplot.h"
 #include "sample.pb.h"
+#include "datawrangler.h"
 
 namespace gui {
 
@@ -30,14 +31,19 @@ private slots:
     void savePDF();
     void setup_plot();
     void populate_listwidget();
+    void selectedFieldsChanged(int state);
     void selectedFileChanged();
 
 private:
     void setup_layout();
     QCustomPlot * plot_;
     QList<QString> data_filenames_;
-    QMap<QString, QVector<sample::Sample>> data_set_;
-    QMutex mutex;
+    // Map filename to vector of protobuf Sample messages
+    QMap<QString, QVector<sample::Sample>> proto_messages_;
+    // Map filename and fieldname to QVector of doubles (time series data)
+    // fieldname is roughly the protobuf message field name, it also is used in
+    // the main gui for checkboxes
+    QMap<QString, QMap<QString, QVector<double>>> time_series_;
 
     QListWidget * listwidget_;
     QFuture<QString> future_;
@@ -46,8 +52,12 @@ private:
     QLineEdit * width_edit_, * height_edit_;
 
     QVector<QString> fields_;
-    QVector<QString> selected_fields_;
+    // QList<QString> selected_fields_;
     QString selected_file_;
+
+    QMap<QString, QCPGraph *> selected_fields_;
+
+    gui::DataWrangler dw_;
 };
 
 } // namespace gui

@@ -55,14 +55,14 @@ message MotorTorque {
 
 // Size: 2 * 4 = 8 bytes
 message SetPoint {
-  required float theta_R_dot = 1;
+  required float theta_r_dot = 1;
   required float yaw_rate = 2;
 }
 
 // Size: 4 * 4 = 16 bytes
 message Estimator {
-  required float theta_R_dot_lower = 1;
-  required float theta_R_dot_upper = 2;
+  required float theta_r_dot_lower = 1;
+  required float theta_r_dot_upper = 2;
   required float lean = 3;
   required float steer = 4;
   required float lean_rate = 5;

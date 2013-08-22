@@ -6,7 +6,7 @@
 // 
 // ============================================================================
 
-#include <iostream>
+#include <QDebug>
 
 #include <QFuture>
 #include <QtConcurrentFilter>
@@ -25,7 +25,6 @@
 
 #include "mainwindow.h"
 #include "sample.pb.h"
-#include "dataloader.h"
 
 namespace gui {
 
@@ -36,30 +35,31 @@ const int maxheight = 1200;
 MainWindow::MainWindow(const QVector<QString> & data_filenames, QWidget *parent) :
     QMainWindow(parent),
     plot_{new QCustomPlot(this)},
-    fields_{"acc_x", "acc_y", "acc_z",
-            "gyro_x", "gyro_y", "gyro_z",
+    fields_{"time", "acc_x", "acc_y", "acc_z",
+            "gyro_x", "gyro_y", "gyro_z", "temp",
             "rear_wheel", "rear_wheel_rate", "steer",
             "steer_rate", "T_rw",
             "T_rw_desired", "T_s", "T_s_desired",
-            "v_c", "yr_c", "theta_R_dot_lb",
-            "theta_R_dot_ub", "lean", "steer",
-            "lean_rate", "steer_rate", "yaw_rate"}
+            "v", "v_c", "yr_c", "theta_r_dot_lb",
+            "theta_r_dot_ub", "lean_est", "steer_est",
+            "lean_rate_est", "steer_rate_est", "yaw_rate_est"},
+    dw_{proto_messages_, time_series_, fields_}
 {
     setup_layout();
     setup_plot();
-    (void) new QShortcut(Qt::CTRL + Qt::Key_Q, this, SLOT(close()));
+    
+    // Shortcuts
+    new QShortcut(Qt::CTRL + Qt::Key_Q, this, SLOT(close()));
+    new QShortcut(Qt::CTRL + Qt::Key_S, this, SLOT(savePDF()));
 
     connect(&watcher_, SIGNAL(finished()),
             this, SLOT(populate_listwidget()));
-    gui::DataLoader dl(data_set_, data_filenames);
-    future_ = QtConcurrent::filtered(data_filenames, dl);
+    future_ = QtConcurrent::filtered(data_filenames, dw_);
     watcher_.setFuture(future_);
-
 }
 
 MainWindow::~MainWindow()
 {
-//    plot_->savePdf("test.pdf");
 }
 
 void MainWindow::graphClicked(QCPAbstractPlottable *plottable)
@@ -196,8 +196,12 @@ void MainWindow::setup_layout()
     int rows = (fields_.size() + (cols - 1)) / cols;
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
-            if (cols * i + j < fields_.size())
-                grid->addWidget(new QCheckBox(fields_[cols * i + j]), i, j);
+            if (cols * i + j < fields_.size()) {
+                QCheckBox * cb = new QCheckBox(fields_[cols * i + j]);
+                connect(cb, SIGNAL(stateChanged(int)),
+                        this, SLOT(selectedFieldsChanged(int)));
+                grid->addWidget(cb, i, j);
+            }
         }
     }
 
@@ -248,7 +252,7 @@ void MainWindow::setup_layout()
 
 void MainWindow::savePDF()
 {
-    plot_->savePdf("test.pdf", false,
+    plot_->savePdf("test.pdf", true,
                    width_edit_->text().toInt(), height_edit_->text().toInt());
 }
 
@@ -259,18 +263,9 @@ void MainWindow::setup_plot()
     plot_->axisRect()->setupFullAxesBox();
     plot_->plotLayout()->insertRow(0);
     plot_->plotLayout()->addElement(0, 0, new QCPPlotTitle(plot_, "Interaction Example"));
-    QVector<double> x(101), y(101); // initialize with entries 0..100
-    for (int i = 0; i < 101; ++i) {
-      x[i] = i/50.0 - 1; // x goes from -1 to 1
-      y[i] = x[i]*x[i];  // let's plot a quadratic function
-    }
-    plot_->addGraph();
-    plot_->graph(0)->setData(x, y);
-    plot_->graph(0)->setName("y = x^2");
+
     plot_->xAxis->setLabel("Time (s)");
     plot_->yAxis->setLabel("y Axis");
-    plot_->xAxis->setRange(-1, 1);
-    plot_->yAxis->setRange(0, 1);
     plot_->legend->setVisible(true);
     QFont legendFont = font();
     legendFont.setPointSize(10);
@@ -307,8 +302,10 @@ void MainWindow::populate_listwidget()
 {
     data_filenames_ = future_.results();
 
-    if (data_filenames_.size())
+    if (data_filenames_.size()) {
         listwidget_->setCurrentItem(new QListWidgetItem(data_filenames_[0], listwidget_));
+        selected_file_ = data_filenames_[0];
+    }
 
     for (int i = 1; i < data_filenames_.size(); ++i)
         new QListWidgetItem(data_filenames_[i], listwidget_);
@@ -321,7 +318,53 @@ void MainWindow::selectedFileChanged()
 {
     selected_file_ = listwidget_->currentItem()->text();
     // need to update plot
+    plot_->clearGraphs();
+
+    QMap<QString, QCPGraph *>::iterator i;
+    // for (i = selected_fields_.begin(); i != selected_fields_.end(); ++i) {
+    for (i = selected_fields_.begin(); i != selected_fields_.end(); ++i) {
+        QCPGraph * graph = plot_->addGraph();
+        plot_->graph()->setData(time_series_[selected_file_]["time"],
+                                time_series_[selected_file_][i.key()]);
+        plot_->graph()->setName(i.key());
+        selected_fields_[i.key()] = graph;
+    }
+    plot_->replot();
 }
+
+void MainWindow::selectedFieldsChanged(int state)
+{
+    QCheckBox * box = qobject_cast<QCheckBox *>(sender());
+    QString signal_name = box->text();
+
+    if (state == Qt::Checked) {
+        QCPGraph * graph = plot_->addGraph();
+        plot_->graph()->setData(time_series_[selected_file_]["time"],
+                                time_series_[selected_file_][signal_name]);
+        plot_->graph()->setName(signal_name);
+        selected_fields_.insert(box->text(), graph);
+    } else if (state == Qt::Unchecked) {
+        QCPGraph * graph = selected_fields_[signal_name];
+        plot_->removeGraph(graph);
+        selected_fields_.remove(signal_name);
+    }
+    plot_->replot();
+}
+
+//void MainWindow::update_plot()
+//{
+//
+////    QVector<double> x(101), y(101); // initialize with entries 0..100
+////    for (int i = 0; i < 101; ++i) {
+////      x[i] = i/50.0 - 1; // x goes from -1 to 1
+////      y[i] = x[i]*x[i];  // let's plot a quadratic function
+////    }
+////    plot_->addGraph();
+////    plot_->graph(0)->setData(x, y);
+////    plot_->graph(0)->setName("y = x^2");
+//    // plot_->xAxis->setRange(-1, 1);
+//    // plot_->yAxis->setRange(0, 1);
+//}
 
 } // namespace gui
 

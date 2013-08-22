@@ -15,9 +15,9 @@
 
 int main(int argc, char *argv[])
 {
-//#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-//    QApplication::setGraphicsSystem("raster");
-//#endif
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+    QApplication::setGraphicsSystem("raster");
+#endif
 
     // argc and argv can be changed by QApplication constructor
     QApplication a(argc, argv);
