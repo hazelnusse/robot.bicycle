@@ -448,6 +448,7 @@ void MainWindow::savedata()
     
     file_contents.prepend("# Generated from " + selected_file_ + "\n");
     file_contents += "\n"; // Add newline
+    QString file_contents_decimated = file_contents;
 
     QString suggested_filename = selected_file_.split("/").last().split(".").first() + "_";
     suggested_filename += description_mid + "_";
@@ -456,19 +457,44 @@ void MainWindow::savedata()
     QString filename = QFileDialog::getSaveFileName(this, tr("Save File"),
             "/home/luke/repos/dissertation/images/" + suggested_filename, 
             tr("Data files (*.dat)"));
+    QString filename_decimated = filename;
+    filename_decimated.insert(filename.size() - 4, "_decimated");
 
     for (int i = lb - t.begin(); i < ub - t.begin(); ++i) {
-        file_contents += QString::number(time_series_[selected_file_]["time"][i]) + " ";
-        for (auto field : selected_fields_.keys())
-            file_contents += QString::number(time_series_[selected_file_][field][i]) + " ";
+        QString time = QString::number(time_series_[selected_file_]["time"][i]) + " ";
+        file_contents += time;
+        if (i % 4 == 0)
+            file_contents_decimated += time;
+
+        for (auto field : selected_fields_.keys()) {
+            QString sample = QString::number(time_series_[selected_file_][field][i]) + " ";
+            file_contents += sample;
+            if (i % 4 == 0) {
+                file_contents_decimated += sample;
+            }
+        }
+
+        if (i % 4 == 0) {
+            file_contents_decimated.chop(1);
+            file_contents_decimated += "\n";
+        }
         file_contents.chop(1);
         file_contents += "\n";
     }
 
-    QFile file(filename);
-    file.open(QIODevice::WriteOnly);
-    QTextStream out(&file);
-    out << file_contents;
+    {
+        QFile file(filename);
+        file.open(QIODevice::WriteOnly);
+        QTextStream out(&file);
+        out << file_contents;
+    }
+    {
+        QFile file(filename_decimated);
+        file.open(QIODevice::WriteOnly);
+        QTextStream out(&file);
+        out << file_contents_decimated;
+    }
+    
 }
 
 
