@@ -31,6 +31,7 @@ private slots:
     void legendDoubleClick(QCPLegend * legend, QCPAbstractLegendItem * item);
     void mousePress();
     void mouseWheel();
+    void afterReplot();
     void selectionChanged();
     void savePDF();
     void savedata();
@@ -43,7 +44,11 @@ private slots:
 
 private:
     void setup_layout();
-    QCustomPlot * plot_;
+    void update_spin_boxes();
+    void update_time_series_plot();
+    void update_fft_plot();
+    QCustomPlot * time_plot_;
+    QCustomPlot * fft_plot_;
     QList<QString> data_filenames_;
     // Map filename to vector of protobuf Sample messages
     QMap<QString, QVector<sample::Sample>> proto_messages_;
@@ -63,7 +68,7 @@ private:
     QVector<QString> fields_;
     QString selected_file_;
 
-    QMap<QString, QCPGraph *> selected_fields_;
+    QMap<QString, QCPGraph *> time_graph_map_;
 
     gui::DataWrangler dw_;
 };

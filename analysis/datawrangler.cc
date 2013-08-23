@@ -101,7 +101,9 @@ QMap<QString, QVector<double>> DataWrangler::to_time_series(const QVector<sample
         result[s].reserve(sv.size());
     }
 
-    // 
+    // This can be used to check for alignment of the data which is important
+    // for fftw3 to work quickly with SIMD instructions.
+    // Q_ASSERT( ((uintptr_t)result["time"].data() & 0xF) == 0);
     for (const sample::Sample & s : sv) {
         result["time"].push_back(s.system_time() * constants::system_timer_seconds_per_count);
         result["acc_x"].push_back(s.mpu6050().accelerometer_x());

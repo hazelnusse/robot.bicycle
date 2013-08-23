@@ -27,6 +27,7 @@
 #include <QListWidget>
 #include <QPushButton>
 #include <QStatusBar>
+#include <QTabWidget>
 
 #include "mainwindow.h"
 
@@ -38,7 +39,6 @@ const int maxwidth = 1920;
 const int maxheight = 1200;
 MainWindow::MainWindow(const QVector<QString> & data_filenames, QWidget *parent) :
     QMainWindow(parent),
-    plot_{new QCustomPlot(this)},
     fields_{"time", "acc_x", "acc_y", "acc_z",
             "gyro_x", "gyro_y", "gyro_z", "temp",
             "rear_wheel", "rear_wheel_rate", "steer",
@@ -84,7 +84,7 @@ void MainWindow::legendDoubleClick(QCPLegend *, QCPAbstractLegendItem *item)
               "New graph name:", QLineEdit::Normal, plItem->plottable()->name(), &ok);
       if (ok) {
         plItem->plottable()->setName(newName);
-        plot_->replot();
+        time_plot_->replot();
       }
   }
 }
@@ -94,17 +94,12 @@ void MainWindow::mousePress()
   // if an axis is selected, only allow the direction of that axis to be dragged
   // if no axis is selected, both directions may be dragged
   
-  if (plot_->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    plot_->axisRect()->setRangeDrag(plot_->xAxis->orientation());
-  else if (plot_->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    plot_->axisRect()->setRangeDrag(plot_->yAxis->orientation());
+  if (time_plot_->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
+    time_plot_->axisRect()->setRangeDrag(time_plot_->xAxis->orientation());
+  else if (time_plot_->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
+    time_plot_->axisRect()->setRangeDrag(time_plot_->yAxis->orientation());
   else
-    plot_->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
-
-  QCPRange range = plot_->xAxis->range();
-  t_lower_spin_box_->setValue(range.lower);
-  t_upper_spin_box_->setValue(range.upper);
-
+    time_plot_->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
 }
 
 void MainWindow::mouseWheel()
@@ -112,16 +107,12 @@ void MainWindow::mouseWheel()
   // if an axis is selected, only allow the direction of that axis to be zoomed
   // if no axis is selected, both directions may be zoomed
   
-  if (plot_->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    plot_->axisRect()->setRangeZoom(plot_->xAxis->orientation());
-  else if (plot_->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    plot_->axisRect()->setRangeZoom(plot_->yAxis->orientation());
+  if (time_plot_->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
+    time_plot_->axisRect()->setRangeZoom(time_plot_->xAxis->orientation());
+  else if (time_plot_->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
+    time_plot_->axisRect()->setRangeZoom(time_plot_->yAxis->orientation());
   else
-    plot_->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
-
-  QCPRange range = plot_->xAxis->range();
-  t_lower_spin_box_->setValue(range.lower);
-  t_upper_spin_box_->setValue(range.upper);
+    time_plot_->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
 }
 
 void MainWindow::selectionChanged()
@@ -143,25 +134,25 @@ void MainWindow::selectionChanged()
   
   // make top and bottom axes be selected synchronously, and handle axis and
   // tick labels as one selectable object:
-  if (plot_->xAxis->selectedParts().testFlag(QCPAxis::spAxis) || plot_->xAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      plot_->xAxis2->selectedParts().testFlag(QCPAxis::spAxis) || plot_->xAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
+  if (time_plot_->xAxis->selectedParts().testFlag(QCPAxis::spAxis) || time_plot_->xAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
+      time_plot_->xAxis2->selectedParts().testFlag(QCPAxis::spAxis) || time_plot_->xAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
   {
-    plot_->xAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    plot_->xAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    time_plot_->xAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    time_plot_->xAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
   }
   // make left and right axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (plot_->yAxis->selectedParts().testFlag(QCPAxis::spAxis) || plot_->yAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      plot_->yAxis2->selectedParts().testFlag(QCPAxis::spAxis) || plot_->yAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
+  if (time_plot_->yAxis->selectedParts().testFlag(QCPAxis::spAxis) || time_plot_->yAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
+      time_plot_->yAxis2->selectedParts().testFlag(QCPAxis::spAxis) || time_plot_->yAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
   {
-    plot_->yAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    plot_->yAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    time_plot_->yAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    time_plot_->yAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
   }
   
   // synchronize selection of graphs with selection of corresponding legend items:
-  for (int i = 0; i < plot_->graphCount(); ++i)
+  for (int i = 0; i < time_plot_->graphCount(); ++i)
   {
-    QCPGraph *graph = plot_->graph(i);
-    QCPPlottableLegendItem *item = plot_->legend->itemWithPlottable(graph);
+    QCPGraph *graph = time_plot_->graph(i);
+    QCPPlottableLegendItem *item = time_plot_->legend->itemWithPlottable(graph);
     if (item->selected() || graph->selected())
     {
       item->setSelected(true);
@@ -178,7 +169,7 @@ void MainWindow::titleDoubleClick(QMouseEvent *, QCPPlotTitle * title)
           "New plot title:", QLineEdit::Normal, title->text(), &ok);
   if (ok) {
     title->setText(newTitle);
-    plot_->replot();
+    time_plot_->replot();
   }
 }
 
@@ -192,7 +183,7 @@ void MainWindow::axisLabelDoubleClick(QCPAxis *axis, QCPAxis::SelectablePart par
             "New axis label:", QLineEdit::Normal, axis->label(), &ok);
     if (ok) {
       axis->setLabel(newLabel);
-      plot_->replot();
+      time_plot_->replot();
     }
   }
 }
@@ -229,10 +220,11 @@ void MainWindow::setup_layout()
     // matically resize the other
     QVBoxLayout * vr = new QVBoxLayout;
     qp.setHorizontalPolicy(QSizePolicy::MinimumExpanding);
-    plot_->setSizePolicy(qp);
-    plot_->setMinimumSize(minwidth, minheight);
-    // plot_->setMaximumSize(maxwidth, maxheight);
-    vr->addWidget(plot_);
+    time_plot_ = new QCustomPlot;
+    time_plot_->setSizePolicy(qp);
+    QTabWidget * tw = new QTabWidget;
+    tw->addTab(time_plot_, "Time domain");
+    vr->addWidget(tw);
 
     // Strip below plot
     QHBoxLayout * hr = new QHBoxLayout;
@@ -276,45 +268,49 @@ void MainWindow::setup_layout()
 
 void MainWindow::savePDF()
 {
-    plot_->savePdf("test.pdf", true,
+    time_plot_->savePdf("test.pdf", true,
                    width_edit_->text().toInt(), height_edit_->text().toInt());
 }
 
 void MainWindow::setup_plot()
 {
-    plot_->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
+    time_plot_->setMinimumSize(minwidth, minheight);
+    // time_plot_->setMaximumSize(maxwidth, maxheight);
+    time_plot_->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
                            QCP::iSelectLegend | QCP::iSelectPlottables);
-    plot_->axisRect()->setupFullAxesBox();
+    time_plot_->axisRect()->setupFullAxesBox();
 
-    plot_->xAxis->setLabel("Time (s)");
-    // plot_->yAxis->setLabel("y Axis");
-    plot_->legend->setVisible(true);
+    time_plot_->xAxis->setLabel("Time (s)");
+    // time_plot_->yAxis->setLabel("y Axis");
+    time_plot_->legend->setVisible(true);
     QFont legendFont = font();
     legendFont.setPointSize(10);
-    plot_->legend->setFont(legendFont);
-    plot_->legend->setSelectedFont(legendFont);
+    time_plot_->legend->setFont(legendFont);
+    time_plot_->legend->setSelectedFont(legendFont);
     // box shall not be selectable, only legend items
-    plot_->legend->setSelectableParts(QCPLegend::spItems);
+    time_plot_->legend->setSelectableParts(QCPLegend::spItems);
 
     statusBar()->showMessage(tr("Ready"));
 
     // Connect SIGNALS and SLOTS
-    connect(plot_,
+    connect(time_plot_,
             SIGNAL(axisDoubleClick(QCPAxis*,QCPAxis::SelectablePart,QMouseEvent*)),
             this,
             SLOT(axisLabelDoubleClick(QCPAxis*,QCPAxis::SelectablePart)));
-    connect(plot_, SIGNAL(titleDoubleClick(QMouseEvent*,QCPPlotTitle*)),
+    connect(time_plot_, SIGNAL(titleDoubleClick(QMouseEvent*,QCPPlotTitle*)),
             this, SLOT(titleDoubleClick(QMouseEvent*,QCPPlotTitle*)));
-    connect(plot_, SIGNAL(selectionChangedByUser()),
+    connect(time_plot_, SIGNAL(selectionChangedByUser()),
             this, SLOT(selectionChanged()));
-    connect(plot_, SIGNAL(mousePress(QMouseEvent*)),
+    connect(time_plot_, SIGNAL(mousePress(QMouseEvent*)),
             this, SLOT(mousePress()));
-    connect(plot_, SIGNAL(mouseWheel(QWheelEvent*)),
+    connect(time_plot_, SIGNAL(mouseWheel(QWheelEvent*)),
             this, SLOT(mouseWheel()));
+    connect(time_plot_, SIGNAL(afterReplot()),
+            this, SLOT(afterReplot()));
     // connect slot that shows a message in the status bar when a graph is clicked:
-    connect(plot_, SIGNAL(plottableClick(QCPAbstractPlottable *, QMouseEvent *)),
+    connect(time_plot_, SIGNAL(plottableClick(QCPAbstractPlottable *, QMouseEvent *)),
             this, SLOT(graphClicked(QCPAbstractPlottable *)));
-    connect(plot_,
+    connect(time_plot_,
             SIGNAL(legendDoubleClick(QCPLegend *, QCPAbstractLegendItem *, QMouseEvent *)),
             this,
             SLOT(legendDoubleClick(QCPLegend *, QCPAbstractLegendItem *)));
@@ -350,39 +346,27 @@ void MainWindow::populate_listwidget()
     connect(t_upper_spin_box_, SIGNAL(valueChanged(double)),
             this, SLOT(upper_bound_changed(double)));
 
-   plot_->xAxis->setRange(t_min, t_max);
+   time_plot_->xAxis->setRange(t_min, t_max);
 }
 
 void MainWindow::selectedFileChanged()
 {
     selected_file_ = listwidget_->currentItem()->text();
-    plot_->clearGraphs();
+    time_plot_->clearGraphs();
 
-    for (const QString & field : selected_fields_.keys()) {
-        QCPGraph * graph = plot_->addGraph();
-        plot_->graph()->setData(time_series_[selected_file_]["time"],
+    for (const QString & field : time_graph_map_.keys()) {
+        QCPGraph * graph = time_plot_->addGraph();
+        time_plot_->graph()->setData(time_series_[selected_file_]["time"],
                                 time_series_[selected_file_][field]);
-        plot_->graph()->setName(field);
-        selected_fields_[field] = graph;
+        time_plot_->graph()->setName(field);
+        time_graph_map_[field] = graph;
     }
 
     const double t_min = *time_series_[selected_file_]["time"].begin();
     const double t_max = *(time_series_[selected_file_]["time"].end() - 1);
-    plot_->xAxis->setRange(t_min, t_max);
-
-    double y_min = std::numeric_limits<double>::max(),
-           y_max = std::numeric_limits<double>::min();
-    const QMap<QString, gui::MetaData> & meta_data = time_series_meta_data_[selected_file_];
-    for (const auto & s : selected_fields_.keys()) {
-         y_min = std::min(y_min, meta_data[s].min_);
-         y_max = std::max(y_max, meta_data[s].max_);
-    }
-    plot_->yAxis->setRange(y_min, y_max);
-
-    t_lower_spin_box_->setValue(t_min);
-    t_upper_spin_box_->setValue(t_max);
-
-    plot_->replot();
+    time_plot_->xAxis->setRange(t_min, t_max);
+    update_spin_boxes();
+    update_time_series_plot();
 }
 
 void MainWindow::selectedFieldsChanged(int state)
@@ -391,42 +375,34 @@ void MainWindow::selectedFieldsChanged(int state)
     QString signal_name = box->text();
 
     if (state == Qt::Checked) {
-        QCPGraph * graph = plot_->addGraph();
-        plot_->graph()->setData(time_series_[selected_file_]["time"],
+        QCPGraph * graph = time_plot_->addGraph();
+        time_plot_->graph()->setData(time_series_[selected_file_]["time"],
                                 time_series_[selected_file_][signal_name]);
-        plot_->graph()->setName(signal_name);
-        selected_fields_.insert(box->text(), graph);
+        time_plot_->graph()->setName(signal_name);
+        time_graph_map_.insert(box->text(), graph);
     } else if (state == Qt::Unchecked) {
-        QCPGraph * graph = selected_fields_[signal_name];
-        plot_->removeGraph(graph);
-        selected_fields_.remove(signal_name);
+        QCPGraph * graph = time_graph_map_[signal_name];
+        time_plot_->removeGraph(graph);
+        time_graph_map_.remove(signal_name);
     }
 
-    double y_min = std::numeric_limits<double>::max(),
-           y_max = std::numeric_limits<double>::min();
-    const QMap<QString, gui::MetaData> & meta_data = time_series_meta_data_[selected_file_];
-    for (const auto & s : selected_fields_.keys()) {
-        y_min = std::min(y_min, meta_data[s].min_);
-        y_max = std::max(y_max, meta_data[s].max_);
-    }
-    plot_->yAxis->setRange(y_min, y_max);
-    plot_->replot();
+    update_time_series_plot();
 }
 
 void MainWindow::lower_bound_changed(double bound)
 {
     t_upper_spin_box_->setRange(bound, *(time_series_[selected_file_]["time"].end() - 1));
 
-    plot_->xAxis->setRangeLower(bound);
-    plot_->replot();
+    time_plot_->xAxis->setRangeLower(bound);
+    time_plot_->replot();
 }
 
 void MainWindow::upper_bound_changed(double bound)
 {
     t_lower_spin_box_->setRange(0.0, bound);
 
-    plot_->xAxis->setRangeUpper(bound);
-    plot_->replot();
+    time_plot_->xAxis->setRangeUpper(bound);
+    time_plot_->replot();
 }
 
 void MainWindow::savedata()
@@ -438,7 +414,7 @@ void MainWindow::savedata()
     const double *ub = std::upper_bound(t.begin(), t.end(), t_upper_spin_box_->value());
 
     QString file_contents = "time ";
-    for (auto field : selected_fields_.keys())
+    for (auto field : time_graph_map_.keys())
         file_contents += field + " ";
     file_contents.chop(1); // Remove trailing space
     QString description_mid = file_contents;
@@ -464,7 +440,7 @@ void MainWindow::savedata()
         if (i % 4 == 0)
             file_contents_decimated += time;
 
-        for (auto field : selected_fields_.keys()) {
+        for (auto field : time_graph_map_.keys()) {
             QString sample = QString::number(time_series_[selected_file_][field][i]) + " ";
             file_contents += sample;
             if (i % 4 == 0) {
@@ -495,6 +471,35 @@ void MainWindow::savedata()
     
 }
 
+void MainWindow::update_spin_boxes()
+{
+  QCPRange range = time_plot_->xAxis->range();
+  t_lower_spin_box_->setValue(range.lower);
+  t_upper_spin_box_->setValue(range.upper);
+}
+
+void MainWindow::afterReplot()
+{
+    update_spin_boxes();
+}
+
+void MainWindow::update_time_series_plot()
+{
+    double y_min = std::numeric_limits<double>::max(),
+           y_max = std::numeric_limits<double>::min();
+    const QMap<QString, gui::MetaData> & meta_data = time_series_meta_data_[selected_file_];
+    for (const auto & s : time_graph_map_.keys()) {
+        y_min = std::min(y_min, meta_data[s].min_);
+        y_max = std::max(y_max, meta_data[s].max_);
+    }
+    time_plot_->yAxis->setRange(y_min, y_max);
+    time_plot_->replot();
+}
+
+void MainWindow::update_fft_plot()
+{
+
+}
 
 } // namespace gui
 
