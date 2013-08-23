@@ -285,11 +285,9 @@ void MainWindow::setup_plot()
     plot_->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
                            QCP::iSelectLegend | QCP::iSelectPlottables);
     plot_->axisRect()->setupFullAxesBox();
-    plot_->plotLayout()->insertRow(0);
-    plot_->plotLayout()->addElement(0, 0, new QCPPlotTitle(plot_, "Interaction Example"));
 
     plot_->xAxis->setLabel("Time (s)");
-    plot_->yAxis->setLabel("y Axis");
+    // plot_->yAxis->setLabel("y Axis");
     plot_->legend->setVisible(true);
     QFont legendFont = font();
     legendFont.setPointSize(10);
