@@ -6,25 +6,29 @@
 // 
 // ============================================================================
 
-#include <QDebug>
+#include <algorithm>
 
-#include <QFuture>
+#include <QFile>
+#include <QTextStream>
+
 #include <QtConcurrentFilter>
+#include <QShortcut>
+#include <QIntValidator>
 
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
 #include <QCheckBox>
-#include <QStatusBar>
+#include <QDoubleSpinBox>
+#include <QFileDialog>
 #include <QInputDialog>
+#include <QLineEdit>
+#include <QListWidget>
 #include <QPushButton>
-#include <QShortcut>
-
-#include <QIntValidator>
+#include <QStatusBar>
 
 #include "mainwindow.h"
-#include "sample.pb.h"
 
 namespace gui {
 
@@ -43,7 +47,7 @@ MainWindow::MainWindow(const QVector<QString> & data_filenames, QWidget *parent)
             "v", "v_c", "yr_c", "theta_r_dot_lb",
             "theta_r_dot_ub", "lean_est", "steer_est",
             "lean_rate_est", "steer_rate_est", "yaw_rate_est"},
-    dw_{proto_messages_, time_series_, fields_}
+    dw_{proto_messages_, time_series_, time_series_meta_data_, fields_}
 {
     setup_layout();
     setup_plot();
@@ -96,6 +100,11 @@ void MainWindow::mousePress()
     plot_->axisRect()->setRangeDrag(plot_->yAxis->orientation());
   else
     plot_->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
+
+  QCPRange range = plot_->xAxis->range();
+  t_lower_spin_box_->setValue(range.lower);
+  t_upper_spin_box_->setValue(range.upper);
+
 }
 
 void MainWindow::mouseWheel()
@@ -109,6 +118,10 @@ void MainWindow::mouseWheel()
     plot_->axisRect()->setRangeZoom(plot_->yAxis->orientation());
   else
     plot_->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
+
+  QCPRange range = plot_->xAxis->range();
+  t_lower_spin_box_->setValue(range.lower);
+  t_upper_spin_box_->setValue(range.upper);
 }
 
 void MainWindow::selectionChanged()
@@ -239,6 +252,17 @@ void MainWindow::setup_layout()
     height_edit_->setText(QString::number(minheight));
     hr->addWidget(height_edit_);
 
+    t_lower_spin_box_ = new QDoubleSpinBox;
+    t_lower_spin_box_->setSuffix(" s");
+    hr->addWidget(t_lower_spin_box_);
+    t_upper_spin_box_ = new QDoubleSpinBox;
+    t_upper_spin_box_->setSuffix(" s");
+    hr->addWidget(t_upper_spin_box_);
+
+    QPushButton * savedatabutton = new QPushButton("Save &data");
+    connect(savedatabutton, SIGNAL(clicked()), this, SLOT(savedata()));
+    hr->addWidget(savedatabutton);
+
     vr->addLayout(hr);
     
     QHBoxLayout * hl = new QHBoxLayout;
@@ -312,23 +336,54 @@ void MainWindow::populate_listwidget()
 
     connect(listwidget_, SIGNAL(itemSelectionChanged()),
             this, SLOT(selectedFileChanged()));
+
+    // Also configure the spin boxes for the time range
+    const double t_min = *time_series_[selected_file_]["time"].begin();
+    const double t_max = *(time_series_[selected_file_]["time"].end() - 1);
+    t_lower_spin_box_->setRange(t_min, t_max);
+    t_upper_spin_box_->setRange(t_min, t_max);
+    t_lower_spin_box_->setSingleStep(0.25);
+    t_upper_spin_box_->setSingleStep(0.25);
+    t_lower_spin_box_->setValue(t_min);
+    t_upper_spin_box_->setValue(t_max);
+
+    connect(t_lower_spin_box_, SIGNAL(valueChanged(double)),
+            this, SLOT(lower_bound_changed(double)));
+    connect(t_upper_spin_box_, SIGNAL(valueChanged(double)),
+            this, SLOT(upper_bound_changed(double)));
+
+   plot_->xAxis->setRange(t_min, t_max);
 }
 
 void MainWindow::selectedFileChanged()
 {
     selected_file_ = listwidget_->currentItem()->text();
-    // need to update plot
     plot_->clearGraphs();
 
-    QMap<QString, QCPGraph *>::iterator i;
-    // for (i = selected_fields_.begin(); i != selected_fields_.end(); ++i) {
-    for (i = selected_fields_.begin(); i != selected_fields_.end(); ++i) {
+    for (const QString & field : selected_fields_.keys()) {
         QCPGraph * graph = plot_->addGraph();
         plot_->graph()->setData(time_series_[selected_file_]["time"],
-                                time_series_[selected_file_][i.key()]);
-        plot_->graph()->setName(i.key());
-        selected_fields_[i.key()] = graph;
+                                time_series_[selected_file_][field]);
+        plot_->graph()->setName(field);
+        selected_fields_[field] = graph;
     }
+
+    const double t_min = *time_series_[selected_file_]["time"].begin();
+    const double t_max = *(time_series_[selected_file_]["time"].end() - 1);
+    plot_->xAxis->setRange(t_min, t_max);
+
+    double y_min = std::numeric_limits<double>::max(),
+           y_max = std::numeric_limits<double>::min();
+    const QMap<QString, gui::MetaData> & meta_data = time_series_meta_data_[selected_file_];
+    for (const auto & s : selected_fields_.keys()) {
+         y_min = std::min(y_min, meta_data[s].min_);
+         y_max = std::max(y_max, meta_data[s].max_);
+    }
+    plot_->yAxis->setRange(y_min, y_max);
+
+    t_lower_spin_box_->setValue(t_min);
+    t_upper_spin_box_->setValue(t_max);
+
     plot_->replot();
 }
 
@@ -348,23 +403,74 @@ void MainWindow::selectedFieldsChanged(int state)
         plot_->removeGraph(graph);
         selected_fields_.remove(signal_name);
     }
+
+    double y_min = std::numeric_limits<double>::max(),
+           y_max = std::numeric_limits<double>::min();
+    const QMap<QString, gui::MetaData> & meta_data = time_series_meta_data_[selected_file_];
+    for (const auto & s : selected_fields_.keys()) {
+        y_min = std::min(y_min, meta_data[s].min_);
+        y_max = std::max(y_max, meta_data[s].max_);
+    }
+    plot_->yAxis->setRange(y_min, y_max);
     plot_->replot();
 }
 
-//void MainWindow::update_plot()
-//{
-//
-////    QVector<double> x(101), y(101); // initialize with entries 0..100
-////    for (int i = 0; i < 101; ++i) {
-////      x[i] = i/50.0 - 1; // x goes from -1 to 1
-////      y[i] = x[i]*x[i];  // let's plot a quadratic function
-////    }
-////    plot_->addGraph();
-////    plot_->graph(0)->setData(x, y);
-////    plot_->graph(0)->setName("y = x^2");
-//    // plot_->xAxis->setRange(-1, 1);
-//    // plot_->yAxis->setRange(0, 1);
-//}
+void MainWindow::lower_bound_changed(double bound)
+{
+    t_upper_spin_box_->setRange(bound, *(time_series_[selected_file_]["time"].end() - 1));
+
+    plot_->xAxis->setRangeLower(bound);
+    plot_->replot();
+}
+
+void MainWindow::upper_bound_changed(double bound)
+{
+    t_lower_spin_box_->setRange(0.0, bound);
+
+    plot_->xAxis->setRangeUpper(bound);
+    plot_->replot();
+}
+
+void MainWindow::savedata()
+{
+    const QVector<double> & t = time_series_[selected_file_]["time"];
+    const double *lb = std::lower_bound(t.begin(), t.end(), t_lower_spin_box_->value());
+    if (lb != t.begin())
+        lb -= 1;
+    const double *ub = std::upper_bound(t.begin(), t.end(), t_upper_spin_box_->value());
+
+    QString file_contents = "time ";
+    for (auto field : selected_fields_.keys())
+        file_contents += field + " ";
+    file_contents.chop(1); // Remove trailing space
+    QString description_mid = file_contents;
+    description_mid.replace(QString(" "), QString("_"));
+    
+    file_contents.prepend("# Generated from " + selected_file_ + "\n");
+    file_contents += "\n"; // Add newline
+
+    QString suggested_filename = selected_file_.split("/").last().split(".").first() + "_";
+    suggested_filename += description_mid + "_";
+    suggested_filename += QString::number(*lb, 'f', 3) + "_" + QString::number(*ub, 'f', 3) + ".dat";
+
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save File"),
+            "/home/luke/repos/dissertation/images/" + suggested_filename, 
+            tr("Data files (*.dat)"));
+
+    for (int i = lb - t.begin(); i < ub - t.begin(); ++i) {
+        file_contents += QString::number(time_series_[selected_file_]["time"][i]) + " ";
+        for (auto field : selected_fields_.keys())
+            file_contents += QString::number(time_series_[selected_file_][field][i]) + " ";
+        file_contents.chop(1);
+        file_contents += "\n";
+    }
+
+    QFile file(filename);
+    file.open(QIODevice::WriteOnly);
+    QTextStream out(&file);
+    out << file_contents;
+}
+
 
 } // namespace gui
 

@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 
@@ -17,9 +18,11 @@ QMutex DataWrangler::mutex_;
 
 DataWrangler::DataWrangler(QMap<QString, QVector<sample::Sample>> & proto_messages,
                            QMap<QString, QMap<QString, QVector<double>>> & time_series,
+                           QMap<QString, QMap<QString, gui::MetaData>> & time_series_meta_data,
                            const QVector<QString> & fieldnames) :
     proto_messages_(proto_messages),
     time_series_(time_series),
+    time_series_meta_data_(time_series_meta_data),
     fieldnames_(fieldnames)
 {
 
@@ -65,12 +68,15 @@ bool DataWrangler::operator()(QString const & filename)
 
     // now convert all fields in samples to vectors;
     QMap<QString, QVector<double>> sv_time_series = to_time_series(sv);
+    // compute all meta data for each field
+    QMap<QString, gui::MetaData> sv_time_series_meta_data = compute_meta_data(sv_time_series);
 
     // Insert into map of messages to message data
     {
         QMutexLocker locker(&mutex_);
         proto_messages_[filename] = sv;
         time_series_[filename] = sv_time_series;
+        time_series_meta_data_[filename] = sv_time_series_meta_data;
     }
 
     return true;
@@ -124,6 +130,16 @@ QMap<QString, QVector<double>> DataWrangler::to_time_series(const QVector<sample
         result["steer_rate_est"].push_back(s.estimate().steer_rate());
         result["yaw_rate_est"].push_back(s.estimate().yaw_rate());
     }
+
+    return result;
+}
+
+QMap<QString, gui::MetaData>
+DataWrangler::compute_meta_data(const QMap<QString, QVector<double>> & ts_data)
+{
+    QMap<QString, gui::MetaData> result;
+    for (const auto & field : ts_data.keys())
+        result.insert(field, MetaData(ts_data[field]));
 
     return result;
 }
