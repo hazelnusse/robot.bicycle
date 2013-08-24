@@ -63,6 +63,9 @@ private:
 
     // Map between the currently selected file's time series fields and their FFT
     QMap<QString, QVector<std::complex<double>>> fft_data_;
+    QMap<QString, QVector<double>> fft_data_mag_;
+    QMap<QString, QVector<double>> fft_data_phase_;
+    QVector<double> fft_freqs_;
 
     // Map between the field names and the QPen used to draw them.
     QMap<QString, QPen> pen;

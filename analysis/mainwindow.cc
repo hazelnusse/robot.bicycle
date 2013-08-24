@@ -404,25 +404,45 @@ void MainWindow::savedata()
     const double ub = t[i_upper_];
 
     QString file_contents = "time ";
-    for (auto field : time_graph_map_.keys())
+    QString file_contents_fft = "freq ";
+    for (auto field : time_graph_map_.keys()) {
         file_contents += field + " ";
+        file_contents_fft += field + " ";
+    }
     file_contents.chop(1); // Remove trailing space
+    file_contents_fft.chop(1);
     QString description_mid = file_contents;
+    QString description_mid_fft = file_contents_fft;
     description_mid.replace(QString(" "), QString("_"));
+    description_mid_fft.replace(QString(" "), QString("_"));
     
     file_contents.prepend("# Generated from " + selected_file_ + "\n");
     file_contents += "\n"; // Add newline
+    file_contents_fft.prepend("# Generated from " + selected_file_ + "\n");
+    file_contents_fft += "\n"; // Add newline
+
     QString file_contents_decimated = file_contents;
+    QString file_contents_decimated_fft = file_contents_fft;
 
     QString suggested_filename = selected_file_.split("/").last().split(".").first() + "_";
+    QString suggested_filename_fft = selected_file_.split("/").last().split(".").first() + "_";
+
     suggested_filename += description_mid + "_";
     suggested_filename += QString::number(lb, 'f', 3) + "_" + QString::number(ub, 'f', 3) + ".dat";
+    suggested_filename_fft += description_mid_fft + "_";
+    suggested_filename_fft += QString::number(lb, 'f', 3) + "_" + QString::number(ub, 'f', 3) + "_fft.dat";
 
     QString filename = QFileDialog::getSaveFileName(this, tr("Save File"),
             "/home/luke/repos/dissertation/images/" + suggested_filename, 
             tr("Data files (*.dat)"));
     QString filename_decimated = filename;
     filename_decimated.insert(filename.size() - 4, "_decimated");
+
+    QString filename_fft = QFileDialog::getSaveFileName(this, tr("Save FFT File"),
+            "/home/luke/repos/dissertation/images/" + suggested_filename_fft, 
+            tr("Data files (*.dat)"));
+    QString filename_decimated_fft = filename_fft;
+    filename_decimated_fft.insert(filename_fft.size() - 4, "_decimated");
 
     for (int i = i_lower_; i < i_upper_; ++i) {
         QString time = QString::number(time_series_[selected_file_]["time"][i]) + " ";
@@ -446,6 +466,29 @@ void MainWindow::savedata()
         file_contents += "\n";
     }
 
+    // Save FFT data
+    for (int i = 0; i < fft_freqs_.size(); ++i) {
+        QString freq = QString::number(fft_freqs_[i]) + " ";
+        file_contents_fft += freq;
+        if (i % 4 == 0)
+            file_contents_decimated_fft += freq;
+
+        for (auto field : fft_data_mag_.keys()) {
+            QString sample = QString::number(fft_data_mag_[field][i]) + " ";
+            file_contents_fft += sample;
+            if (i % 4 == 0) {
+                file_contents_decimated_fft += sample;
+            }
+        }
+
+        if (i % 4 == 0) {
+            file_contents_decimated_fft.chop(1);
+            file_contents_decimated_fft += "\n";
+        }
+        file_contents_fft.chop(1);
+        file_contents_fft += "\n";
+    }
+
     {
         QFile file(filename);
         file.open(QIODevice::WriteOnly);
@@ -457,6 +500,19 @@ void MainWindow::savedata()
         file.open(QIODevice::WriteOnly);
         QTextStream out(&file);
         out << file_contents_decimated;
+    }
+    
+    {
+        QFile file(filename_fft);
+        file.open(QIODevice::WriteOnly);
+        QTextStream out(&file);
+        out << file_contents_fft;
+    }
+    {
+        QFile file(filename_decimated_fft);
+        file.open(QIODevice::WriteOnly);
+        QTextStream out(&file);
+        out << file_contents_decimated_fft;
     }
     
 }
@@ -517,19 +573,10 @@ void MainWindow::update_fft_plot()
      // save plans until we have computed all fft's, this makes fftw use
      // "wisdom" and should help keep things fast
     QVector<fftw_plan> plans;
-    QVector<double> freqs; freqs.reserve(N_complex);
+    fft_freqs_.clear(); fft_freqs_.reserve(N_complex);
     double f_sample = 1.0 / constants::loop_period_s;
     for (int i = 0; i < N_complex; ++i)
-        freqs.push_back(i * f_sample / N_real);
-
-    /* TEST INPUT TO VERIFY FFT SCALING
-    QVector<double> test_input; test_input.reserve(N_real); test_input.resize(N_real);
-    double f1 = 2.0, f2 = 8.0;
-    for (int i = 0; i < N_real; ++i) {
-        test_input[i] = 10.0 * std::sin(2.0*M_PI*f1*i*constants::loop_period_s) +
-                         5.0 * std::sin(2.0*M_PI*f2*i*constants::loop_period_s);
-    }
-    */
+        fft_freqs_.push_back(i * f_sample / N_real);
 
     double * in = static_cast<double *>(
             fftw_malloc(sizeof(double) * N_real));
@@ -540,8 +587,6 @@ void MainWindow::update_fft_plot()
     for (const QString & field : time_graph_map_.keys()) {
         // Copy the data into the input vector
         std::memcpy(in, data[field].data() + i_lower_, N_real * sizeof(double));
-        // TEST INPUT TO VERIFY FFT SCALING
-        // std::memcpy(in, test_input.data(), N_real * sizeof(double));
         fftw_plan p = fftw_plan_dft_r2c_1d(N_real,
                                            in,
                                            reinterpret_cast<fftw_complex *>(out),
@@ -554,16 +599,21 @@ void MainWindow::update_fft_plot()
         out_vec.reserve(N_complex); out_vec.resize(N_complex);
         std::memcpy(out_vec.data(), out, N_complex * sizeof(std::complex<double>));
         fft_data_.insert(field, out_vec);
-        QVector<double> out_vec_abs;
-        out_vec_abs.reserve(N_complex); out_vec_abs.resize(N_complex);
+        QVector<double> out_vec_mag;
+        QVector<double> out_vec_phase;
+        out_vec_mag.reserve(N_complex); out_vec_mag.resize(N_complex);
+        out_vec_phase.reserve(N_complex); out_vec_phase.resize(N_complex);
         for (int i = 0; i < N_complex; ++i) {
-            out_vec_abs[i] = std::abs(out_vec[i]) / N_complex;
-            if (out_vec_abs[i] > max)
-                max = out_vec_abs[i];
+            out_vec_mag[i] = std::abs(out_vec[i]) / N_complex;
+            out_vec_phase[i] = std::atan2(out_vec[i].imag(), out_vec[i].real()) / N_complex;
+            if (out_vec_mag[i] > max)
+                max = out_vec_mag[i];
         }
+        fft_data_mag_.insert(field, out_vec_mag);
+        fft_data_phase_.insert(field, out_vec_phase);
 
         QCPGraph * graph = fft_plot_->addGraph();
-        graph->setData(freqs, out_vec_abs);
+        graph->setData(fft_freqs_, out_vec_mag);
         graph->setName(field);
         graph->setPen(pen[field]);
         fft_graph_map_[field] = graph;
@@ -571,7 +621,7 @@ void MainWindow::update_fft_plot()
     for (int i = 0; i < plans.size(); ++i) fftw_destroy_plan(plans[i]);
     fftw_free(in); fftw_free(reinterpret_cast<fftw_complex *>(out));
 
-    fft_plot_->xAxis->setRange(freqs.first(), freqs.last());
+    fft_plot_->xAxis->setRange(fft_freqs_.first(), fft_freqs_.last());
     fft_plot_->yAxis->setRange(0, max);
     fft_plot_->replot();
     fft_outdated_ = false;
