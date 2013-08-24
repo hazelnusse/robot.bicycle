@@ -85,48 +85,32 @@ void MainWindow::graphClicked(QCPAbstractPlottable *plottable)
     statusBar()->showMessage(QString("Graph '%1' selected.").arg(plottable->name()));
 }
 
-void MainWindow::legendDoubleClick(QCPLegend *, QCPAbstractLegendItem *item)
-{
-  // Rename a graph by double clicking on its legend item
-
-  // only react if item was clicked (user could have clicked on border padding
-  // of legend where there is no item, then item is 0)
-  if (item) {
-      QCPPlottableLegendItem * plItem = qobject_cast<QCPPlottableLegendItem *>(item);
-      bool ok;
-      QString newName = QInputDialog::getText(this, "QCustomPlot example",
-              "New graph name:", QLineEdit::Normal, plItem->plottable()->name(), &ok);
-      if (ok) {
-        plItem->plottable()->setName(newName);
-        time_plot_->replot();
-      }
-  }
-}
-
 void MainWindow::mousePress()
 {
   // if an axis is selected, only allow the direction of that axis to be dragged
   // if no axis is selected, both directions may be dragged
+  QCustomPlot * plot = qobject_cast<QCustomPlot *>(sender());
   
-  if (time_plot_->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    time_plot_->axisRect()->setRangeDrag(time_plot_->xAxis->orientation());
-  else if (time_plot_->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    time_plot_->axisRect()->setRangeDrag(time_plot_->yAxis->orientation());
+  if (plot->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
+    plot->axisRect()->setRangeDrag(plot->xAxis->orientation());
+  else if (plot->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
+    plot->axisRect()->setRangeDrag(plot->yAxis->orientation());
   else
-    time_plot_->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
+    plot->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
 }
 
 void MainWindow::mouseWheel()
 {
   // if an axis is selected, only allow the direction of that axis to be zoomed
   // if no axis is selected, both directions may be zoomed
+  QCustomPlot * plot = qobject_cast<QCustomPlot *>(sender());
   
-  if (time_plot_->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    time_plot_->axisRect()->setRangeZoom(time_plot_->xAxis->orientation());
-  else if (time_plot_->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    time_plot_->axisRect()->setRangeZoom(time_plot_->yAxis->orientation());
+  if (plot->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
+    plot->axisRect()->setRangeZoom(plot->xAxis->orientation());
+  else if (plot->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
+    plot->axisRect()->setRangeZoom(plot->yAxis->orientation());
   else
-    time_plot_->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
+    plot->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
 }
 
 void MainWindow::selectionChanged()
@@ -145,59 +129,34 @@ void MainWindow::selectionChanged()
    the user can select a graph by either clicking on the graph itself or on its
    legend item.
   */
+
+  QCustomPlot * plot = qobject_cast<QCustomPlot *>(sender());
   
   // make top and bottom axes be selected synchronously, and handle axis and
   // tick labels as one selectable object:
-  if (time_plot_->xAxis->selectedParts().testFlag(QCPAxis::spAxis) || time_plot_->xAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      time_plot_->xAxis2->selectedParts().testFlag(QCPAxis::spAxis) || time_plot_->xAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
+  if (plot->xAxis->selectedParts().testFlag(QCPAxis::spAxis) || plot->xAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
+      plot->xAxis2->selectedParts().testFlag(QCPAxis::spAxis) || plot->xAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
   {
-    time_plot_->xAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    time_plot_->xAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    plot->xAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    plot->xAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
   }
   // make left and right axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (time_plot_->yAxis->selectedParts().testFlag(QCPAxis::spAxis) || time_plot_->yAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      time_plot_->yAxis2->selectedParts().testFlag(QCPAxis::spAxis) || time_plot_->yAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
+  if (plot->yAxis->selectedParts().testFlag(QCPAxis::spAxis) || plot->yAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
+      plot->yAxis2->selectedParts().testFlag(QCPAxis::spAxis) || plot->yAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
   {
-    time_plot_->yAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    time_plot_->yAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    plot->yAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    plot->yAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
   }
   
   // synchronize selection of graphs with selection of corresponding legend items:
-  for (int i = 0; i < time_plot_->graphCount(); ++i)
+  for (int i = 0; i < plot->graphCount(); ++i)
   {
-    QCPGraph *graph = time_plot_->graph(i);
-    QCPPlottableLegendItem *item = time_plot_->legend->itemWithPlottable(graph);
+    QCPGraph *graph = plot->graph(i);
+    QCPPlottableLegendItem *item = plot->legend->itemWithPlottable(graph);
     if (item->selected() || graph->selected())
     {
       item->setSelected(true);
       graph->setSelected(true);
-    }
-  }
-}
-
-void MainWindow::titleDoubleClick(QMouseEvent *, QCPPlotTitle * title)
-{
-  // Set the plot title by double clicking on it
-  bool ok;
-  QString newTitle = QInputDialog::getText(this, "QCustomPlot example",
-          "New plot title:", QLineEdit::Normal, title->text(), &ok);
-  if (ok) {
-    title->setText(newTitle);
-    time_plot_->replot();
-  }
-}
-
-void MainWindow::axisLabelDoubleClick(QCPAxis *axis, QCPAxis::SelectablePart part)
-{
-  // Set an axis label by double clicking on it
-  // only react when the actual axis label is clicked, not tick label or axis backbone
-  if (part == QCPAxis::spAxisLabel) {
-    bool ok;
-    QString newLabel = QInputDialog::getText(this, "QCustomPlot example",
-            "New axis label:", QLineEdit::Normal, axis->label(), &ok);
-    if (ok) {
-      axis->setLabel(newLabel);
-      time_plot_->replot();
     }
   }
 }
@@ -304,12 +263,6 @@ void MainWindow::setup_time_plot()
     time_plot_->legend->setSelectableParts(QCPLegend::spItems);
 
     // Connect SIGNALS and SLOTS
-    connect(time_plot_,
-            SIGNAL(axisDoubleClick(QCPAxis*,QCPAxis::SelectablePart,QMouseEvent*)),
-            this,
-            SLOT(axisLabelDoubleClick(QCPAxis*,QCPAxis::SelectablePart)));
-    connect(time_plot_, SIGNAL(titleDoubleClick(QMouseEvent*,QCPPlotTitle*)),
-            this, SLOT(titleDoubleClick(QMouseEvent*,QCPPlotTitle*)));
     connect(time_plot_, SIGNAL(selectionChangedByUser()),
             this, SLOT(selectionChanged()));
     connect(time_plot_, SIGNAL(mousePress(QMouseEvent*)),
@@ -321,10 +274,6 @@ void MainWindow::setup_time_plot()
     // connect slot that shows a message in the status bar when a graph is clicked:
     connect(time_plot_, SIGNAL(plottableClick(QCPAbstractPlottable *, QMouseEvent *)),
             this, SLOT(graphClicked(QCPAbstractPlottable *)));
-    connect(time_plot_,
-            SIGNAL(legendDoubleClick(QCPLegend *, QCPAbstractLegendItem *, QMouseEvent *)),
-            this,
-            SLOT(legendDoubleClick(QCPLegend *, QCPAbstractLegendItem *)));
 }
 
 void MainWindow::setup_fft_plot()
@@ -343,13 +292,10 @@ void MainWindow::setup_fft_plot()
     // box shall not be selectable, only legend items
     fft_plot_->legend->setSelectableParts(QCPLegend::spItems);
 
+    connect(fft_plot_, SIGNAL(selectionChangedByUser()),
+            this, SLOT(selectionChanged()));
+
     // Connect SIGNALS and SLOTS
-//    connect(fft_plot_,
-//            SIGNAL(axisDoubleClick(QCPAxis*,QCPAxis::SelectablePart,QMouseEvent*)),
-//            this,
-//            SLOT(axisLabelDoubleClick(QCPAxis*,QCPAxis::SelectablePart)));
-//    connect(fft_plot_, SIGNAL(titleDoubleClick(QMouseEvent*,QCPPlotTitle*)),
-//            this, SLOT(titleDoubleClick(QMouseEvent*,QCPPlotTitle*)));
 //    connect(fft_plot_, SIGNAL(selectionChangedByUser()),
 //            this, SLOT(selectionChanged()));
 //    connect(fft_plot_, SIGNAL(mousePress(QMouseEvent*)),
@@ -361,10 +307,6 @@ void MainWindow::setup_fft_plot()
 //    // connect slot that shows a message in the status bar when a graph is clicked:
 //    connect(fft_plot_, SIGNAL(plottableClick(QCPAbstractPlottable *, QMouseEvent *)),
 //            this, SLOT(graphClicked(QCPAbstractPlottable *)));
-//    connect(fft_plot_,
-//            SIGNAL(legendDoubleClick(QCPLegend *, QCPAbstractLegendItem *, QMouseEvent *)),
-//            this,
-//            SLOT(legendDoubleClick(QCPLegend *, QCPAbstractLegendItem *)));
 }
 
 void MainWindow::populate_listwidget()

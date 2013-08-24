@@ -26,10 +26,7 @@ public:
   ~MainWindow();
   
 private slots:
-    void axisLabelDoubleClick(QCPAxis * axis, QCPAxis::SelectablePart part);
-    void titleDoubleClick(QMouseEvent *, QCPPlotTitle * title);
     void graphClicked(QCPAbstractPlottable * plottable);
-    void legendDoubleClick(QCPLegend * legend, QCPAbstractLegendItem * item);
     void mousePress();
     void mouseWheel();
     void afterReplot();
