@@ -1,8 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QFuture>
-#include <QFutureWatcher>
+#include <complex>
 #include <QMainWindow>
 #include <QString>
 #include <QVector>
@@ -15,6 +14,7 @@
 class QDoubleSpinBox;
 class QListWidget;
 class QLineEdit;
+class QTabWidget;
 
 namespace gui {
 
@@ -35,12 +35,16 @@ private slots:
     void selectionChanged();
     void savePDF();
     void savedata();
-    void setup_plot();
+    void setup_time_plot();
+    void setup_fft_plot();
     void populate_listwidget();
     void selectedFieldsChanged(int state);
     void selectedFileChanged();
     void lower_bound_changed(double);
     void upper_bound_changed(double);
+    void reset_time_axis();
+    void reset_y_axis();
+    void tab_changed(int);
 
 private:
     void setup_layout();
@@ -58,19 +62,26 @@ private:
     QMap<QString, QMap<QString, QVector<double>>> time_series_;
     QMap<QString, QMap<QString, gui::MetaData>> time_series_meta_data_;
 
-    QListWidget * listwidget_;
-    QFuture<QString> future_;
-    QFutureWatcher<QString> watcher_;
+    // Map between the currently selected file's time series fields and their FFT
+    QMap<QString, QVector<std::complex<double>>> fft_data_;
 
-    QLineEdit * width_edit_, * height_edit_;
+    QListWidget * listwidget_;
+    QTabWidget * tw_;
+    int tab_indices[2];
+
     QDoubleSpinBox * t_lower_spin_box_, * t_upper_spin_box_;
 
     QVector<QString> fields_;
     QString selected_file_;
 
     QMap<QString, QCPGraph *> time_graph_map_;
+    QMap<QString, QCPGraph *> fft_graph_map_;
 
     gui::DataWrangler dw_;
+
+    // Flag to indicate whether FFT of time series data should be recomputed
+    bool fft_outdated_;
+    int i_lower_, i_upper_, length_;
 };
 
 } // namespace gui

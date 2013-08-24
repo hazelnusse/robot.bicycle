@@ -6,6 +6,7 @@ set(CMAKE_CXX_FLAGS "-Wall -std=c++11 ${CMAKE_CXX_FLAGS}")
 find_package(Protobuf REQUIRED)
 find_package(Eigen3 3.1.2)
 find_package(Qt4 REQUIRED QtCore QtGui)
+find_package(FFTW3 REQUIRED)
 include(${QT_USE_FILE})
 
 if (DEFINED MATLAB_ROOT)

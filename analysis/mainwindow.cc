@@ -7,11 +7,16 @@
 // ============================================================================
 
 #include <algorithm>
+#include <cmath>
+#include <cstring>
+#include <fftw3.h>
 
+#include <QDebug>
 #include <QFile>
 #include <QTextStream>
 
 #include <QtConcurrentFilter>
+#include <QFutureSynchronizer>
 #include <QShortcut>
 #include <QIntValidator>
 
@@ -30,6 +35,7 @@
 #include <QTabWidget>
 
 #include "mainwindow.h"
+#include "../firmware/src/constants.h"
 
 namespace gui {
 
@@ -47,19 +53,25 @@ MainWindow::MainWindow(const QVector<QString> & data_filenames, QWidget *parent)
             "v", "v_c", "yr_c", "theta_r_dot_lb",
             "theta_r_dot_ub", "lean_est", "steer_est",
             "lean_rate_est", "steer_rate_est", "yaw_rate_est"},
-    dw_{proto_messages_, time_series_, time_series_meta_data_, fields_}
+    dw_{proto_messages_, time_series_, time_series_meta_data_, fields_},
+    fft_outdated_{true}
 {
     setup_layout();
-    setup_plot();
+
+    setup_time_plot();
+    setup_fft_plot();
     
     // Shortcuts
     new QShortcut(Qt::CTRL + Qt::Key_Q, this, SLOT(close()));
     new QShortcut(Qt::CTRL + Qt::Key_S, this, SLOT(savePDF()));
 
-    connect(&watcher_, SIGNAL(finished()),
-            this, SLOT(populate_listwidget()));
-    future_ = QtConcurrent::filtered(data_filenames, dw_);
-    watcher_.setFuture(future_);
+    QFuture<QString> future_ = QtConcurrent::filtered(data_filenames, dw_);
+    QFutureSynchronizer<QString> synchronizer;
+    synchronizer.addFuture(future_);
+    synchronizer.waitForFinished();
+    data_filenames_ = future_.results();
+
+    populate_listwidget();
 }
 
 MainWindow::~MainWindow()
@@ -222,33 +234,34 @@ void MainWindow::setup_layout()
     qp.setHorizontalPolicy(QSizePolicy::MinimumExpanding);
     time_plot_ = new QCustomPlot;
     time_plot_->setSizePolicy(qp);
-    QTabWidget * tw = new QTabWidget;
-    tw->addTab(time_plot_, "Time domain");
-    vr->addWidget(tw);
+    fft_plot_ = new QCustomPlot;
+    fft_plot_->setSizePolicy(qp);
+    QTabWidget * tw_ = new QTabWidget;
+    tab_indices[0] = tw_->addTab(time_plot_, "&Time domain");
+    tab_indices[1] = tw_->addTab(fft_plot_, "&Frequency domain");
+    connect(tw_, SIGNAL(currentChanged(int)),
+            this, SLOT(tab_changed(int)));
+    vr->addWidget(tw_);
 
     // Strip below plot
     QHBoxLayout * hr = new QHBoxLayout;
     QPushButton * savebutton = new QPushButton("&Save PDF");
     connect(savebutton, SIGNAL(clicked()), this, SLOT(savePDF()));
     hr->addWidget(savebutton);
-
-    width_edit_ = new QLineEdit;
-    QIntValidator * width_validator = new QIntValidator(minwidth, maxwidth, this);
-    width_edit_->setValidator(width_validator);
-    width_edit_->setText(QString::number(minwidth));
-    hr->addWidget(width_edit_);
-
-    height_edit_ = new QLineEdit;
-    QIntValidator * height_validator = new QIntValidator(minheight, maxheight, this);
-    height_edit_->setValidator(height_validator);
-    height_edit_->setText(QString::number(minheight));
-    hr->addWidget(height_edit_);
+    QPushButton * reset_t_button = new QPushButton("Reset &horizontal axis");
+    connect(reset_t_button, SIGNAL(clicked()), this, SLOT(reset_time_axis()));
+    hr->addWidget(reset_t_button);
+    QPushButton * reset_y_button = new QPushButton("Reset &vertical axis");
+    connect(reset_y_button, SIGNAL(clicked()), this, SLOT(reset_y_axis()));
+    hr->addWidget(reset_y_button);
 
     t_lower_spin_box_ = new QDoubleSpinBox;
     t_lower_spin_box_->setSuffix(" s");
+    t_lower_spin_box_->setSingleStep(0.25);
     hr->addWidget(t_lower_spin_box_);
     t_upper_spin_box_ = new QDoubleSpinBox;
     t_upper_spin_box_->setSuffix(" s");
+    t_upper_spin_box_->setSingleStep(0.25);
     hr->addWidget(t_upper_spin_box_);
 
     QPushButton * savedatabutton = new QPushButton("Save &data");
@@ -268,20 +281,18 @@ void MainWindow::setup_layout()
 
 void MainWindow::savePDF()
 {
-    time_plot_->savePdf("test.pdf", true,
-                   width_edit_->text().toInt(), height_edit_->text().toInt());
+    time_plot_->savePdf("test.pdf", true, 800, 800);
+//                   width_edit_->text().toInt(), height_edit_->text().toInt());
 }
 
-void MainWindow::setup_plot()
+void MainWindow::setup_time_plot()
 {
     time_plot_->setMinimumSize(minwidth, minheight);
-    // time_plot_->setMaximumSize(maxwidth, maxheight);
     time_plot_->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
-                           QCP::iSelectLegend | QCP::iSelectPlottables);
+                                QCP::iSelectLegend | QCP::iSelectPlottables);
     time_plot_->axisRect()->setupFullAxesBox();
 
     time_plot_->xAxis->setLabel("Time (s)");
-    // time_plot_->yAxis->setLabel("y Axis");
     time_plot_->legend->setVisible(true);
     QFont legendFont = font();
     legendFont.setPointSize(10);
@@ -289,8 +300,6 @@ void MainWindow::setup_plot()
     time_plot_->legend->setSelectedFont(legendFont);
     // box shall not be selectable, only legend items
     time_plot_->legend->setSelectableParts(QCPLegend::spItems);
-
-    statusBar()->showMessage(tr("Ready"));
 
     // Connect SIGNALS and SLOTS
     connect(time_plot_,
@@ -316,13 +325,54 @@ void MainWindow::setup_plot()
             SLOT(legendDoubleClick(QCPLegend *, QCPAbstractLegendItem *)));
 }
 
+void MainWindow::setup_fft_plot()
+{
+    fft_plot_->setMinimumSize(minwidth, minheight);
+    fft_plot_->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
+                                QCP::iSelectLegend | QCP::iSelectPlottables);
+    fft_plot_->axisRect()->setupFullAxesBox();
+
+    fft_plot_->xAxis->setLabel("Frequency (Hz)");
+    fft_plot_->legend->setVisible(true);
+    QFont legendFont = font();
+    legendFont.setPointSize(10);
+    fft_plot_->legend->setFont(legendFont);
+    fft_plot_->legend->setSelectedFont(legendFont);
+    // box shall not be selectable, only legend items
+    fft_plot_->legend->setSelectableParts(QCPLegend::spItems);
+
+    // Connect SIGNALS and SLOTS
+//    connect(fft_plot_,
+//            SIGNAL(axisDoubleClick(QCPAxis*,QCPAxis::SelectablePart,QMouseEvent*)),
+//            this,
+//            SLOT(axisLabelDoubleClick(QCPAxis*,QCPAxis::SelectablePart)));
+//    connect(fft_plot_, SIGNAL(titleDoubleClick(QMouseEvent*,QCPPlotTitle*)),
+//            this, SLOT(titleDoubleClick(QMouseEvent*,QCPPlotTitle*)));
+//    connect(fft_plot_, SIGNAL(selectionChangedByUser()),
+//            this, SLOT(selectionChanged()));
+//    connect(fft_plot_, SIGNAL(mousePress(QMouseEvent*)),
+//            this, SLOT(mousePress()));
+//    connect(fft_plot_, SIGNAL(mouseWheel(QWheelEvent*)),
+//            this, SLOT(mouseWheel()));
+//    connect(fft_plot_, SIGNAL(afterReplot()),
+//            this, SLOT(afterReplot()));
+//    // connect slot that shows a message in the status bar when a graph is clicked:
+//    connect(fft_plot_, SIGNAL(plottableClick(QCPAbstractPlottable *, QMouseEvent *)),
+//            this, SLOT(graphClicked(QCPAbstractPlottable *)));
+//    connect(fft_plot_,
+//            SIGNAL(legendDoubleClick(QCPLegend *, QCPAbstractLegendItem *, QMouseEvent *)),
+//            this,
+//            SLOT(legendDoubleClick(QCPLegend *, QCPAbstractLegendItem *)));
+}
+
 void MainWindow::populate_listwidget()
 {
-    data_filenames_ = future_.results();
-
     if (data_filenames_.size()) {
         listwidget_->setCurrentItem(new QListWidgetItem(data_filenames_[0], listwidget_));
-        selected_file_ = data_filenames_[0];
+        selected_file_ = listwidget_->currentItem()->text();
+        i_lower_ = 0;
+        i_upper_ = time_series_[selected_file_]["time"].size() - 1;
+        length_ = time_series_[selected_file_]["time"].size();
     }
 
     for (int i = 1; i < data_filenames_.size(); ++i)
@@ -331,22 +381,13 @@ void MainWindow::populate_listwidget()
     connect(listwidget_, SIGNAL(itemSelectionChanged()),
             this, SLOT(selectedFileChanged()));
 
-    // Also configure the spin boxes for the time range
-    const double t_min = *time_series_[selected_file_]["time"].begin();
-    const double t_max = *(time_series_[selected_file_]["time"].end() - 1);
-    t_lower_spin_box_->setRange(t_min, t_max);
-    t_upper_spin_box_->setRange(t_min, t_max);
-    t_lower_spin_box_->setSingleStep(0.25);
-    t_upper_spin_box_->setSingleStep(0.25);
-    t_lower_spin_box_->setValue(t_min);
-    t_upper_spin_box_->setValue(t_max);
-
     connect(t_lower_spin_box_, SIGNAL(valueChanged(double)),
             this, SLOT(lower_bound_changed(double)));
     connect(t_upper_spin_box_, SIGNAL(valueChanged(double)),
             this, SLOT(upper_bound_changed(double)));
 
-   time_plot_->xAxis->setRange(t_min, t_max);
+    selectedFileChanged();
+    statusBar()->showMessage(tr("Ready"));
 }
 
 void MainWindow::selectedFileChanged()
@@ -362,11 +403,12 @@ void MainWindow::selectedFileChanged()
         time_graph_map_[field] = graph;
     }
 
-    const double t_min = *time_series_[selected_file_]["time"].begin();
-    const double t_max = *(time_series_[selected_file_]["time"].end() - 1);
+    const double t_min = time_series_[selected_file_]["time"].first();
+    const double t_max = time_series_[selected_file_]["time"].last();
     time_plot_->xAxis->setRange(t_min, t_max);
     update_spin_boxes();
     update_time_series_plot();
+//    update_fft_plot();
 }
 
 void MainWindow::selectedFieldsChanged(int state)
@@ -387,6 +429,7 @@ void MainWindow::selectedFieldsChanged(int state)
     }
 
     update_time_series_plot();
+//    update_fft_plot();
 }
 
 void MainWindow::lower_bound_changed(double bound)
@@ -408,10 +451,8 @@ void MainWindow::upper_bound_changed(double bound)
 void MainWindow::savedata()
 {
     const QVector<double> & t = time_series_[selected_file_]["time"];
-    const double *lb = std::lower_bound(t.begin(), t.end(), t_lower_spin_box_->value());
-    if (lb != t.begin())
-        lb -= 1;
-    const double *ub = std::upper_bound(t.begin(), t.end(), t_upper_spin_box_->value());
+    const double lb = t[i_lower_];
+    const double ub = t[i_upper_];
 
     QString file_contents = "time ";
     for (auto field : time_graph_map_.keys())
@@ -426,7 +467,7 @@ void MainWindow::savedata()
 
     QString suggested_filename = selected_file_.split("/").last().split(".").first() + "_";
     suggested_filename += description_mid + "_";
-    suggested_filename += QString::number(*lb, 'f', 3) + "_" + QString::number(*ub, 'f', 3) + ".dat";
+    suggested_filename += QString::number(lb, 'f', 3) + "_" + QString::number(ub, 'f', 3) + ".dat";
 
     QString filename = QFileDialog::getSaveFileName(this, tr("Save File"),
             "/home/luke/repos/dissertation/images/" + suggested_filename, 
@@ -434,7 +475,7 @@ void MainWindow::savedata()
     QString filename_decimated = filename;
     filename_decimated.insert(filename.size() - 4, "_decimated");
 
-    for (int i = lb - t.begin(); i < ub - t.begin(); ++i) {
+    for (int i = i_lower_; i < i_upper_; ++i) {
         QString time = QString::number(time_series_[selected_file_]["time"][i]) + " ";
         file_contents += time;
         if (i % 4 == 0)
@@ -473,9 +514,25 @@ void MainWindow::savedata()
 
 void MainWindow::update_spin_boxes()
 {
-  QCPRange range = time_plot_->xAxis->range();
-  t_lower_spin_box_->setValue(range.lower);
-  t_upper_spin_box_->setValue(range.upper);
+    QCPRange range = time_plot_->xAxis->range();
+    t_lower_spin_box_->setValue(range.lower);
+    t_upper_spin_box_->setValue(range.upper);
+
+    const QVector<double> & t = time_series_[selected_file_]["time"];
+    // lower_bound returns the *first* element that is >= range.lower
+    const double *lb = std::lower_bound(t.begin(), t.end(), range.lower);
+    if (lb != t.begin()) // Include the point just below
+        lb -= 1;         // Also fixes the case when lb==t.end()
+    // upper_bound returns the *first* element that is > range.upper
+    const double *ub = std::upper_bound(t.begin(), t.end(), range.upper);
+    if (ub == t.end())   // Fixes case when up==t.end()
+        ub -= 1;      
+    // at this point, ub and lb can be safely dereferenced to point to elements
+    // inside the time array.
+    i_lower_ = t.indexOf(*lb);
+    i_upper_ = t.indexOf(*ub);
+    length_ = i_upper_ - i_lower_ + 1;
+    fft_outdated_ = true;
 }
 
 void MainWindow::afterReplot()
@@ -485,12 +542,16 @@ void MainWindow::afterReplot()
 
 void MainWindow::update_time_series_plot()
 {
+    update_spin_boxes();
+
     double y_min = std::numeric_limits<double>::max(),
            y_max = std::numeric_limits<double>::min();
-    const QMap<QString, gui::MetaData> & meta_data = time_series_meta_data_[selected_file_];
+
     for (const auto & s : time_graph_map_.keys()) {
-        y_min = std::min(y_min, meta_data[s].min_);
-        y_max = std::max(y_max, meta_data[s].max_);
+        QVector<double> signal = time_series_[selected_file_][s].mid(i_lower_, length_);
+        gui::MetaData md = gui::MetaData(signal);
+        y_min = std::min(y_min, md.min_);
+        y_max = std::max(y_max, md.max_);
     }
     time_plot_->yAxis->setRange(y_min, y_max);
     time_plot_->replot();
@@ -498,8 +559,94 @@ void MainWindow::update_time_series_plot()
 
 void MainWindow::update_fft_plot()
 {
+    fft_plot_->clearGraphs();       // Clear plots
+    fft_data_.clear();              // Clear FFT data
 
+    const QMap<QString, QVector<double>> & data = time_series_[selected_file_];
+    int N_real = length_;
+    int N_complex = N_real / 2 + 1;
+     // save plans until we have computed all fft's, this makes fftw use
+     // "wisdom" and should help keep things fast
+    QVector<fftw_plan> plans;
+    QVector<double> freqs; freqs.reserve(N_complex);
+    double f_sample = 1.0 / constants::loop_period_s;
+    for (int i = 0; i < N_complex; ++i)
+        freqs.push_back(i * f_sample / N_real);
+
+    /* TEST INPUT TO VERIFY FFT SCALING
+    QVector<double> test_input; test_input.reserve(N_real); test_input.resize(N_real);
+    double f1 = 2.0, f2 = 8.0;
+    for (int i = 0; i < N_real; ++i) {
+        test_input[i] = 10.0 * std::sin(2.0*M_PI*f1*i*constants::loop_period_s) +
+                         5.0 * std::sin(2.0*M_PI*f2*i*constants::loop_period_s);
+    }
+    */
+
+    double * in = static_cast<double *>(
+            fftw_malloc(sizeof(double) * N_real));
+    std::complex<double> * out = static_cast<std::complex<double> *>(
+            fftw_malloc(sizeof(std::complex<double>) * N_complex));
+
+    double max = std::numeric_limits<double>::min();
+    for (const QString & field : time_graph_map_.keys()) {
+        // Copy the data into the input vector
+        std::memcpy(in, data[field].data() + i_lower_, N_real * sizeof(double));
+        // TEST INPUT TO VERIFY FFT SCALING
+        // std::memcpy(in, test_input.data(), N_real * sizeof(double));
+        fftw_plan p = fftw_plan_dft_r2c_1d(N_real,
+                                           in,
+                                           reinterpret_cast<fftw_complex *>(out),
+                                           FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
+
+        fftw_execute(p);
+        plans.push_back(p);
+
+        QVector<std::complex<double>> out_vec;
+        out_vec.reserve(N_complex); out_vec.resize(N_complex);
+        std::memcpy(out_vec.data(), out, N_complex * sizeof(std::complex<double>));
+        fft_data_.insert(field, out_vec);
+        QVector<double> out_vec_abs;
+        out_vec_abs.reserve(N_complex); out_vec_abs.resize(N_complex);
+        for (int i = 0; i < N_complex; ++i) {
+            out_vec_abs[i] = std::abs(out_vec[i]) / N_complex;
+            if (out_vec_abs[i] > max)
+                max = out_vec_abs[i];
+        }
+
+        QCPGraph * graph = fft_plot_->addGraph();
+        fft_plot_->graph()->setData(freqs, out_vec_abs);
+        fft_plot_->graph()->setName(field);
+        fft_graph_map_[field] = graph;
+    }
+    for (int i = 0; i < plans.size(); ++i) fftw_destroy_plan(plans[i]);
+    fftw_free(in); fftw_free(reinterpret_cast<fftw_complex *>(out));
+
+    fft_plot_->xAxis->setRange(freqs.first(), freqs.last());
+    fft_plot_->yAxis->setRange(0, max);
+    fft_plot_->replot();
+    fft_outdated_ = false;
 }
+
+void MainWindow::reset_time_axis()
+{
+    const double t_min = *time_series_[selected_file_]["time"].begin();
+    const double t_max = *(time_series_[selected_file_]["time"].end() - 1);
+    time_plot_->xAxis->setRange(t_min, t_max);
+    time_plot_->replot();
+}
+
+void MainWindow::reset_y_axis()
+{
+    update_time_series_plot();
+}
+
+void MainWindow::tab_changed(int index)
+{
+    if (index == tab_indices[1] && fft_outdated_) { // FFT Plot
+        update_fft_plot();
+    }
+}
+
 
 } // namespace gui
 

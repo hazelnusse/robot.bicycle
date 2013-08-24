@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <iostream>
 
+#include <QMutexLocker>
+
 #include "sample.pb.h"
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>

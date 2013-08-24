@@ -14,4 +14,6 @@ add_executable(data-explorer
                ${QT_HEADERS_MOC}
                ${PROTO_SRCS} ${PROTO_HDRS})
 
-target_link_libraries(data-explorer bicycle ${PROTOBUF_LIBRARIES} ${QT_LIBRARIES})
+target_link_libraries(data-explorer bicycle
+                      ${PROTOBUF_LIBRARIES}
+                      ${QT_LIBRARIES} ${FFTW_LIB})
