@@ -15,6 +15,8 @@
 #include <QFile>
 #include <QTextStream>
 
+#include <QColor>
+
 #include <QtConcurrentFilter>
 #include <QFutureSynchronizer>
 #include <QShortcut>
@@ -56,8 +58,8 @@ MainWindow::MainWindow(const QVector<QString> & data_filenames, QWidget *parent)
     dw_{proto_messages_, time_series_, time_series_meta_data_, fields_},
     fft_outdated_{true}
 {
+    setup_pen();
     setup_layout();
-
     setup_time_plot();
     setup_fft_plot();
     
@@ -397,9 +399,10 @@ void MainWindow::selectedFileChanged()
 
     for (const QString & field : time_graph_map_.keys()) {
         QCPGraph * graph = time_plot_->addGraph();
-        time_plot_->graph()->setData(time_series_[selected_file_]["time"],
+        graph->setData(time_series_[selected_file_]["time"],
                                 time_series_[selected_file_][field]);
-        time_plot_->graph()->setName(field);
+        graph->setName(field);
+        graph->setPen(pen[field]);
         time_graph_map_[field] = graph;
     }
 
@@ -414,22 +417,23 @@ void MainWindow::selectedFileChanged()
 void MainWindow::selectedFieldsChanged(int state)
 {
     QCheckBox * box = qobject_cast<QCheckBox *>(sender());
-    QString signal_name = box->text();
+    QString field = box->text();
 
     if (state == Qt::Checked) {
         QCPGraph * graph = time_plot_->addGraph();
-        time_plot_->graph()->setData(time_series_[selected_file_]["time"],
-                                time_series_[selected_file_][signal_name]);
-        time_plot_->graph()->setName(signal_name);
+        graph->setData(time_series_[selected_file_]["time"],
+                                time_series_[selected_file_][field]);
+        graph->setName(field);
+        graph->setPen(pen[field]);
         time_graph_map_.insert(box->text(), graph);
     } else if (state == Qt::Unchecked) {
-        QCPGraph * graph = time_graph_map_[signal_name];
+        QCPGraph * graph = time_graph_map_[field];
         time_plot_->removeGraph(graph);
-        time_graph_map_.remove(signal_name);
+        time_graph_map_.remove(field);
     }
 
     update_time_series_plot();
-//    update_fft_plot();
+    update_fft_plot();   // This is wasteful as it recomputes all FFT's
 }
 
 void MainWindow::lower_bound_changed(double bound)
@@ -614,8 +618,9 @@ void MainWindow::update_fft_plot()
         }
 
         QCPGraph * graph = fft_plot_->addGraph();
-        fft_plot_->graph()->setData(freqs, out_vec_abs);
-        fft_plot_->graph()->setName(field);
+        graph->setData(freqs, out_vec_abs);
+        graph->setName(field);
+        graph->setPen(pen[field]);
         fft_graph_map_[field] = graph;
     }
     for (int i = 0; i < plans.size(); ++i) fftw_destroy_plan(plans[i]);
@@ -647,6 +652,15 @@ void MainWindow::tab_changed(int index)
     }
 }
 
+void MainWindow::setup_pen()
+{
+    for (const auto & field : fields_) {
+        QPen graphPen;
+        graphPen.setColor(QColor(rand()%245+10, rand()%245+10, rand()%245+10));
+        pen.insert(field, graphPen);
+    }
+
+}
 
 } // namespace gui
 

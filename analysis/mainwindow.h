@@ -6,6 +6,7 @@
 #include <QString>
 #include <QVector>
 #include <QMap>
+#include <QPen>
 #include "qcustomplot.h"
 #include "sample.pb.h"
 #include "datawrangler.h"
@@ -47,6 +48,7 @@ private slots:
     void tab_changed(int);
 
 private:
+    void setup_pen();
     void setup_layout();
     void update_spin_boxes();
     void update_time_series_plot();
@@ -64,6 +66,9 @@ private:
 
     // Map between the currently selected file's time series fields and their FFT
     QMap<QString, QVector<std::complex<double>>> fft_data_;
+
+    // Map between the field names and the QPen used to draw them.
+    QMap<QString, QPen> pen;
 
     QListWidget * listwidget_;
     QTabWidget * tw_;
