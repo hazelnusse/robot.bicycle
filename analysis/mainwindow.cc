@@ -411,7 +411,8 @@ void MainWindow::selectedFileChanged()
     time_plot_->xAxis->setRange(t_min, t_max);
     update_spin_boxes();
     update_time_series_plot();
-//    update_fft_plot();
+    fft_outdated_ = true;
+    update_fft_plot();
 }
 
 void MainWindow::selectedFieldsChanged(int state)
@@ -427,13 +428,15 @@ void MainWindow::selectedFieldsChanged(int state)
         graph->setPen(pen[field]);
         time_graph_map_.insert(box->text(), graph);
     } else if (state == Qt::Unchecked) {
-        QCPGraph * graph = time_graph_map_[field];
-        time_plot_->removeGraph(graph);
+        time_plot_->removeGraph(time_graph_map_[field]);
         time_graph_map_.remove(field);
+        fft_plot_->removeGraph(fft_graph_map_[field]);
+        fft_graph_map_.remove(field);
     }
 
     update_time_series_plot();
-    update_fft_plot();   // This is wasteful as it recomputes all FFT's
+    fft_outdated_ = false;  // Indicate only the added field needs the FFT computed.
+    update_fft_plot();
 }
 
 void MainWindow::lower_bound_changed(double bound)
