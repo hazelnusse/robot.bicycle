@@ -401,7 +401,7 @@ void MainWindow::savedata()
 {
     const QVector<double> & t = time_series_[selected_file_]["time"];
     const double lb = t[i_lower_];
-    const double ub = t[i_upper_];
+    const double ub = t[i_upper_ - 1];
 
     QString file_contents = "time ";
     QString file_contents_fft = "freq ";
@@ -566,6 +566,8 @@ void MainWindow::update_fft_plot()
 {
     fft_plot_->clearGraphs();       // Clear plots
     fft_data_.clear();              // Clear FFT data
+    fft_data_mag_.clear();          // Clear FFT data
+    fft_data_mag_.clear();          // Clear FFT data
 
     const QMap<QString, QVector<double>> & data = time_series_[selected_file_];
     int N_real = length_;
