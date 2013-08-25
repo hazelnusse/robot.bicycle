@@ -50,6 +50,7 @@ private:
     void update_spin_boxes();
     void update_time_series_plot();
     void update_fft_plot();
+    static void write_file(const QString & filename, const QString & file_contents);
     QCustomPlot * time_plot_;
     QCustomPlot * fft_plot_;
     QList<QString> data_filenames_;

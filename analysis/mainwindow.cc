@@ -402,6 +402,7 @@ void MainWindow::savedata()
     const QVector<double> & t = time_series_[selected_file_]["time"];
     const double lb = t[i_lower_];
     const double ub = t[i_upper_ - 1];
+    QString suggested_dir_base = "/home/luke/repos/dissertation/data/";
 
     QString file_contents = "time ";
     QString file_contents_fft = "freq ";
@@ -413,8 +414,8 @@ void MainWindow::savedata()
     file_contents_fft.chop(1);
     QString description_mid = file_contents;
     QString description_mid_fft = file_contents_fft;
-    description_mid.replace(QString(" "), QString("_"));
-    description_mid_fft.replace(QString(" "), QString("_"));
+    description_mid.replace(QString(" "), QString("-"));
+    description_mid_fft.replace(QString(" "), QString("-"));
     
     file_contents.prepend("# Generated from " + selected_file_ + "\n");
     file_contents += "\n"; // Add newline
@@ -424,25 +425,21 @@ void MainWindow::savedata()
     QString file_contents_decimated = file_contents;
     QString file_contents_decimated_fft = file_contents_fft;
 
-    QString suggested_filename = selected_file_.split("/").last().split(".").first() + "_";
-    QString suggested_filename_fft = selected_file_.split("/").last().split(".").first() + "_";
+    QString suggested_filename = selected_file_.split("/").last().split(".").first() + "-";
+    QString suggested_filename_fft = selected_file_.split("/").last().split(".").first() + "-";
 
-    suggested_filename += description_mid + "_";
-    suggested_filename += QString::number(lb, 'f', 3) + "_" + QString::number(ub, 'f', 3) + ".dat";
-    suggested_filename_fft += description_mid_fft + "_";
-    suggested_filename_fft += QString::number(lb, 'f', 3) + "_" + QString::number(ub, 'f', 3) + "_fft.dat";
+    suggested_filename += description_mid + "-";
+    suggested_filename += QString::number(lb, 'f', 2) + "-" + QString::number(ub, 'f', 2) + ".txt";
+    suggested_filename_fft += description_mid_fft + "-";
+    suggested_filename_fft += QString::number(lb, 'f', 2) + "-" + QString::number(ub, 'f', 2) + "-fft.txt";
 
     QString filename = QFileDialog::getSaveFileName(this, tr("Save File"),
-            "/home/luke/repos/dissertation/images/" + suggested_filename, 
+            suggested_dir_base + suggested_filename, 
             tr("Data files (*.dat)"));
+    if (filename == "")
+        return;
     QString filename_decimated = filename;
-    filename_decimated.insert(filename.size() - 4, "_decimated");
-
-    QString filename_fft = QFileDialog::getSaveFileName(this, tr("Save FFT File"),
-            "/home/luke/repos/dissertation/images/" + suggested_filename_fft, 
-            tr("Data files (*.dat)"));
-    QString filename_decimated_fft = filename_fft;
-    filename_decimated_fft.insert(filename_fft.size() - 4, "_decimated");
+    filename_decimated.insert(filename.size() - 4, "-decimated");
 
     for (int i = i_lower_; i < i_upper_; ++i) {
         QString time = QString::number(time_series_[selected_file_]["time"][i]) + " ";
@@ -466,7 +463,19 @@ void MainWindow::savedata()
         file_contents += "\n";
     }
 
-    // Save FFT data
+    write_file(filename, file_contents);
+    write_file(filename_decimated, file_contents_decimated);
+
+    // Get FFT filename
+    QString filename_fft = QFileDialog::getSaveFileName(this, tr("Save FFT File"),
+            suggested_dir_base + suggested_filename_fft, 
+            tr("Data files (*.dat)"));
+    QString filename_decimated_fft = filename_fft;
+    filename_decimated_fft.insert(filename_fft.size() - 4, "_decimated");
+    if (filename_fft == "")
+        return;
+
+    // Get FFT data in string form
     for (int i = 0; i < fft_freqs_.size(); ++i) {
         QString freq = QString::number(fft_freqs_[i]) + " ";
         file_contents_fft += freq;
@@ -488,33 +497,8 @@ void MainWindow::savedata()
         file_contents_fft.chop(1);
         file_contents_fft += "\n";
     }
-
-    {
-        QFile file(filename);
-        file.open(QIODevice::WriteOnly);
-        QTextStream out(&file);
-        out << file_contents;
-    }
-    {
-        QFile file(filename_decimated);
-        file.open(QIODevice::WriteOnly);
-        QTextStream out(&file);
-        out << file_contents_decimated;
-    }
-    
-    {
-        QFile file(filename_fft);
-        file.open(QIODevice::WriteOnly);
-        QTextStream out(&file);
-        out << file_contents_fft;
-    }
-    {
-        QFile file(filename_decimated_fft);
-        file.open(QIODevice::WriteOnly);
-        QTextStream out(&file);
-        out << file_contents_decimated_fft;
-    }
-    
+    write_file(filename_fft, file_contents_fft);
+    write_file(filename_decimated_fft, file_contents_decimated_fft);
 }
 
 void MainWindow::update_spin_boxes()
@@ -658,6 +642,16 @@ void MainWindow::setup_pen()
     }
 
 }
+
+void MainWindow::write_file(const QString & filename, const QString & file_contents)
+{
+    QFile file(filename);
+    file.open(QIODevice::WriteOnly);
+    QTextStream out(&file);
+    out << file_contents;
+}
+
+
 
 } // namespace gui
 
