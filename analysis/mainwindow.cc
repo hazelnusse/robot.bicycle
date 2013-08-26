@@ -567,17 +567,8 @@ void MainWindow::update_fft_plot()
 
     fft_mag_max_ = std::numeric_limits<double>::min();
     for (const QString & field : time_graph_map_.keys()) {
-        // Copy the data to the input vector and compute the mean
-        double mean = 0.0;
-        const double * data_field_lower_bound = data[field].data() + i_lower_;
-        for (int i = 0; i < N_real; ++i) {
-            in[i] = data_field_lower_bound[i];
-            mean += in[i];
-        }
-        mean /= N_real;
-
-        for (int i = 0; i < N_real; ++i)
-            in[i] -= mean;
+        // Copy the data to the input vector
+        std::memcpy(in, data[field].data() + i_lower_, N_real * sizeof(double));
 
         // Build an FFT Plan
         fftw_plan p = fftw_plan_dft_r2c_1d(N_real,
@@ -593,25 +584,51 @@ void MainWindow::update_fft_plot()
         out_vec.reserve(N_complex); out_vec.resize(N_complex);
         std::memcpy(out_vec.data(), out, N_complex * sizeof(std::complex<double>));
         fft_data_.insert(field, out_vec);
+    }
+
+    {
+        // Compute FFT of steer torque
+        std::memcpy(in, data["T_s"].data() + i_lower_, N_real * sizeof(double));
+        // Build an FFT Plan
+        fftw_plan p = fftw_plan_dft_r2c_1d(N_real,
+                                           in,
+                                           reinterpret_cast<fftw_complex *>(out),
+                                           FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
+
+        // Execute the plan
+        fftw_execute(p);
+        plans.push_back(p);
+        QVector<std::complex<double>> out_vec;
+        out_vec.reserve(N_complex); out_vec.resize(N_complex);
+        std::memcpy(out_vec.data(), out, N_complex * sizeof(std::complex<double>));
+
         QVector<double> out_vec_mag;
         QVector<double> out_vec_phase;
         out_vec_mag.reserve(N_complex); out_vec_mag.resize(N_complex);
         out_vec_phase.reserve(N_complex); out_vec_phase.resize(N_complex);
-        for (int i = 0; i < N_complex; ++i) {
-            out_vec_mag[i] = std::abs(out_vec[i]) / N_complex;
-            out_vec_phase[i] = std::atan2(out_vec[i].imag(), out_vec[i].real()) / N_complex;
-            if (out_vec_mag[i] > fft_mag_max_)
-                fft_mag_max_ = out_vec_mag[i];
-        }
-        fft_data_mag_.insert(field, out_vec_mag);
-        fft_data_phase_.insert(field, out_vec_phase);
+        for  (const QString & field : time_graph_map_.keys()) {
+            // Scale selected field FFT by steer torque FFT
+            for (int i = 0; i < N_complex; ++i) {
+                fft_data_[field][i] /= out_vec[i];
+                out_vec_mag[i] = std::abs(fft_data_[field][i]);
+                out_vec_phase[i] = std::atan2(fft_data_[field][i].imag(),
+                                              fft_data_[field][i].real());
+                if (out_vec_mag[i] > fft_mag_max_)
+                    fft_mag_max_ = out_vec_mag[i];
+            }
 
-        QCPGraph * graph = fft_plot_->addGraph();
-        graph->setData(fft_freqs_, out_vec_mag);
-        graph->setName(field);
-        graph->setPen(pen[field]);
-        fft_graph_map_[field] = graph;
+            fft_data_mag_.insert(field, out_vec_mag);
+            fft_data_phase_.insert(field, out_vec_phase);
+
+            QCPGraph * graph_mag = fft_plot_->addGraph();
+            graph_mag->setData(fft_freqs_, out_vec_mag);
+            graph_mag->setName(field + "_mag");
+            graph_mag->setPen(pen[field]);
+            fft_graph_map_[field] = graph_mag;
+       }
+
     }
+
     for (int i = 0; i < plans.size(); ++i) fftw_destroy_plan(plans[i]);
     fftw_free(in); fftw_free(reinterpret_cast<fftw_complex *>(out));
 
