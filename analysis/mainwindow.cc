@@ -54,7 +54,7 @@ MainWindow::MainWindow(const QVector<QString> & data_filenames, QWidget *parent)
             "T_rw_desired", "T_s", "T_s_desired",
             "v", "v_c", "yr_c", "theta_r_dot_lb",
             "theta_r_dot_ub", "lean_est", "steer_est",
-            "lean_rate_est", "steer_rate_est", "yaw_rate_est"},
+            "lean_rate_est", "steer_rate_est", "yaw_rate_est", "hw_button"},
     dw_{proto_messages_, time_series_, time_series_meta_data_, fields_},
     fft_outdated_{true}
 {
@@ -435,7 +435,7 @@ void MainWindow::savedata()
 
     QString filename = QFileDialog::getSaveFileName(this, tr("Save File"),
             suggested_dir_base + suggested_filename, 
-            tr("Data files (*.dat)"));
+            tr("Data files (*.txt)"));
     if (filename == "")
         return;
     QString filename_decimated = filename;
@@ -469,7 +469,7 @@ void MainWindow::savedata()
     // Get FFT filename
     QString filename_fft = QFileDialog::getSaveFileName(this, tr("Save FFT File"),
             suggested_dir_base + suggested_filename_fft, 
-            tr("Data files (*.dat)"));
+            tr("Data files (*.txt)"));
     QString filename_decimated_fft = filename_fft;
     filename_decimated_fft.insert(filename_fft.size() - 4, "_decimated");
     if (filename_fft == "")

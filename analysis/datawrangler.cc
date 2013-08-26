@@ -12,6 +12,7 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include "datawrangler.h"
 #include "../firmware/src/constants.h"
+#include "../firmware/src/SystemState.h"
 
 namespace gui {
 
@@ -133,6 +134,7 @@ QMap<QString, QVector<double>> DataWrangler::to_time_series(const QVector<sample
         result["lean_rate_est"].push_back(s.estimate().lean_rate());
         result["steer_rate_est"].push_back(s.estimate().steer_rate());
         result["yaw_rate_est"].push_back(s.estimate().yaw_rate());
+        result["hw_button"].push_back((s.system_state() & systemstate::HWButton) ? 1 : 0);
     }
 
     return result;
