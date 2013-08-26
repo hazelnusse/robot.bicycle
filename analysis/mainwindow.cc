@@ -292,21 +292,17 @@ void MainWindow::setup_fft_plot()
     // box shall not be selectable, only legend items
     fft_plot_->legend->setSelectableParts(QCPLegend::spItems);
 
-    connect(fft_plot_, SIGNAL(selectionChangedByUser()),
-            this, SLOT(selectionChanged()));
 
     // Connect SIGNALS and SLOTS
-//    connect(fft_plot_, SIGNAL(selectionChangedByUser()),
-//            this, SLOT(selectionChanged()));
-//    connect(fft_plot_, SIGNAL(mousePress(QMouseEvent*)),
-//            this, SLOT(mousePress()));
-//    connect(fft_plot_, SIGNAL(mouseWheel(QWheelEvent*)),
-//            this, SLOT(mouseWheel()));
-//    connect(fft_plot_, SIGNAL(afterReplot()),
-//            this, SLOT(afterReplot()));
-//    // connect slot that shows a message in the status bar when a graph is clicked:
-//    connect(fft_plot_, SIGNAL(plottableClick(QCPAbstractPlottable *, QMouseEvent *)),
-//            this, SLOT(graphClicked(QCPAbstractPlottable *)));
+    connect(fft_plot_, SIGNAL(selectionChangedByUser()),
+            this, SLOT(selectionChanged()));
+    connect(fft_plot_, SIGNAL(mousePress(QMouseEvent*)),
+            this, SLOT(mousePress()));
+    connect(fft_plot_, SIGNAL(mouseWheel(QWheelEvent*)),
+            this, SLOT(mouseWheel()));
+    // connect slot that shows a message in the status bar when a graph is clicked:
+    connect(fft_plot_, SIGNAL(plottableClick(QCPAbstractPlottable *, QMouseEvent *)),
+            this, SLOT(graphClicked(QCPAbstractPlottable *)));
 }
 
 void MainWindow::populate_listwidget()
