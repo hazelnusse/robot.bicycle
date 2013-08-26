@@ -8,6 +8,8 @@ find_package(Eigen3 3.1.2)
 find_package(Qt4 REQUIRED QtCore QtGui)
 find_package(FFTW3 REQUIRED)
 include(${QT_USE_FILE})
+set(CMAKE_THREAD_PREFER_PTHREAD ON)
+find_package(Threads REQUIRED)
 
 if (DEFINED MATLAB_ROOT)
   find_package(Matlab)
