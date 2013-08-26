@@ -1,0 +1,94 @@
+package sample;
+
+message Sample {
+  required uint32 system_time = 1;           //  4 bytes
+  required uint32 computation_time = 2;      //  4 bytes **
+  required uint32 system_state = 3;          //  4 bytes **
+  required Encoder encoder = 4;              // 16 bytes
+  required SetPoint set_point = 5;           //  8 bytes
+  required MotorTorque motor_torque = 6;     // 16 bytes
+
+  optional InvensenseMPU6050 mpu6050 = 7;    // 28 bytes
+  optional Estimator estimate = 8;           // 24 bytes
+  optional PIController yaw_rate_pi = 9;     // 28 bytes
+  optional PIController wheel_rate_pi = 12;  // 28 bytes
+  optional Threshold threshold = 11;         //  8 bytes
+  optional GyroLean gyro_lean = 13;
+  optional uint32 bike_state = 14;
+
+  required uint32 loop_count = 10;           // loop count
+                                   // Total:   172 bytes
+  // ** The following fields store information from the previous time step:
+  //   - computation_time
+  //   - system_state::FileSystemWriteTriggered bit
+  //   - system_state::SampleBufferEncodeError bit
+}
+
+// Size: 7 * 4 = 28 bytes
+message InvensenseMPU6050 {
+  required float accelerometer_x = 1;
+  required float accelerometer_y = 2;
+  required float accelerometer_z = 3;
+  required float temperature = 4;
+  required float gyroscope_x = 5;
+  required float gyroscope_y = 6;
+  required float gyroscope_z = 7;
+}
+
+// Size: 4 * 6 = 24 bytes
+message Encoder {
+  required uint32 rear_wheel_count = 1;
+  required float rear_wheel = 2;
+  required float steer = 3;
+  required float steer_rate = 6;
+  required float front_wheel = 4;
+  required float rear_wheel_rate = 5;
+}
+
+// Size: 2 * 4 = 8 bytes
+message MotorTorque {
+  required float rear_wheel = 1;
+  required float steer = 2;
+  required float desired_rear_wheel = 3;
+  required float desired_steer = 4;
+}
+
+// Size: 2 * 4 = 8 bytes
+message SetPoint {
+  required float theta_r_dot = 1;
+  required float yaw_rate = 2;
+}
+
+// Size: 4 * 4 = 16 bytes
+message Estimator {
+  required float theta_r_dot_lower = 1;
+  required float theta_r_dot_upper = 2;
+  required float lean = 3;
+  required float steer = 4;
+  required float lean_rate = 5;
+  required float steer_rate = 6;
+  required float yaw_rate = 7;
+}
+
+// Size: 7 * 4 = 28 bytes
+message PIController {
+  required float x = 1;
+  required float e = 2;
+  required float e_s = 3;
+  required float K = 4;
+  required float Ti = 5;
+  required float Tt = 6;
+  required float dt = 7;
+}
+
+// Size: 2 * 4 = 8 bytes
+message Threshold {
+  required float estimation = 1;
+  required float control = 2;
+}
+
+// Size: 2 * 4 = 8 bytes
+message GyroLean {
+  required float angle = 1;
+  required bool startup = 2;
+}
