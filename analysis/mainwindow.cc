@@ -567,13 +567,25 @@ void MainWindow::update_fft_plot()
 
     double max = std::numeric_limits<double>::min();
     for (const QString & field : time_graph_map_.keys()) {
-        // Copy the data into the input vector
-        std::memcpy(in, data[field].data() + i_lower_, N_real * sizeof(double));
+        // Copy the data to the input vector and compute the mean
+        double mean = 0.0;
+        const double * data_field_lower_bound = data[field].data() + i_lower_;
+        for (int i = 0; i < N_real; ++i) {
+            in[i] = data_field_lower_bound[i];
+            mean += in[i];
+        }
+        mean /= N_real;
+
+        for (int i = 0; i < N_real; ++i)
+            in[i] -= mean;
+
+        // Build an FFT Plan
         fftw_plan p = fftw_plan_dft_r2c_1d(N_real,
                                            in,
                                            reinterpret_cast<fftw_complex *>(out),
                                            FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
+        // Execute the plan
         fftw_execute(p);
         plans.push_back(p);
 
