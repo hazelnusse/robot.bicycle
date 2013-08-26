@@ -40,8 +40,8 @@ private slots:
     void selectedFileChanged();
     void lower_bound_changed(double);
     void upper_bound_changed(double);
-    void reset_time_axis();
-    void reset_y_axis();
+    void reset_horizontal_axis();
+    void reset_vertical_axis();
     void tab_changed(int);
 
 private:
@@ -67,6 +67,7 @@ private:
     QMap<QString, QVector<double>> fft_data_mag_;
     QMap<QString, QVector<double>> fft_data_phase_;
     QVector<double> fft_freqs_;
+    double fft_mag_max_;
 
     // Map between the field names and the QPen used to draw them.
     QMap<QString, QPen> pen;

@@ -209,12 +209,12 @@ void MainWindow::setup_layout()
     QPushButton * savebutton = new QPushButton("&Save PDF");
     connect(savebutton, SIGNAL(clicked()), this, SLOT(savePDF()));
     hr->addWidget(savebutton);
-    QPushButton * reset_t_button = new QPushButton("Reset &horizontal axis");
-    connect(reset_t_button, SIGNAL(clicked()), this, SLOT(reset_time_axis()));
-    hr->addWidget(reset_t_button);
-    QPushButton * reset_y_button = new QPushButton("Reset &vertical axis");
-    connect(reset_y_button, SIGNAL(clicked()), this, SLOT(reset_y_axis()));
-    hr->addWidget(reset_y_button);
+    QPushButton * reset_horizontal_button = new QPushButton("Reset &horizontal axis");
+    connect(reset_horizontal_button, SIGNAL(clicked()), this, SLOT(reset_horizontal_axis()));
+    hr->addWidget(reset_horizontal_button);
+    QPushButton * reset_vertical_button = new QPushButton("Reset &vertical axis");
+    connect(reset_vertical_button, SIGNAL(clicked()), this, SLOT(reset_vertical_axis()));
+    hr->addWidget(reset_vertical_button);
 
     t_lower_spin_box_ = new QDoubleSpinBox;
     t_lower_spin_box_->setSuffix(" s");
@@ -565,7 +565,7 @@ void MainWindow::update_fft_plot()
     std::complex<double> * out = static_cast<std::complex<double> *>(
             fftw_malloc(sizeof(std::complex<double>) * N_complex));
 
-    double max = std::numeric_limits<double>::min();
+    fft_mag_max_ = std::numeric_limits<double>::min();
     for (const QString & field : time_graph_map_.keys()) {
         // Copy the data to the input vector and compute the mean
         double mean = 0.0;
@@ -600,8 +600,8 @@ void MainWindow::update_fft_plot()
         for (int i = 0; i < N_complex; ++i) {
             out_vec_mag[i] = std::abs(out_vec[i]) / N_complex;
             out_vec_phase[i] = std::atan2(out_vec[i].imag(), out_vec[i].real()) / N_complex;
-            if (out_vec_mag[i] > max)
-                max = out_vec_mag[i];
+            if (out_vec_mag[i] > fft_mag_max_)
+                fft_mag_max_ = out_vec_mag[i];
         }
         fft_data_mag_.insert(field, out_vec_mag);
         fft_data_phase_.insert(field, out_vec_phase);
@@ -616,22 +616,30 @@ void MainWindow::update_fft_plot()
     fftw_free(in); fftw_free(reinterpret_cast<fftw_complex *>(out));
 
     fft_plot_->xAxis->setRange(fft_freqs_.first(), fft_freqs_.last());
-    fft_plot_->yAxis->setRange(0, max);
+    fft_plot_->yAxis->setRange(0, fft_mag_max_);
     fft_plot_->replot();
     fft_outdated_ = false;
 }
 
-void MainWindow::reset_time_axis()
+void MainWindow::reset_horizontal_axis()
 {
     const double t_min = *time_series_[selected_file_]["time"].begin();
     const double t_max = *(time_series_[selected_file_]["time"].end() - 1);
     time_plot_->xAxis->setRange(t_min, t_max);
     time_plot_->replot();
+    fft_plot_->xAxis->setRange(0, 1.0 / (2.0 * constants::loop_period_s));
+    fft_plot_->replot();
 }
 
-void MainWindow::reset_y_axis()
+void MainWindow::reset_vertical_axis()
 {
     update_time_series_plot();
+
+    // TODO:
+    // Compute maximum over selected frequency range, and use that instead of
+    // the maximum over the whole frequency range.
+    fft_plot_->yAxis->setRange(0, fft_mag_max_);
+    fft_plot_->replot();
 }
 
 void MainWindow::tab_changed(int index)
