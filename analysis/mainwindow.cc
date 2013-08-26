@@ -635,11 +635,7 @@ void MainWindow::reset_vertical_axis()
 {
     update_time_series_plot();
 
-    // TODO:
-    // Compute maximum over selected frequency range, and use that instead of
-    // the maximum over the whole frequency range.
-    fft_plot_->yAxis->setRange(0, fft_mag_max_);
-    fft_plot_->replot();
+    update_fft_vertical_range();
 }
 
 void MainWindow::tab_changed(int index)
@@ -665,6 +661,40 @@ void MainWindow::write_file(const QString & filename, const QString & file_conte
     file.open(QIODevice::WriteOnly);
     QTextStream out(&file);
     out << file_contents;
+}
+
+void MainWindow::update_fft_vertical_range()
+{
+    QCPRange range = fft_plot_->xAxis->range();
+    double f_min = range.lower,
+           f_max = range.upper;
+
+    const QVector<double> & f = fft_freqs_;
+    // lower_bound returns the *first* element that is >= range.lower
+    const double *lb = std::lower_bound(f.begin(), f.end(), f_min);
+    if (lb != f.begin()) // Include the point just below
+        lb -= 1;         // Also fixes the case when lb==t.end()
+    // upper_bound returns the *first* element that is > range.upper
+    const double *ub = std::upper_bound(f.begin(), f.end(), f_max);
+    if (ub == f.end())   // Fixes case when up==t.end()
+        ub -= 1;      
+    // at this point, ub and lb can be safely dereferenced to point to elements
+    // inside the frequency array.
+    int fft_i_lower = f.indexOf(*lb);
+    int fft_i_upper = f.indexOf(*ub);
+    int length = fft_i_upper - fft_i_lower + 1;
+    // Now find maximum frequency over the range we are looking at
+    double y_min = std::numeric_limits<double>::max(),
+           y_max = std::numeric_limits<double>::min();
+
+    for (const auto & s : fft_graph_map_.keys()) {
+        const QVector<double> signal = fft_data_mag_[s].mid(fft_i_lower, length);
+        gui::MetaData md = gui::MetaData(signal);
+        y_min = std::min(y_min, md.min_);
+        y_max = std::max(y_max, md.max_);
+    }
+    fft_plot_->yAxis->setRange(y_min, y_max);
+    fft_plot_->replot();
 }
 
 
