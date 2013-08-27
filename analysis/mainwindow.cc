@@ -219,10 +219,12 @@ void MainWindow::setup_layout()
     t_lower_spin_box_ = new QDoubleSpinBox;
     t_lower_spin_box_->setSuffix(" s");
     t_lower_spin_box_->setSingleStep(0.25);
+    t_lower_spin_box_->setDecimals(3);
     hr->addWidget(t_lower_spin_box_);
     t_upper_spin_box_ = new QDoubleSpinBox;
     t_upper_spin_box_->setSuffix(" s");
     t_upper_spin_box_->setSingleStep(0.25);
+    t_upper_spin_box_->setDecimals(3);
     hr->addWidget(t_upper_spin_box_);
 
     QPushButton * savedatabutton = new QPushButton("Save &data");
@@ -397,7 +399,7 @@ void MainWindow::savedata()
 {
     const QVector<double> & t = time_series_[selected_file_]["time"];
     const double lb = t[i_lower_];
-    const double ub = t[i_upper_ - 1];
+    const double ub = t[i_upper_];
     QString suggested_dir_base = "/home/luke/repos/dissertation/data/";
 
     QString file_contents = "time ";
@@ -437,14 +439,14 @@ void MainWindow::savedata()
     QString filename_decimated = filename;
     filename_decimated.insert(filename.size() - 4, "-decimated");
 
-    for (int i = i_lower_; i < i_upper_; ++i) {
-        QString time = QString::number(time_series_[selected_file_]["time"][i]) + " ";
+    for (int i = 0; i < length_; ++i) {
+        QString time = QString::number(time_series_[selected_file_]["time"][i + i_lower_]) + " ";
         file_contents += time;
         if (i % 4 == 0)
             file_contents_decimated += time;
 
         for (auto field : time_graph_map_.keys()) {
-            QString sample = QString::number(time_series_[selected_file_][field][i]) + " ";
+            QString sample = QString::number(time_series_[selected_file_][field][i + i_lower_]) + " ";
             file_contents += sample;
             if (i % 4 == 0) {
                 file_contents_decimated += sample;
@@ -510,7 +512,7 @@ void MainWindow::update_spin_boxes()
         lb -= 1;         // Also fixes the case when lb==t.end()
     // upper_bound returns the *first* element that is > range.upper
     const double *ub = std::upper_bound(t.begin(), t.end(), range.upper);
-    if (ub == t.end())   // Fixes case when up==t.end()
+    if (ub != t.begin())   // Fixes case when up==t.end()
         ub -= 1;      
     // at this point, ub and lb can be safely dereferenced to point to elements
     // inside the time array.
@@ -537,6 +539,7 @@ void MainWindow::update_time_series_plot()
         gui::MetaData md = gui::MetaData(signal);
         y_min = std::min(y_min, md.min_);
         y_max = std::max(y_max, md.max_);
+        qDebug() << "Signal " << s << "mean = " << md.mean_ << ", std = " << md.std_ << "\n";
     }
     time_plot_->yAxis->setRange(y_min, y_max);
     time_plot_->replot();
@@ -555,10 +558,10 @@ void MainWindow::update_fft_plot()
      // save plans until we have computed all fft's, this makes fftw use
      // "wisdom" and should help keep things fast
     QVector<fftw_plan> plans;
-    fft_freqs_.clear(); fft_freqs_.reserve(N_complex);
+    fft_freqs_.clear(); fft_freqs_.reserve(N_complex); fft_freqs_.resize(N_complex);
     double f_sample = 1.0 / constants::loop_period_s;
     for (int i = 0; i < N_complex; ++i)
-        fft_freqs_.push_back(i * f_sample / N_real);
+        fft_freqs_[i] = i * f_sample / N_real;
 
     double * in = static_cast<double *>(
             fftw_malloc(sizeof(double) * N_real));
