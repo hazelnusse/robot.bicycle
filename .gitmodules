@@ -1,9 +1,9 @@
 [submodule "Singleton"]
 	path = firmware/Singleton
 	url = git://github.com/hazelnusse/Singleton.git
-[submodule "ChibiOS-RT"]
-	path = firmware/ChibiOS-RT
-	url = git://github.com/ChibiOS-Upstream/ChibiOS-RT.git
 [submodule "firmware/nanopb"]
 	path = firmware/nanopb
 	url = https://code.google.com/p/nanopb
+[submodule "firmware/ChibiOS"]
+	path = firmware/ChibiOS
+	url = https://github.com/oliverlee/ChibiOS.git

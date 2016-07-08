@@ -64,7 +64,7 @@ PROJECT = robot.bike
 PROJECTDIR = .
 
 # Imported source files and paths
-CHIBIOS = ./ChibiOS-RT
+CHIBIOS = ./ChibiOS
 include $(PROJECTDIR)/board/board.mk
 include $(CHIBIOS)/os/hal/platforms/STM32F4xx/platform.mk
 include $(CHIBIOS)/os/hal/hal.mk
