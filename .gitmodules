@@ -3,7 +3,7 @@
 	url = git://github.com/hazelnusse/Singleton.git
 [submodule "firmware/nanopb"]
 	path = firmware/nanopb
-	url = https://code.google.com/p/nanopb
+	url = https://github.com/nanopb/nanopb.git
 [submodule "firmware/ChibiOS"]
 	path = firmware/ChibiOS
 	url = https://github.com/oliverlee/ChibiOS.git
