@@ -68,7 +68,7 @@ constexpr control::Matrix<float, 3, 3> dcm_sensor_to_lean = {{
 //                      0.997939373875708f,
 //                      0.0202846750691697f};
 
-constexpr int32_t fork_encoder_index_offset = -402;
+constexpr int32_t fork_encoder_index_offset = -391;
 
 constexpr uint8_t loop_period_ms = 5;
 constexpr float loop_period_s = loop_period_ms * 0.001f;
